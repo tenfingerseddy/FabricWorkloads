@@ -14,7 +14,16 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 
-# Service Principal credentials (set via notebook parameters or Key Vault)
+# Authentication: Try mssparkutils (Fabric-native) first, fall back to spark.conf
+USE_FABRIC_NATIVE_AUTH = True
+try:
+    import mssparkutils
+    print("Using Fabric-native authentication (mssparkutils)")
+except ImportError:
+    USE_FABRIC_NATIVE_AUTH = False
+    print("mssparkutils not available, falling back to service principal")
+
+# Service Principal credentials (only needed if mssparkutils unavailable)
 TENANT_ID = spark.conf.get("spark.obs.tenantId", "")
 CLIENT_ID = spark.conf.get("spark.obs.clientId", "")
 CLIENT_SECRET = spark.conf.get("spark.obs.clientSecret", "")
@@ -36,7 +45,9 @@ print(f"[{datetime.now(timezone.utc).isoformat()}] NB_ObsIngestion starting")
 # ─────────────────────────────────────────────────────────────────────────────
 
 def get_fabric_token():
-    """Acquire Fabric API access token via client credentials."""
+    """Acquire Fabric API access token."""
+    if USE_FABRIC_NATIVE_AUTH:
+        return mssparkutils.credentials.getToken("https://api.fabric.microsoft.com")
     url = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
     data = {
         "client_id": CLIENT_ID,
@@ -50,6 +61,8 @@ def get_fabric_token():
 
 def get_kusto_token():
     """Acquire Kusto/Eventhouse access token."""
+    if USE_FABRIC_NATIVE_AUTH:
+        return mssparkutils.credentials.getToken(KUSTO_URI)
     url = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
     data = {
         "client_id": CLIENT_ID,
