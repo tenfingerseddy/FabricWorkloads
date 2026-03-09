@@ -1,6 +1,6 @@
 node_modules/
 dist/
-build/
+/build/
 data/
 coverage/
 *.log
@@ -13,3 +13,4 @@ coverage/
 workload/dist/
 *.tgz
 *.nupkg
+tools/

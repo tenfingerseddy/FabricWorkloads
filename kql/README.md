@@ -8,7 +8,7 @@ A collection of production-ready KQL queries for monitoring Microsoft Fabric wor
 
 | File | Queries | Purpose |
 |------|---------|---------|
-| `community-query-pack.kql` | 20 | **Start here.** Standalone, copy-paste-ready queries organized by category. Designed for sharing and independent use. |
+| `community-query-pack.kql` | 25 | **Start here.** Standalone, copy-paste-ready queries organized by category. Designed for sharing and independent use. |
 | `dashboard-queries.kql` | 7 | Core dashboard: success rates, duration trends, heatmaps, stale items |
 | `slo-queries.kql` | 5 | SLO framework: success rate, duration, freshness, error budgets, CU waste |
 | `correlation-queries.kql` | 6 | Cross-item dependency analysis: pipeline chains, blast radius, partial failures |
@@ -40,7 +40,7 @@ WorkspaceInventory    -- Item inventory cache
 AlertLog              -- Alert history
 ```
 
-The minimum table for the community query pack is `FabricEvents`. All 20 queries work against this single table.
+The minimum table for the community query pack is `FabricEvents`. All 25 queries work against this single table.
 
 ### Step 2: Populate the FabricEvents Table
 
@@ -161,6 +161,23 @@ Single-pane view combining success rate, freshness, and duration SLOs. Each item
 
 **Query 20 -- Error Budget Burn Rate Forecast**
 Projects when each item's error budget will be exhausted at the current burn rate. Items with "ExhaustedInHours" < 24 need immediate attention. This is the proactive "likely to breach" early warning.
+
+### Category 6: Operations Intelligence
+
+**Query 21 -- Workspace Comparison**
+Side-by-side health metrics across workspaces: total jobs, success rate, average duration, failures. Identifies which environments need attention. Useful for dev/test/prod comparison.
+
+**Query 22 -- Job Execution Gaps**
+Detects items that have missed their expected scheduled window. Compares the gap between the last run and the historical average interval. CRITICAL = 3x overdue, OVERDUE = 2x, LATE = 1.5x.
+
+**Query 23 -- Retry Effectiveness**
+Measures whether retries are actually recovering or just wasting CUs. For items with failures followed by runs within 30 minutes, calculates the retry success rate and counts wasted retries.
+
+**Query 24 -- Item Dependency Map**
+Temporal co-occurrence detection. Finds items that consistently start within 5 minutes of each other in the same workspace, suggesting undocumented dependency relationships. Confidence rated HIGH/MEDIUM/LOW.
+
+**Query 25 -- Weekly Executive Summary**
+Single-row summary for weekly reports: total jobs, success rate, worst-performing item, busiest day, and estimated CU-hours. Copy-paste into a Teams message or email.
 
 ## Customization Guide
 

@@ -88,7 +88,9 @@ export function loadConfig(): AppConfig {
       scope: "https://api.fabric.microsoft.com/.default",
       grantType: "client_credentials",
       kqlEndpoint:
-        "https://trd-vr0t78ut6v8as8zp09.z0.kusto.fabric.microsoft.com",
+        process.env.EVENTHOUSE_QUERY_ENDPOINT ??
+        process.env.KQL_QUERY_ENDPOINT ??
+        "",
     },
     kql: {
       queryEndpoint: kqlQueryEndpoint,

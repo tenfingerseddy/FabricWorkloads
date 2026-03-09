@@ -773,6 +773,178 @@ FabricEvents
 | order by ExhaustedInHours asc
 
 
+// --------------------------------------------------------------------------
+// Query 21: Workspace Comparison — Side-by-Side Health Metrics
+//
+// Compares key health metrics across workspaces to identify which environments
+// need attention. Useful for teams managing dev/test/prod workspaces.
+//
+// Sample output:
+//   WorkspaceName    | TotalJobs | SuccessRate | AvgDuration | FailedJobs
+//   FrameworkProd    | 450       | 98.2%       | 4m 12s      | 8
+//   FrameworkTesting | 312       | 91.0%       | 6m 45s      | 28
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| summarize
+    TotalJobs = count(),
+    Succeeded = countif(Status == "Completed"),
+    Failed = countif(Status == "Failed"),
+    AvgDurationMs = avg(datetime_diff("millisecond", EndTimeUtc, StartTimeUtc))
+    by WorkspaceName
+| extend SuccessRate = round(todouble(Succeeded) / TotalJobs * 100, 1)
+| extend AvgDurationFormatted = strcat(toint(AvgDurationMs / 60000), "m ", toint((AvgDurationMs % 60000) / 1000), "s")
+| project WorkspaceName, TotalJobs, SuccessRate, AvgDurationFormatted, Failed
+| order by SuccessRate asc
+
+
+// --------------------------------------------------------------------------
+// Query 22: Job Execution Gaps — Detect Missing Scheduled Runs
+//
+// Identifies items that usually run on a regular schedule but have missed
+// their expected window. Compares the gap between recent runs to the
+// historical average interval.
+//
+// Sample output:
+//   ItemName        | AvgIntervalHrs | LastRunHoursAgo | ExpectedBy       | Status
+//   PL_DailyRefresh | 24.2           | 49.1            | 2h ago           | OVERDUE
+// --------------------------------------------------------------------------
+let LookbackDays = 14;
+FabricEvents
+| where StartTimeUtc > ago(14d)
+| where Status in ("Completed", "Failed")
+| summarize
+    RunCount = count(),
+    LastRun = max(StartTimeUtc),
+    FirstRun = min(StartTimeUtc)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| where RunCount >= 3
+| extend TotalSpanHours = datetime_diff("hour", LastRun, FirstRun)
+| extend AvgIntervalHrs = round(todouble(TotalSpanHours) / (RunCount - 1), 1)
+| extend HoursSinceLastRun = round(datetime_diff("minute", now(), LastRun) / 60.0, 1)
+| extend GapRatio = HoursSinceLastRun / AvgIntervalHrs
+| where GapRatio > 1.5
+| extend Status = case(GapRatio > 3.0, "CRITICAL", GapRatio > 2.0, "OVERDUE", "LATE")
+| project ItemName, ItemType, WorkspaceName, AvgIntervalHrs, HoursSinceLastRun, GapRatio = round(GapRatio, 1), Status
+| order by GapRatio desc
+
+
+// --------------------------------------------------------------------------
+// Query 23: Retry Effectiveness — Are Retries Actually Helping?
+//
+// For items that have both failures and subsequent successes, measures whether
+// retries are recovering or just wasting CUs. Groups by item and checks if
+// failures are followed by successes within a time window.
+//
+// Sample output:
+//   ItemName     | Failures | RetriesSucceeded | RetrySuccessRate | WastedRetries
+//   NB_Fragile   | 12       | 8                | 66.7%            | 4
+// --------------------------------------------------------------------------
+let RetryWindow = 30m;
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed")
+| order by ItemId, StartTimeUtc asc
+| serialize
+| extend NextStatus = next(Status), NextItem = next(ItemId), NextStart = next(StartTimeUtc)
+| where Status == "Failed"
+| where NextItem == ItemId
+| where datetime_diff("minute", NextStart, StartTimeUtc) <= 30
+| summarize
+    Failures = count(),
+    RetriesSucceeded = countif(NextStatus == "Completed"),
+    RetriesFailed = countif(NextStatus == "Failed")
+    by ItemId, ItemName, ItemType, WorkspaceName
+| extend RetrySuccessRate = round(todouble(RetriesSucceeded) / Failures * 100, 1)
+| project ItemName, ItemType, WorkspaceName, Failures, RetriesSucceeded, RetrySuccessRate, WastedRetries = RetriesFailed
+| order by WastedRetries desc
+
+
+// --------------------------------------------------------------------------
+// Query 24: Item Dependency Map — Temporal Co-occurrence Detection
+//
+// Detects items that consistently start within a narrow time window of each
+// other, suggesting a dependency relationship. Useful for discovering
+// undocumented pipeline-to-notebook or notebook-to-refresh chains.
+//
+// Sample output:
+//   ItemA            | ItemB              | CoOccurrences | AvgGapSeconds | Confidence
+//   PL_DailyIngest   | NB_Transform       | 28            | 12.4          | HIGH
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed")
+| project ItemId, ItemName, ItemType, StartTimeUtc, WorkspaceName
+| join kind=inner (
+    FabricEvents
+    | where StartTimeUtc > ago(7d)
+    | where Status in ("Completed", "Failed")
+    | project ItemId2 = ItemId, ItemName2 = ItemName, ItemType2 = ItemType, StartTimeUtc2 = StartTimeUtc, WorkspaceName2 = WorkspaceName
+) on $left.WorkspaceName == $right.WorkspaceName2
+| where ItemId != ItemId2
+| where StartTimeUtc < StartTimeUtc2
+| extend GapSeconds = datetime_diff("second", StartTimeUtc2, StartTimeUtc)
+| where GapSeconds between (1 .. 300)
+| summarize
+    CoOccurrences = count(),
+    AvgGapSeconds = round(avg(GapSeconds), 1),
+    MinGap = min(GapSeconds),
+    MaxGap = max(GapSeconds)
+    by ItemName, ItemType, ItemName2, ItemType2, WorkspaceName
+| where CoOccurrences >= 3
+| extend Confidence = case(CoOccurrences >= 20 and AvgGapSeconds < 30, "HIGH", CoOccurrences >= 10, "MEDIUM", "LOW")
+| project ItemA = ItemName, TypeA = ItemType, ItemB = ItemName2, TypeB = ItemType2, CoOccurrences, AvgGapSeconds, Confidence
+| order by CoOccurrences desc
+
+
+// --------------------------------------------------------------------------
+// Query 25: Weekly Executive Summary — One-Glance Workspace Health
+//
+// Produces a single-row summary suitable for weekly reports or dashboards.
+// Gives total jobs, success rate, worst-performing item, busiest day,
+// and estimated CU consumption for the past 7 days.
+//
+// Sample output:
+//   TotalJobs | SuccessRate | WorstItem      | BusiestDay | EstCuHours
+//   1247      | 96.8%       | NB_LongRunning | Wednesday  | 42.3
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| summarize
+    TotalJobs = count(),
+    Succeeded = countif(Status == "Completed"),
+    Failed = countif(Status == "Failed"),
+    TotalDurationMs = sum(datetime_diff("millisecond", EndTimeUtc, StartTimeUtc))
+| extend SuccessRate = round(todouble(Succeeded) / TotalJobs * 100, 1)
+| extend EstCuHours = round(todouble(TotalDurationMs) / 3600000.0, 1)
+| join kind=leftouter (
+    FabricEvents
+    | where StartTimeUtc > ago(7d)
+    | where Status == "Failed"
+    | summarize FailCount = count() by ItemName
+    | top 1 by FailCount desc
+    | project WorstItem = ItemName
+) on $left.TotalJobs == $left.TotalJobs
+| join kind=leftouter (
+    FabricEvents
+    | where StartTimeUtc > ago(7d)
+    | extend DayOfWeek = dayofweek(StartTimeUtc)
+    | summarize DayCount = count() by DayOfWeek
+    | top 1 by DayCount desc
+    | extend BusiestDay = case(
+        DayOfWeek == 0d, "Sunday",
+        DayOfWeek == 1d, "Monday",
+        DayOfWeek == 2d, "Tuesday",
+        DayOfWeek == 3d, "Wednesday",
+        DayOfWeek == 4d, "Thursday",
+        DayOfWeek == 5d, "Friday",
+        "Saturday"
+      )
+    | project BusiestDay
+) on $left.TotalJobs == $left.TotalJobs
+| project TotalJobs, SuccessRate, Failed, WorstItem, BusiestDay, EstCuHours
+
+
 // ==========================================================================
 // END OF COMMUNITY QUERY PACK
 //

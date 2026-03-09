@@ -9,23 +9,25 @@
 
 ---
 
-## Progress Tracker (Updated Mar 10)
+## Progress Tracker (Updated Mar 10, end of day)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| B1: Incident Timeline | DONE | IncidentTimeline.tsx + TimelineNode.tsx + SCSS. Wired into dashboard. Committed + pushed. |
-| C1: Event Search | DONE | EventSearch.tsx + SCSS. Wired into dashboard with toolbar search button. Committed + pushed. |
-| F1: KQL Integration Tests | DONE | 18 tests in kql-client.test.ts. Query, mgmt, retry, injection, batching, token caching. Total: 205 tests. |
-| H3: Hardcoded URLs (security) | IN PROGRESS | Security agent working on replacing hardcoded Eventhouse URLs with env vars. |
-| H7: Stack traces (security) | DONE | errors.ts utility with typed errors, sanitized responses, redactSensitive(). Backend agent verifying controller usage. |
-| escapeKql hardening | DONE | Backtick, `<\|` marker, control char sanitization ported to src/kql-client.ts |
-| D1: Blog publishing | IN PROGRESS | Content agent reviewing all 5 dev.to posts for publishing readiness. |
-| Design partner outreach | IN PROGRESS | Growth agent creating email templates, one-pager, community post templates. |
-| A1: DevGateway | NOT STARTED | Blocked on Node v20 local setup |
-| A2: Live KQL in iframe | NOT STARTED | kqlQueryService.ts complete and ready. Blocked on A1. |
-| D2: README polish | PARTIAL | Updated test badge (205), architecture diagram added previously. Needs screenshots. |
-| E1: Landing page | NOT STARTED | |
-| F2: Node v24 fix | NOT STARTED | |
+| B1: Incident Timeline | DONE | IncidentTimeline.tsx + TimelineNode.tsx + SCSS. Wired into dashboard. |
+| C1: Event Search | DONE | EventSearch.tsx + SCSS. Wired into dashboard with toolbar search button. |
+| F1: KQL Integration Tests | DONE | 18 KQL tests + 29 config tests + 9 scheduler tests = 243 total tests (8 files). |
+| F2: Node v20 pinning | DONE | .nvmrc + Volta config. |
+| H3: Hardcoded URLs (security) | DONE | 19 files remediated. Last hardcoded URL in config.ts also fixed. |
+| H7: Stack traces (security) | DONE | errors.ts utility, sanitized responses in all controllers/hooks. |
+| escapeKql hardening | DONE | Backtick, `<\|` marker, control char sanitization in src/kql-client.ts. |
+| D1: Blog publishing | IN PROGRESS | 4 blog fixes committed (descriptions, series links, cover_image). Agents writing Blog 02 + Blog 05. |
+| Design partner outreach | DONE | Email templates, one-pager, community post templates committed. |
+| D2: README polish | IN PROGRESS | Agent rewriting. |
+| E1: Landing page | IN PROGRESS | Agent redesigning with modern layout, signup form, feature grid. |
+| A1: DevGateway | IN PROGRESS | Agent auditing prerequisites + writing getting-started guide. Interactive setup needed. |
+| A2: Live KQL in iframe | NOT STARTED | kqlQueryService.ts ready. Blocked on A1 interactive steps. |
+| Sprint 05 planning | IN PROGRESS | Agent drafting plan. |
+| Code quality audit | IN PROGRESS | Agent reviewing workload frontend for issues. |
 
 ---
 
@@ -42,7 +44,7 @@ Sprint 04 takes the product from "functional backend + scaffolded frontend" to "
 | Component | State | Notes |
 |-----------|-------|-------|
 | CLI Tool | Working | Auth, collector, KQL ingestion, dashboard, alerts, scheduler, waste score |
-| Tests | 205 passing (6 files) | Unit tests via Vitest; CI green. Includes KQL client test suite added Mar 10 |
+| Tests | 243 passing (8 files) | Unit tests via Vitest; CI green. Config + scheduler tests added Mar 10 |
 | KQL Tables | 6 tables | FabricEvents (137 events), SloSnapshots (88), AlertRules (52 alerts), EventCorrelations (8), SloDefinitions, WorkspaceInventory |
 | Fabric Notebooks | 3 running | NB_ObsIngestion, NB_ObsCorrelation, NB_ObsAlerts -- autonomous on schedule |
 | Workload Frontend | Wired to KQL | KQL query service built, React hooks (useObservabilityData, useSloData, useAlertData), typed responses |
@@ -615,7 +617,7 @@ This is the path to demo-ready. If any task on this path slips, the sprint goal 
 
 | Metric | Current (Sprint 03 Exit) | Sprint 04 Target | How to Measure |
 |--------|-------------------------|-----------------|----------------|
-| Test count | 205 passing (6 files) | 225+ | `npm test` output |
+| Test count | 243 passing (8 files) | 225+ | `npm test` output |
 | CI pass rate | 100% | 100% | GitHub Actions history |
 | Eventhouse events | 137 | 200+ | `FabricEvents \| count` |
 | SLO snapshots | 88 | 150+ | `SloSnapshots \| count` |
