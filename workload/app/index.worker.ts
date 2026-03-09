@@ -23,7 +23,7 @@ export async function initialize(params: InitParams) {
 
     const workloadName = process.env.WORKLOAD_NAME;
 
-    workloadClient.action.onAction(async function ({ action, data }) {
+    workloadClient.action.onAction(async function ({ action, data }): Promise<any> {
         console.log(`Observability Workbench Worker: action ${action} with data:`, data);
         switch (action) {
             case 'item.onCreationSuccess': {
@@ -33,7 +33,7 @@ export async function initialize(params: InitParams) {
                 console.log(`Item created successfully, navigating to ${path}`);
                 await workloadClient.page.open({
                     workloadName: workloadName,
-                    route: path,
+                    route: path as any,
                 });
                 return { succeeded: true };
             }

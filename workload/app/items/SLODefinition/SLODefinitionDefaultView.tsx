@@ -63,7 +63,6 @@ function getSimulatedStatus(def: SLODefinitionDefinition) {
   const warning = def.warningThreshold ?? 99.0;
   // Simulated current value
   const currentValue = 98.7;
-  const errorBudget = target > 0 ? Math.max(0, ((target - (target - currentValue)) / target) * 100) : 0;
   const errorBudgetUsed = target > 0 ? ((target - currentValue) / (100 - target)) * 100 : 0;
   const errorBudgetRemaining = Math.max(0, Math.min(100, 100 - errorBudgetUsed));
 

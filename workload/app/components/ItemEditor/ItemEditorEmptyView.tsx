@@ -16,8 +16,8 @@ export interface EmptyStateTask {
   description?: string;
   /** Click handler for the task */
   onClick: () => void;
-  /** Custom icon (optional) - Fluent UI icon slot or JSX element */
-  icon?: React.ReactElement | { children: React.ReactElement };
+  /** Custom icon (optional) - Fluent UI icon component, JSX element, or wrapped element */
+  icon?: React.ComponentType<any> | React.ReactElement | { children: React.ReactElement };
 }
 
 /**
@@ -168,8 +168,10 @@ export function ItemEditorEmptyView({
               appearance="primary"
               size="large"
               icon={tasks[0].icon && (
-                React.isValidElement(tasks[0].icon) 
-                  ? tasks[0].icon 
+                React.isValidElement(tasks[0].icon)
+                  ? tasks[0].icon
+                  : typeof tasks[0].icon === 'function'
+                  ? React.createElement(tasks[0].icon as React.ComponentType<any>)
                   : (tasks[0].icon as { children: React.ReactElement })?.children
               )}
               onClick={tasks[0].onClick}
@@ -200,8 +202,10 @@ export function ItemEditorEmptyView({
                 {/* Icon section with green highlight background */}
                 <div className="tile-card-children">
                   {task.icon && (
-                    React.isValidElement(task.icon) 
-                      ? task.icon 
+                    React.isValidElement(task.icon)
+                      ? task.icon
+                      : typeof task.icon === 'function'
+                      ? React.createElement(task.icon as React.ComponentType<any>)
                       : (task.icon as { children: React.ReactElement })?.children
                   )}
                 </div>

@@ -4,7 +4,6 @@ import {
   Ribbon,
   RibbonAction,
   RibbonActionButton,
-  createSaveAction,
   createSettingsAction
 } from "../../components/ItemEditor";
 import { ViewContext } from "../../components";

@@ -168,6 +168,10 @@ export function WorkbenchDashboardEditor(props: PageProps) {
     return true;
   };
 
+  // Suppress noUnusedLocals - save functions will be wired to ribbon when save support is added
+  void saveItem;
+  void isSaveEnabled;
+
   const handleRefresh = async () => {
     // Trigger a data reload
     if (pageContext.itemObjectId) {

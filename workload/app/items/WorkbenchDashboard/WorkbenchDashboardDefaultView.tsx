@@ -7,8 +7,6 @@ import { WorkbenchDashboardDefinition } from "./WorkbenchDashboardDefinition";
 import {
   Badge,
   Button,
-  Card,
-  CardHeader,
   Dropdown,
   Option,
   ProgressBar,
