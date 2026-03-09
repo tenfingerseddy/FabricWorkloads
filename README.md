@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/actions"><img src="https://img.shields.io/github/actions/workflow/status/tenfingerseddy/FabricWorkloads/ci.yml?branch=main&style=flat-square" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
-  <img src="https://img.shields.io/badge/tests-243%20passed-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-268%20passed-brightgreen?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square" alt="Node">
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/stargazers"><img src="https://img.shields.io/github/stars/tenfingerseddy/FabricWorkloads?style=flat-square" alt="Stars"></a>
 </p>
@@ -201,7 +201,7 @@ src/                    # CLI tool (TypeScript)
   dashboard.ts          #   Terminal dashboard renderer
   hooks/                #   React hooks for workload frontend
   services/             #   Backend service layer
-  __tests__/            #   243 tests (vitest)
+  __tests__/            #   268 tests (vitest)
 workload/               # Fabric Extensibility Toolkit workload
   app/items/            #   3 item types with editors and views
   Manifest/             #   Fabric manifests and item definitions
@@ -242,7 +242,7 @@ See the [pricing page](landing-page/) for full details.
 ## Testing
 
 ```bash
-npm test              # Run all 243 tests
+npm test              # Run all 268 tests
 npm run test:watch    # Watch mode
 npx tsc --noEmit      # Type check
 npm run validate:notebooks  # Validate notebook format

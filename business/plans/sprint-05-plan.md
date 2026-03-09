@@ -45,7 +45,7 @@ Every task is judged by one question: does this make a design partner say "I wan
 | Component | State | Notes |
 |-----------|-------|-------|
 | CLI Tool | Working | Auth, collector, KQL ingestion, dashboard, alerts, scheduler, waste score |
-| Tests | 243 passing (8 files) | Unit + KQL integration tests via Vitest; CI green |
+| Tests | 268 passing (8 files) | Unit + KQL integration tests via Vitest; CI green |
 | KQL Tables | 6 tables | FabricEvents, SloSnapshots, AlertRules, EventCorrelations, SloDefinitions, WorkspaceInventory |
 | Fabric Notebooks | 3 running | NB_ObsIngestion (5min), NB_ObsCorrelation (15min), NB_ObsAlerts (15min) -- all on schedule |
 | Incident Timeline | Built | IncidentTimeline.tsx + TimelineNode.tsx + SCSS. Wired into dashboard. |
@@ -61,7 +61,7 @@ Every task is judged by one question: does this make a design partner say "I wan
 
 - B1: Incident Timeline component (IncidentTimeline.tsx, TimelineNode.tsx, SCSS, wired to dashboard)
 - C1: Event Search component (EventSearch.tsx, SCSS, wired to dashboard with toolbar)
-- F1: KQL integration tests (18 tests in kql-client.test.ts, total 243 tests)
+- F1: KQL integration tests (18 tests in kql-client.test.ts, total 268 tests)
 - F2: Node v20 pinned for local builds
 - H3: Hardcoded Eventhouse URLs replaced with env vars
 - H7: Stack traces sanitized (errors.ts utility)
@@ -131,7 +131,7 @@ Update to include:
 1. "See It In Action" section with 3-4 screenshots: CLI dashboard output, incident timeline (from S04-B1), event search (from S04-C1), SLO card grid. Use actual product screenshots, not mockups.
 2. Updated feature list: cross-item correlation, incident timeline, event search, SLO tracking, CU waste score, long-retention event store (90-day hot + 365-day cold archive).
 3. Early access signup form -- embed Tally.so or Google Forms. Collect: email, company name, number of Fabric workspaces, biggest monitoring pain point (dropdown: retention limits, no correlation, no SLOs, alert fatigue, other).
-4. Social proof section: link to published blog posts on dev.to, GitHub star count badge, test count badge (243), MIT license badge, "actively maintained" badge.
+4. Social proof section: link to published blog posts on dev.to, GitHub star count badge, test count badge (268), MIT license badge, "actively maintained" badge.
 5. "Built for Fabric" section: zero egress, permission-inherited, Fabric-native, runs inside the portal, respects workspace roles.
 6. Link to existing `pricing.html`.
 7. Mobile-responsive layout (test at 375px and 768px).
@@ -366,7 +366,7 @@ Sprint 04 started content publishing but did not complete the full launch sequen
 Target: Tuesday or Wednesday of Sprint 05 Week 1 (April 7 or 8), 10:00-11:00 AM US Eastern (peak HN traffic window per growth playbook).
 
 Tasks:
-1. Review and finalize the HN post text. Update any metrics: test count (243), event count, feature list (now includes incident timeline and event search).
+1. Review and finalize the HN post text. Update any metrics: test count (268), event count, feature list (now includes incident timeline and event search).
 2. Prepare FAQ responses for predictable questions: Why not just use Purview? Why TypeScript? How does this compare to Monte Carlo? What about Fabric's native monitoring improvements?
 3. Post at optimal time.
 4. Monitor and respond to every comment within 2 hours for the first 6 hours.
@@ -398,7 +398,7 @@ Tasks:
 Content spacing: one blog post per week. Social cadence: 2 LinkedIn posts per week, 1 Reddit post per week (per growth playbook).
 
 Tasks:
-1. Review `blog-03-devto.md` and `blog-04-devto.md` for accuracy against current product state (test count 243, features now include incident timeline and event search, KQL integration tests).
+1. Review `blog-03-devto.md` and `blog-04-devto.md` for accuracy against current product state (test count 268, features now include incident timeline and event search, KQL integration tests).
 2. Update any outdated references, fix links, ensure GitHub repo URL is correct.
 3. Publish Blog 03 in Sprint 05 Week 1.
 4. Publish Blog 04 in Sprint 05 Week 2 (at least 5 days after Blog 03).
@@ -765,7 +765,7 @@ Path 1 is the primary critical path because the sprint goal is design partner re
 
 | Metric | Current (Sprint 04 Exit) | Sprint 05 Target | How to Measure |
 |--------|-------------------------|-----------------|----------------|
-| Test count | 243 | 260+ | `npm test` output |
+| Test count | 268 | 260+ | `npm test` output |
 | CI pass rate | 100% | 100% | GitHub Actions history |
 | Eventhouse events | ~200 (estimated growth since Sprint 03) | 300+ | `FabricEvents \| count` |
 | Eventhouse hot store size (MB) | Unknown -- establish baseline | Baselined + first archive run shrinks it | `.show database EH_Observability extents stats` |
@@ -847,7 +847,7 @@ The sprint is **done** when:
 2. Landing page is updated with screenshots, early access signup form, and current feature list.
 3. GitHub Discussions is enabled with categories and a pinned welcome post.
 4. Lakehouse cold archive notebook runs successfully -- at least one test run completes (even if no records are old enough to archive yet, the notebook handles that gracefully).
-5. All 243 tests continue to pass.
+5. All 268 tests continue to pass.
 6. No regressions in CLI tool or workload frontend functionality.
 
 ### Per-Task Definition of Done

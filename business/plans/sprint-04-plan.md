@@ -9,25 +9,29 @@
 
 ---
 
-## Progress Tracker (Updated Mar 10, end of day)
+## Progress Tracker (Updated Mar 10, session 2)
 
 | Task | Status | Notes |
 |------|--------|-------|
 | B1: Incident Timeline | DONE | IncidentTimeline.tsx + TimelineNode.tsx + SCSS. Wired into dashboard. |
 | C1: Event Search | DONE | EventSearch.tsx + SCSS. Wired into dashboard with toolbar search button. |
-| F1: KQL Integration Tests | DONE | 18 KQL tests + 29 config tests + 9 scheduler tests = 243 total tests (8 files). |
+| F1: KQL Integration Tests | DONE | 268 tests in 10 files (added auth + store tests). Coverage: 57.84% stmts, 80.79% branches, 86.36% functions. |
 | F2: Node v20 pinning | DONE | .nvmrc + Volta config. |
 | H3: Hardcoded URLs (security) | DONE | 19 files remediated. Last hardcoded URL in config.ts also fixed. |
 | H7: Stack traces (security) | DONE | errors.ts utility, sanitized responses in all controllers/hooks. |
 | escapeKql hardening | DONE | Backtick, `<\|` marker, control char sanitization in src/kql-client.ts. |
-| D1: Blog publishing | IN PROGRESS | 4 blog fixes committed (descriptions, series links, cover_image). Agents writing Blog 02 + Blog 05. |
-| Design partner outreach | DONE | Email templates, one-pager, community post templates committed. |
-| D2: README polish | IN PROGRESS | Agent rewriting. |
-| E1: Landing page | IN PROGRESS | Agent redesigning with modern layout, signup form, feature grid. |
-| A1: DevGateway | IN PROGRESS | Agent auditing prerequisites + writing getting-started guide. Interactive setup needed. |
+| CI pipeline fix | DONE | Fixed package-lock.json missing @vitest/coverage-v8. All 5 CI jobs green (Node 20, 22, Security, Notebooks, Bundle). |
+| D1: Blog publishing | IN PROGRESS | 6 blog posts being updated with current metrics (268 tests, 25 queries). Publishing checklist in progress. |
+| Design partner outreach | DONE | Email templates, one-pager, community post templates committed. Pitch deck + demo script + agreement template in progress. |
+| D2: README polish | DONE | Full rewrite with problem statement, quickstart, architecture diagram, badges. |
+| E1: Landing page | DONE | Complete redesign: dark theme, responsive, signup form, feature grid, SEO meta tags. |
+| A1: DevGateway | IN PROGRESS | Scripts copied, getting-started guide written. Interactive setup needed (Node v20, DevGateway binary, developer mode). |
 | A2: Live KQL in iframe | NOT STARTED | kqlQueryService.ts ready. Blocked on A1 interactive steps. |
-| Sprint 05 planning | IN PROGRESS | Agent drafting plan. |
-| Code quality audit | IN PROGRESS | Agent reviewing workload frontend for issues. |
+| Sprint 05 planning | DONE | Sprint 05 plan created (12 tasks, 80hr budget, design partner hardening focus). |
+| Code quality audit | DONE | A+ rating, zero issues. 35 TypeScript errors in workload frontend fixed. |
+| Demo data generator | IN PROGRESS | Agent building scripts/generate-demo-data.mjs for realistic Eventhouse sample data. |
+| Competitive analysis | IN PROGRESS | Agent researching March 2026 competitive landscape (Monte Carlo, Atlan, Purview, new entrants). |
+| KQL query pack enhancement | IN PROGRESS | Agent creating standalone README, quickstart guide, and improved documentation. |
 
 ---
 
@@ -44,7 +48,7 @@ Sprint 04 takes the product from "functional backend + scaffolded frontend" to "
 | Component | State | Notes |
 |-----------|-------|-------|
 | CLI Tool | Working | Auth, collector, KQL ingestion, dashboard, alerts, scheduler, waste score |
-| Tests | 243 passing (8 files) | Unit tests via Vitest; CI green. Config + scheduler tests added Mar 10 |
+| Tests | 268 passing (10 files) | Unit tests via Vitest; CI green. Auth + store tests added Mar 10 session 2 |
 | KQL Tables | 6 tables | FabricEvents (137 events), SloSnapshots (88), AlertRules (52 alerts), EventCorrelations (8), SloDefinitions, WorkspaceInventory |
 | Fabric Notebooks | 3 running | NB_ObsIngestion, NB_ObsCorrelation, NB_ObsAlerts -- autonomous on schedule |
 | Workload Frontend | Wired to KQL | KQL query service built, React hooks (useObservabilityData, useSloData, useAlertData), typed responses |
@@ -617,7 +621,7 @@ This is the path to demo-ready. If any task on this path slips, the sprint goal 
 
 | Metric | Current (Sprint 03 Exit) | Sprint 04 Target | How to Measure |
 |--------|-------------------------|-----------------|----------------|
-| Test count | 243 passing (8 files) | 225+ | `npm test` output |
+| Test count | 268 passing (10 files) | 225+ | `npm test` output |
 | CI pass rate | 100% | 100% | GitHub Actions history |
 | Eventhouse events | 137 | 200+ | `FabricEvents \| count` |
 | SLO snapshots | 88 | 150+ | `SloSnapshots \| count` |
