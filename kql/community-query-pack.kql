@@ -7,6 +7,9 @@
 //   Date:     2026-03-09
 //   License:  MIT — use freely, attribution appreciated
 //
+//   25 production-ready queries for monitoring Microsoft Fabric workloads.
+//   No dependencies, no tooling required — just copy, paste, and run.
+//
 //   PREREQUISITES:
 //     1. A Fabric Eventhouse with a KQL database
 //     2. A FabricEvents table (see create-tables.kql for schema)
@@ -31,11 +34,29 @@
 //     and paste it into a KQL queryset in your Fabric workspace.
 //     Each query is self-contained and copy-paste ready.
 //
+//   QUERIES BY CATEGORY:
+//     Category 1 — Health Overview       (Queries 1-3)
+//     Category 2 — Performance Analysis  (Queries 4-7)
+//     Category 3 — Failure Investigation (Queries 8-11)
+//     Category 4 — Cost Intelligence     (Queries 12-15)
+//     Category 5 — SLO Framework         (Queries 16-20)
+//     Category 6 — Operations Intelligence (Queries 21-25)
+//
+//   CUSTOMIZATION:
+//     - Time windows: change ago(7d) to ago(30d) or ago(90d)
+//     - SLO targets: modify SloTarget values (default 99.5%)
+//     - Cost rates: update CU_RATE variable for your SKU
+//     - Status values: swap "Completed" for "Succeeded" if your
+//       ingestion normalizes differently
+//
+//   Full documentation: https://github.com/tenfingerseddy/FabricWorkloads/tree/main/kql
+//
 // ==========================================================================
 
 
 // ==========================================================================
-// CATEGORY 1: HEALTH OVERVIEW
+// CATEGORY 1: HEALTH OVERVIEW (Queries 1-3)
+// High-level workspace and item health. Run these first to get a pulse.
 // ==========================================================================
 
 
@@ -128,7 +149,8 @@ FabricEvents
 
 
 // ==========================================================================
-// CATEGORY 2: PERFORMANCE ANALYSIS
+// CATEGORY 2: PERFORMANCE ANALYSIS (Queries 4-7)
+// Execution times, regressions, scheduling hotspots, and concurrency.
 // ==========================================================================
 
 
@@ -239,7 +261,8 @@ FabricEvents
 
 
 // ==========================================================================
-// CATEGORY 3: FAILURE INVESTIGATION
+// CATEGORY 3: FAILURE INVESTIGATION (Queries 8-11)
+// Root cause analysis, cascading failures, MTTR, and flapping detection.
 // ==========================================================================
 
 
@@ -361,7 +384,9 @@ FabricEvents
 
 
 // ==========================================================================
-// CATEGORY 4: COST INTELLIGENCE
+// CATEGORY 4: COST INTELLIGENCE (Queries 12-15)
+// CU waste, cost attribution, trends, and optimization opportunities.
+// Default pricing: F64 ($11.52/hr). Change CU_RATE for your SKU.
 // ==========================================================================
 
 
@@ -552,7 +577,9 @@ Current
 
 
 // ==========================================================================
-// CATEGORY 5: SLO FRAMEWORK
+// CATEGORY 5: SLO FRAMEWORK (Queries 16-20)
+// Service Level Objectives with error budgets and burn rate forecasting.
+// Default SLO target: 99.5% success rate. Customize per item as needed.
 // ==========================================================================
 
 
@@ -773,16 +800,24 @@ FabricEvents
 | order by ExhaustedInHours asc
 
 
+// ==========================================================================
+// CATEGORY 6: OPERATIONS INTELLIGENCE (Queries 21-25)
+// Workspace comparison, missing schedules, retry analysis, dependency
+// mapping, and executive reporting.
+// ==========================================================================
+
+
 // --------------------------------------------------------------------------
 // Query 21: Workspace Comparison — Side-by-Side Health Metrics
-//
-// Compares key health metrics across workspaces to identify which environments
-// need attention. Useful for teams managing dev/test/prod workspaces.
+// --------------------------------------------------------------------------
+// Compares key health metrics across all workspaces to identify which
+// environments need attention. Useful for teams managing dev/test/prod
+// workspaces side-by-side. Duration is formatted as "Xm Ys" for readability.
 //
 // Sample output:
 //   WorkspaceName    | TotalJobs | SuccessRate | AvgDuration | FailedJobs
-//   FrameworkProd    | 450       | 98.2%       | 4m 12s      | 8
-//   FrameworkTesting | 312       | 91.0%       | 6m 45s      | 28
+//   FrameworkProd    | 450       | 98.2        | 4m 12s      | 8
+//   FrameworkTesting | 312       | 91.0        | 6m 45s      | 28
 // --------------------------------------------------------------------------
 FabricEvents
 | where StartTimeUtc > ago(7d)
@@ -800,14 +835,21 @@ FabricEvents
 
 // --------------------------------------------------------------------------
 // Query 22: Job Execution Gaps — Detect Missing Scheduled Runs
-//
+// --------------------------------------------------------------------------
 // Identifies items that usually run on a regular schedule but have missed
-// their expected window. Compares the gap between recent runs to the
-// historical average interval.
+// their expected window. Compares the current gap since last run against the
+// historical average interval. Items with fewer than 3 runs in the lookback
+// period are excluded to avoid false positives on ad-hoc jobs.
+//
+// GapRatio interpretation:
+//   > 3.0 = CRITICAL (3x overdue, likely a broken schedule)
+//   > 2.0 = OVERDUE  (significantly past expected window)
+//   > 1.5 = LATE     (behind schedule, worth monitoring)
 //
 // Sample output:
-//   ItemName        | AvgIntervalHrs | LastRunHoursAgo | ExpectedBy       | Status
-//   PL_DailyRefresh | 24.2           | 49.1            | 2h ago           | OVERDUE
+//   ItemName        | AvgIntervalHrs | HoursSinceLastRun | GapRatio | Status
+//   PL_DailyRefresh | 24.2           | 49.1              | 2.0      | OVERDUE
+//   NB_HourlyCalc   | 1.1            | 3.5               | 3.2      | CRITICAL
 // --------------------------------------------------------------------------
 let LookbackDays = 14;
 FabricEvents
@@ -831,14 +873,19 @@ FabricEvents
 
 // --------------------------------------------------------------------------
 // Query 23: Retry Effectiveness — Are Retries Actually Helping?
+// --------------------------------------------------------------------------
+// For items that have failures followed by another run within 30 minutes,
+// measures whether the retry recovered or just wasted compute. A low
+// RetrySuccessRate means retries are burning CUs without fixing the problem
+// — the item likely needs a code fix, not more retries.
 //
-// For items that have both failures and subsequent successes, measures whether
-// retries are recovering or just wasting CUs. Groups by item and checks if
-// failures are followed by successes within a time window.
+// The 30-minute window (RetryWindow) can be adjusted. Shorter windows
+// catch only automated retries; longer windows include manual re-runs.
 //
 // Sample output:
 //   ItemName     | Failures | RetriesSucceeded | RetrySuccessRate | WastedRetries
-//   NB_Fragile   | 12       | 8                | 66.7%            | 4
+//   NB_Fragile   | 12       | 8                | 66.7             | 4
+//   PL_Flaky     | 6        | 1                | 16.7             | 5
 // --------------------------------------------------------------------------
 let RetryWindow = 30m;
 FabricEvents
@@ -862,14 +909,24 @@ FabricEvents
 
 // --------------------------------------------------------------------------
 // Query 24: Item Dependency Map — Temporal Co-occurrence Detection
+// --------------------------------------------------------------------------
+// Discovers undocumented dependencies between items by finding pairs that
+// consistently start within 5 minutes of each other in the same workspace.
+// This reveals pipeline-to-notebook, notebook-to-refresh, and other chains
+// that are not documented anywhere but clearly exist in practice.
 //
-// Detects items that consistently start within a narrow time window of each
-// other, suggesting a dependency relationship. Useful for discovering
-// undocumented pipeline-to-notebook or notebook-to-refresh chains.
+// Confidence levels:
+//   HIGH   = 20+ co-occurrences with <30s average gap (almost certain dependency)
+//   MEDIUM = 10+ co-occurrences (likely dependency)
+//   LOW    = 3-9 co-occurrences (possible dependency, verify manually)
+//
+// NOTE: This query performs a self-join and can be slow on very large
+// datasets (100K+ events). Narrow the time window if needed.
 //
 // Sample output:
-//   ItemA            | ItemB              | CoOccurrences | AvgGapSeconds | Confidence
-//   PL_DailyIngest   | NB_Transform       | 28            | 12.4          | HIGH
+//   ItemA            | TypeA        | ItemB            | TypeB    | CoOccurrences | AvgGapSeconds | Confidence
+//   PL_DailyIngest   | DataPipeline | NB_Transform     | Notebook | 28            | 12.4          | HIGH
+//   NB_Transform     | Notebook     | SM_DailyReport   | Semantic | 14            | 45.2          | MEDIUM
 // --------------------------------------------------------------------------
 FabricEvents
 | where StartTimeUtc > ago(7d)
@@ -899,14 +956,19 @@ FabricEvents
 
 // --------------------------------------------------------------------------
 // Query 25: Weekly Executive Summary — One-Glance Workspace Health
+// --------------------------------------------------------------------------
+// Produces a single-row summary designed to be copy-pasted into a Teams
+// message, email, or weekly status report. Captures the week at a glance:
+// total jobs executed, overall success rate, the item with the most failures,
+// which day of the week was busiest, and estimated total CU-hours consumed.
 //
-// Produces a single-row summary suitable for weekly reports or dashboards.
-// Gives total jobs, success rate, worst-performing item, busiest day,
-// and estimated CU consumption for the past 7 days.
+// Tip: Run this every Friday afternoon for your weekly update.
+// Example message: "This week: 1,247 jobs at 96.8% success rate. 40 failures,
+// worst offender: NB_LongRunning. Busiest day: Wednesday. ~42.3 CU-hours."
 //
 // Sample output:
-//   TotalJobs | SuccessRate | WorstItem      | BusiestDay | EstCuHours
-//   1247      | 96.8%       | NB_LongRunning | Wednesday  | 42.3
+//   TotalJobs | SuccessRate | Failed | WorstItem        | BusiestDay | EstCuHours
+//   1247      | 96.8        | 40     | NB_LongRunning   | Wednesday  | 42.3
 // --------------------------------------------------------------------------
 FabricEvents
 | where StartTimeUtc > ago(7d)
