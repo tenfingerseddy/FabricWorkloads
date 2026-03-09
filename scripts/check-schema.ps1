@@ -17,19 +17,22 @@ $kustoHeaders = @{
     Authorization  = "Bearer $kustoToken"
     'Content-Type' = 'application/json'
 }
-$kustoUri = "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com/v1/rest/query"
+$kustoBase = [System.Environment]::GetEnvironmentVariable('EVENTHOUSE_QUERY_ENDPOINT', 'User')
+if (-not $kustoBase) { $kustoBase = [System.Environment]::GetEnvironmentVariable('EVENTHOUSE_QUERY_ENDPOINT', 'Process') }
+if (-not $kustoBase) { throw "Missing required environment variable: EVENTHOUSE_QUERY_ENDPOINT" }
+$kustoUri = "$kustoBase/v1/rest/query"
 
 # Check SloSnapshots schema
 Write-Output "=== SloSnapshots Schema ==="
 $q1 = @{ db = "EH_Observability"; csl = ".show table SloSnapshots schema as json" } | ConvertTo-Json
-$r1 = Invoke-RestMethod -Uri "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com/v1/rest/mgmt" -Headers $kustoHeaders -Method POST -Body $q1
+$r1 = Invoke-RestMethod -Uri "$kustoBase/v1/rest/mgmt" -Headers $kustoHeaders -Method POST -Body $q1
 $r1 | ConvertTo-Json -Depth 10
 
 # Check EventCorrelations schema
 Write-Output ""
 Write-Output "=== EventCorrelations Schema ==="
 $q2 = @{ db = "EH_Observability"; csl = ".show table EventCorrelations schema as json" } | ConvertTo-Json
-$r2 = Invoke-RestMethod -Uri "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com/v1/rest/mgmt" -Headers $kustoHeaders -Method POST -Body $q2
+$r2 = Invoke-RestMethod -Uri "$kustoBase/v1/rest/mgmt" -Headers $kustoHeaders -Method POST -Body $q2
 $r2 | ConvertTo-Json -Depth 10
 
 # Count rows in each table

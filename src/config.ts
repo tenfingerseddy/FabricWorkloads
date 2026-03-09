@@ -69,8 +69,14 @@ export function loadConfig(): AppConfig {
   const tenantId = requireEnv("FABRIC_TENANT_ID");
 
   const kqlQueryEndpoint =
+    process.env.EVENTHOUSE_QUERY_ENDPOINT ??
     process.env.KQL_QUERY_ENDPOINT ??
-    "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com";
+    (() => {
+      throw new Error(
+        "Missing required environment variable: EVENTHOUSE_QUERY_ENDPOINT. " +
+          "Set it to your Eventhouse KQL query endpoint URL."
+      );
+    })();
 
   return {
     fabric: {
@@ -87,8 +93,14 @@ export function loadConfig(): AppConfig {
     kql: {
       queryEndpoint: kqlQueryEndpoint,
       ingestionEndpoint:
+        process.env.EVENTHOUSE_INGESTION_ENDPOINT ??
         process.env.KQL_INGESTION_ENDPOINT ??
-        "https://ingest-trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com",
+        (() => {
+          throw new Error(
+            "Missing required environment variable: EVENTHOUSE_INGESTION_ENDPOINT. " +
+              "Set it to your Eventhouse KQL ingestion endpoint URL."
+          );
+        })(),
       database: process.env.KQL_DATABASE ?? "EH_Observability",
       tokenScope: `${kqlQueryEndpoint}/.default`,
       tokenEndpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,

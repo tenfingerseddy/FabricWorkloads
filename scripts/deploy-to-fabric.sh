@@ -102,7 +102,11 @@ fi
 
 # Deployment configuration with defaults
 WORKSPACE_NAME="${FABRIC_WORKSPACE_NAME:-ObservabilityWorkbench-Dev}"
-KQL_ENDPOINT="${FABRIC_KQL_ENDPOINT:-https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com}"
+KQL_ENDPOINT="${EVENTHOUSE_QUERY_ENDPOINT:-${FABRIC_KQL_ENDPOINT:-}}"
+if [ -z "$KQL_ENDPOINT" ]; then
+  log_error "Missing required environment variable: EVENTHOUSE_QUERY_ENDPOINT (or FABRIC_KQL_ENDPOINT)"
+  exit 1
+fi
 KQL_DATABASE="${FABRIC_KQL_DATABASE:-EH_Observability}"
 
 # Notebook schedule configuration (cron-like)

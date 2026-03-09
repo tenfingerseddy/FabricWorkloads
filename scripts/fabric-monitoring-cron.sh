@@ -30,7 +30,11 @@ set -uo pipefail
 # ─── Configuration ─────────────────────────────────────────────────────────────
 
 FABRIC_API="https://api.fabric.microsoft.com"
-KQL_ENDPOINT="${FABRIC_KQL_ENDPOINT:-https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com}"
+KQL_ENDPOINT="${EVENTHOUSE_QUERY_ENDPOINT:-${FABRIC_KQL_ENDPOINT:-}}"
+if [ -z "$KQL_ENDPOINT" ]; then
+  echo "HEALTH_CHECK:${TIMESTAMP}:critical:Missing required environment variable: EVENTHOUSE_QUERY_ENDPOINT"
+  exit 2
+fi
 KQL_DATABASE="${FABRIC_KQL_DATABASE:-EH_Observability}"
 WORKSPACE_NAME="${FABRIC_WORKSPACE_NAME:-ObservabilityWorkbench-Dev}"
 

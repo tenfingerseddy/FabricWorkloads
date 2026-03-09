@@ -51,7 +51,10 @@ $kustoHeaders = @{
     Authorization  = "Bearer $kustoToken"
     'Content-Type' = 'application/json'
 }
-$kustoUri = "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com/v1/rest/query"
+$kustoBase = [System.Environment]::GetEnvironmentVariable('EVENTHOUSE_QUERY_ENDPOINT', 'User')
+if (-not $kustoBase) { $kustoBase = [System.Environment]::GetEnvironmentVariable('EVENTHOUSE_QUERY_ENDPOINT', 'Process') }
+if (-not $kustoBase) { throw "Missing required environment variable: EVENTHOUSE_QUERY_ENDPOINT" }
+$kustoUri = "$kustoBase/v1/rest/query"
 
 Write-Output ""
 Write-Output "=========================================="

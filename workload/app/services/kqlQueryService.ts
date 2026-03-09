@@ -13,6 +13,7 @@
 
 import { WorkloadClientAPI } from "@ms-fabric/workload-client";
 import { FabricAuthenticationService } from "../clients/FabricAuthenticationService";
+import { redactSensitive } from "../utils/errors";
 import {
   DashboardData,
   SLOCardData,
@@ -42,9 +43,13 @@ import {
 // Default Configuration
 // ════════════════════════════════════════════════════════════════
 
+// TODO: In the production workload, queryEndpoint and database should come from
+// the workload manifest / workload configuration at runtime rather than being
+// hardcoded here. The Fabric Workload SDK will provide these values through the
+// WorkloadClientAPI.getWorkloadConfig() method once the Extensibility Toolkit
+// migration is complete. Until then, callers must pass config overrides.
 const DEFAULT_CONFIG: KqlServiceConfig = {
-  queryEndpoint:
-    "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com",
+  queryEndpoint: "",
   database: "EH_Observability",
   useFallbackData: true,
   timeoutMs: 30_000,
@@ -69,6 +74,12 @@ export class KqlQueryService {
     this.workloadClient = workloadClient;
     this.authService = new FabricAuthenticationService(workloadClient);
     this.config = { ...DEFAULT_CONFIG, ...config };
+    if (!this.config.queryEndpoint) {
+      throw new Error(
+        "KqlQueryService requires a queryEndpoint. Pass it via config or " +
+          "ensure the workload manifest provides it at runtime."
+      );
+    }
   }
 
   // ──────────────────────────────────────────────────────────────
@@ -118,10 +129,16 @@ export class KqlQueryService {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => "");
+        // Log full response body server-side for debugging; do not include in thrown error
+        console.error(
+          `[KqlQueryService] Query failed: HTTP ${response.status}`,
+          redactSensitive(errorText.substring(0, 500))
+        );
         throw new KqlQueryError(
-          `KQL query failed: HTTP ${response.status} ${response.statusText}`,
+          `KQL query failed: HTTP ${response.status}`,
           response.status,
-          errorText
+          // Do not store raw response body -- it may contain internal infrastructure details
+          ""
         );
       }
 
@@ -180,9 +197,10 @@ export class KqlQueryService {
       const rows = await this.executeQuery<T>(kql);
       return { rows, isLive: true };
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
       console.warn(
         "[KqlQueryService] Query failed, using fallback data:",
-        error instanceof Error ? error.message : error
+        redactSensitive(errorMsg)
       );
       if (this.config.useFallbackData) {
         return { rows: fallback(), isLive: false };

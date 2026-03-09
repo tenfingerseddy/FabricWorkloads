@@ -20,7 +20,7 @@ permissions:
   issues: write
 
 env:
-  FABRIC_KQL_ENDPOINT: 'https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com'
+  EVENTHOUSE_QUERY_ENDPOINT: ${{ secrets.EVENTHOUSE_QUERY_ENDPOINT }}
   FABRIC_KQL_DATABASE: 'EH_Observability'
   FABRIC_WORKSPACE_NAME: 'ObservabilityWorkbench-Dev'
   DATA_FRESHNESS_WARN_HOURS: '2'

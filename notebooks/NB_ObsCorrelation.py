@@ -39,8 +39,11 @@ TENANT_ID = spark.conf.get("spark.obs.tenantId", "")
 CLIENT_ID = spark.conf.get("spark.obs.clientId", "")
 CLIENT_SECRET = spark.conf.get("spark.obs.clientSecret", "")
 
-# Target Eventhouse
-KUSTO_URI = "https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com"
+# Target Eventhouse — read from spark configuration; no hardcoded URL
+KUSTO_URI = spark.conf.get("spark.obs.eventHouseQueryEndpoint", "")
+if not KUSTO_URI:
+    raise ValueError("Missing spark config: spark.obs.eventHouseQueryEndpoint. "
+                     "Set it to your Eventhouse KQL query endpoint URL.")
 KUSTO_DB = "EH_Observability"
 
 # Fabric API base

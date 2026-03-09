@@ -21,7 +21,7 @@ function getEnvVar(name) {
 const TENANT_ID = getEnvVar('FABRIC_TENANT_ID');
 const CLIENT_ID = getEnvVar('FABRIC_CLIENT_ID');
 const CLIENT_SECRET = getEnvVar('FABRIC_CLIENT_SECRET');
-const KUSTO_URI = 'https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com';
+const KUSTO_URI = getEnvVar('EVENTHOUSE_QUERY_ENDPOINT') || (() => { throw new Error('Missing EVENTHOUSE_QUERY_ENDPOINT env var'); })();
 const KUSTO_DB = 'EH_Observability';
 
 function httpsRequest(url, options, body) {
