@@ -194,10 +194,6 @@ export function WorkbenchDashboardDefaultView({
     definition?.workspaceIds || []
   );
 
-  // Suppress unused-local for workloadClient (used by parent; needed in prop interface)
-  void workloadClient;
-  void item;
-
   const DashboardContent = () => (
     <div className="workbench-dashboard-view">
       {/* Error banner */}

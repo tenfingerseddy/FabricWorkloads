@@ -290,13 +290,8 @@ export function useObservabilityData(
     }
   }, []);
 
-  // Initial fetch on mount
-  useEffect(() => {
-    doFetch();
-  }, [doFetch]);
-
-  // Re-fetch when filters change (timeRange or workspaceIds).
-  // We stringify workspaceIds to get a stable dependency.
+  // Fetch on mount and re-fetch when filters change (timeRange or workspaceIds).
+  // We stringify workspaceIds to get a stable dependency value.
   const workspaceKey = workspaceIds.join(",");
   useEffect(() => {
     doFetch();

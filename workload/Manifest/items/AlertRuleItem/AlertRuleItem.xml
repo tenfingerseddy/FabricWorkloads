@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ItemManifestConfiguration SchemaVersion="2.0.0">
+  <Item TypeName="{{WORKLOAD_NAME}}.AlertRule" Category="Data">
+    <Workload WorkloadName="{{WORKLOAD_NAME}}" />
+    <JobScheduler>
+      <OnDemandJobDeduplicateOptions>PerItem</OnDemandJobDeduplicateOptions>
+      <ScheduledJobDeduplicateOptions>PerItem</ScheduledJobDeduplicateOptions>
+      <ItemJobTypes>
+        <ItemJobType Name="{{WORKLOAD_NAME}}.AlertRule.runAlertChecks" />
+      </ItemJobTypes>
+    </JobScheduler>
+  </Item>
+</ItemManifestConfiguration>

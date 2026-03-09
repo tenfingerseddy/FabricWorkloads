@@ -5,6 +5,11 @@ import { ItemWithDefinition } from "../../controller/ItemCRUDController";
 import { ItemEditorDefaultView } from "../../components/ItemEditor";
 import { AlertRuleDefinition } from "./AlertRuleDefinition";
 import {
+  useAlertData,
+  AlertRuleStatus,
+} from "../../hooks/useAlertData";
+import {
+  Badge,
   Button,
   Dropdown,
   Input,
@@ -13,17 +18,32 @@ import {
   MessageBarBody,
   MessageBarTitle,
   Option,
+  ProgressBar,
   SpinButton,
+  Spinner,
   Switch,
-  Text
+  Table,
+  TableBody,
+  TableCell,
+  TableCellLayout,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+  Text,
+  Tooltip
 } from "@fluentui/react-components";
 import {
   AlertBadge24Regular,
   AlertUrgent20Regular,
+  ArrowSync20Regular,
+  CheckmarkCircle20Filled,
+  Clock20Regular,
+  ErrorCircle20Filled,
   Mail24Regular,
   Send24Regular,
   Shield24Regular,
-  Timer24Regular
+  Timer24Regular,
+  Warning20Filled
 } from "@fluentui/react-icons";
 import "./AlertRule.scss";
 
@@ -58,9 +78,21 @@ const COOLDOWN_OPTIONS = [
   { value: "1440", label: "24 hours" }
 ];
 
+/** Format a Date as "HH:MM:SS" for the last-updated indicator. */
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
 /**
- * AlertRuleDefaultView - Rule editor with condition/threshold inputs,
- * notification target configuration, and test alert button.
+ * AlertRuleDefaultView - Rule editor with live alert data panel,
+ * condition/threshold inputs, notification target configuration,
+ * and test alert button.
+ *
+ * Sprint 03 B3: Wired to useAlertData hook for live KQL data.
  */
 export function AlertRuleDefaultView({
   workloadClient,
@@ -74,6 +106,16 @@ export function AlertRuleDefaultView({
   >("idle");
 
   const def = definition || {};
+
+  // --- Live data hook ---
+  const {
+    data: alertData,
+    isLoading,
+    error: fetchError,
+    lastUpdated,
+    isLive,
+    refresh
+  } = useAlertData("24h", def.sloId);
 
   const updateField = <K extends keyof AlertRuleDefinition>(
     key: K,
@@ -91,6 +133,210 @@ export function AlertRuleDefaultView({
     }, 1500);
   };
 
+  // --- Live Alert Status Panel (left sidebar) ---
+  const AlertStatusPanel = () => (
+    <div className="alert-rule-view">
+      <div className="alert-rule-status-panel-header">
+        <h3 className="alert-rule-title" style={{ fontSize: 20 }}>
+          {t("AlertRule_StatusPanel_Title", "Alert Status")}
+        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {lastUpdated && (
+            <Text
+              size={200}
+              style={{ color: "var(--colorNeutralForeground3)" }}
+            >
+              {formatTime(lastUpdated)}
+            </Text>
+          )}
+          <Tooltip content="Refresh alert data" relationship="label">
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={
+                isLoading ? (
+                  <Spinner size="tiny" />
+                ) : (
+                  <ArrowSync20Regular />
+                )
+              }
+              onClick={refresh}
+              disabled={isLoading}
+              aria-label="Refresh"
+            />
+          </Tooltip>
+        </div>
+      </div>
+
+      {/* Data source indicator */}
+      <Badge
+        appearance="outline"
+        color={isLive ? "success" : "informative"}
+        style={{ alignSelf: "flex-start" }}
+      >
+        {isLive ? "Live KQL" : "Sample Data"}
+      </Badge>
+
+      {/* Error banner */}
+      {fetchError && (
+        <MessageBar intent="error" style={{ width: "100%" }}>
+          <MessageBarBody>{fetchError}</MessageBarBody>
+        </MessageBar>
+      )}
+
+      {/* Loading state for initial load */}
+      {isLoading && !lastUpdated && (
+        <div style={{ display: "flex", justifyContent: "center", padding: 24, width: "100%" }}>
+          <Spinner size="medium" label="Loading alert data..." />
+        </div>
+      )}
+
+      {/* Severity Distribution */}
+      {lastUpdated && (
+        <>
+          <div className="alert-rule-severity-section">
+            <Text size={300} weight="semibold">
+              Severity Distribution
+            </Text>
+            <div className="alert-rule-severity-bars">
+              <div className="alert-rule-severity-row">
+                <ErrorCircle20Filled style={{ color: "#d13438" }} />
+                <Text size={200}>Critical</Text>
+                <div className="alert-rule-severity-bar-track">
+                  <div
+                    className="alert-rule-severity-bar-fill alert-rule-severity-bar-fill--critical"
+                    style={{
+                      width: `${
+                        alertData.severityDistribution.total > 0
+                          ? (alertData.severityDistribution.critical /
+                              alertData.severityDistribution.total) *
+                            100
+                          : 0
+                      }%`
+                    }}
+                  />
+                </div>
+                <Text size={200} weight="semibold">
+                  {alertData.severityDistribution.critical}
+                </Text>
+              </div>
+              <div className="alert-rule-severity-row">
+                <Warning20Filled style={{ color: "#e8712a" }} />
+                <Text size={200}>Warning</Text>
+                <div className="alert-rule-severity-bar-track">
+                  <div
+                    className="alert-rule-severity-bar-fill alert-rule-severity-bar-fill--warning"
+                    style={{
+                      width: `${
+                        alertData.severityDistribution.total > 0
+                          ? (alertData.severityDistribution.warning /
+                              alertData.severityDistribution.total) *
+                            100
+                          : 0
+                      }%`
+                    }}
+                  />
+                </div>
+                <Text size={200} weight="semibold">
+                  {alertData.severityDistribution.warning}
+                </Text>
+              </div>
+            </div>
+          </div>
+
+          {/* Notification Status */}
+          <div className="alert-rule-notification-summary">
+            <Text size={300} weight="semibold">
+              Notification Status
+            </Text>
+            <div className="alert-rule-notification-stats">
+              <div className="alert-rule-notification-stat">
+                <Text size={600} weight="bold" style={{ color: "#107c10" }}>
+                  {alertData.notificationStatus.sent}
+                </Text>
+                <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                  Sent
+                </Text>
+              </div>
+              <div className="alert-rule-notification-stat">
+                <Text size={600} weight="bold" style={{ color: "#e8712a" }}>
+                  {alertData.notificationStatus.pending}
+                </Text>
+                <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                  Pending
+                </Text>
+              </div>
+              <div className="alert-rule-notification-stat">
+                <Text size={600} weight="bold" style={{ color: "#d13438" }}>
+                  {alertData.notificationStatus.failed}
+                </Text>
+                <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                  Failed
+                </Text>
+              </div>
+            </div>
+            {alertData.notificationStatus.lastSentAt && (
+              <Text
+                size={200}
+                style={{ color: "var(--colorNeutralForeground3)" }}
+              >
+                Last sent: {alertData.notificationStatus.lastSentAt}
+              </Text>
+            )}
+          </div>
+
+          {/* Active vs Resolved Summary */}
+          <div className="alert-rule-summary-counters">
+            <div className="alert-rule-summary-counter">
+              <Text size={800} weight="bold" style={{ color: "#d13438" }}>
+                {alertData.activeAlertCount}
+              </Text>
+              <Text size={200}>Active</Text>
+            </div>
+            <div className="alert-rule-summary-counter">
+              <Text size={800} weight="bold" style={{ color: "#107c10" }}>
+                {alertData.resolvedAlertCount}
+              </Text>
+              <Text size={200}>Resolved</Text>
+            </div>
+          </div>
+
+          {/* Active Rules List */}
+          <div className="alert-rule-active-rules">
+            <Text size={300} weight="semibold">
+              Active Rules ({alertData.activeRules.filter((r) => r.enabled).length})
+            </Text>
+            {alertData.activeRules
+              .filter((r) => r.enabled)
+              .map((rule) => (
+                <div key={rule.ruleId} className="alert-rule-active-rule-card">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Text size={300} weight="semibold">{rule.ruleName}</Text>
+                    <Badge
+                      appearance="filled"
+                      color={rule.triggerCount > 5 ? "danger" : rule.triggerCount > 0 ? "warning" : "success"}
+                      size="small"
+                    >
+                      {rule.triggerCount}x
+                    </Badge>
+                  </div>
+                  <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                    {rule.sloName}
+                  </Text>
+                  {rule.lastTriggered && (
+                    <Text size={100} style={{ color: "var(--colorNeutralForeground3)" }}>
+                      Last: {rule.lastTriggered}
+                    </Text>
+                  )}
+                </div>
+              ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // --- Form Content (center panel) ---
   const FormContent = () => (
     <div className="alert-rule-view">
       <h2 className="alert-rule-title">
@@ -106,6 +352,75 @@ export function AlertRuleDefaultView({
             {def.target || "the configured target"}.
           </MessageBarBody>
         </MessageBar>
+      )}
+
+      {/* Recent Alert History Table */}
+      {lastUpdated && alertData.recentAlerts.length > 0 && (
+        <div className="alert-rule-section">
+          <div className="alert-rule-section-header">
+            <Clock20Regular className="alert-rule-section-icon" />
+            <h3 className="alert-rule-section-title">
+              {t("AlertRule_RecentAlerts", "Recent Alert History")}
+            </h3>
+          </div>
+          <div className="alert-rule-table-container">
+            <Table aria-label="Recent alert history" size="small">
+              <TableHeader>
+                <TableRow>
+                  <TableHeaderCell style={{ width: 140 }}>Time</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 160 }}>SLO</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 120 }}>Metric</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 80 }}>Severity</TableHeaderCell>
+                  <TableHeaderCell>Detail</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 80 }}>Status</TableHeaderCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {alertData.recentAlerts.map((alert, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <TableCellLayout>
+                        <Clock20Regular
+                          style={{
+                            verticalAlign: "middle",
+                            marginRight: 4,
+                            color: "var(--colorNeutralForeground3)"
+                          }}
+                        />
+                        {alert.timestamp}
+                      </TableCellLayout>
+                    </TableCell>
+                    <TableCell>
+                      <Text weight="semibold">{alert.sloName}</Text>
+                    </TableCell>
+                    <TableCell>{alert.metric}</TableCell>
+                    <TableCell>
+                      <Badge
+                        appearance="filled"
+                        color={alert.severity === "critical" ? "danger" : "warning"}
+                        size="small"
+                      >
+                        {alert.severity}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Text size={200}>{alert.detail}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        appearance="outline"
+                        color={alert.resolved ? "success" : "danger"}
+                        size="small"
+                      >
+                        {alert.resolved ? "Resolved" : "Active"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       )}
 
       <div className="alert-rule-form">
@@ -345,6 +660,14 @@ export function AlertRuleDefaultView({
 
   return (
     <ItemEditorDefaultView
+      left={{
+        content: <AlertStatusPanel />,
+        width: 340,
+        minWidth: 300,
+        title: t("AlertRule_StatusPanel_Nav", "Alert Status"),
+        enableUserResize: true,
+        collapsible: true
+      }}
       center={{
         content: <FormContent />
       }}

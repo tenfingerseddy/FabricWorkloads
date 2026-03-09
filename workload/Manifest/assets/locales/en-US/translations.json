@@ -1,0 +1,19 @@
+{
+    "ObservabilityWorkbench_Display_Name": "Observability Workbench",
+    "ObservabilityWorkbench_Full_Display_Name": "Observability Workbench for Microsoft Fabric",
+    "ObservabilityWorkbench_Description": "Long-retention monitoring, cross-item correlation, SLO tracking, and proactive alerting for Microsoft Fabric workspaces.",
+    "ObservabilityWorkbench_Hub_Slogan": "Full observability for your Fabric data platform.",
+    "ObservabilityWorkbench_Hub_Description": "Observability Workbench extends Microsoft Fabric with long-retention telemetry, cross-item correlation, SLO dashboards, and proactive alert rules.\n\n**You can:**\n\n- Retain monitoring hub events beyond the 30-day native limit.\n- Correlate pipeline runs with downstream notebook, dataflow, and semantic model refreshes.\n- Define SLOs for data freshness, success rate, and duration regression.\n- Configure alert rules with proactive breach detection.",
+    "ObservabilityWorkbench_Hub_GetStarted_1_Title": "Get Started with Observability Workbench",
+    "ObservabilityWorkbench_Hub_GetStarted_1_Sub_Title": "Set up long-retention monitoring in minutes",
+    "ObservabilityWorkbench_Hub_GetStarted_1_Description": "Create your first Workbench Dashboard to start collecting and correlating Fabric monitoring events with extended retention.",
+    "WorkbenchDashboard_DisplayName": "Workbench Dashboard",
+    "WorkbenchDashboard_DisplayName_Plural": "Workbench Dashboards",
+    "WorkbenchDashboard_Description": "A unified observability dashboard showing cross-item correlation, SLO status, and incident timelines for your Fabric workspace.",
+    "SLODefinition_DisplayName": "SLO Definition",
+    "SLODefinition_DisplayName_Plural": "SLO Definitions",
+    "SLODefinition_Description": "Define service level objectives for data freshness, pipeline success rate, and duration regression across Fabric items.",
+    "AlertRule_DisplayName": "Alert Rule",
+    "AlertRule_DisplayName_Plural": "Alert Rules",
+    "AlertRule_Description": "Configure alert rules with proactive breach detection for monitoring Fabric pipeline, notebook, and dataflow health."
+}
