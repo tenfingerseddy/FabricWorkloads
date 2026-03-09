@@ -1,0 +1,19 @@
+// ── AlertRules (15 rows) ──────────────────────────────────────
+// Columns: RuleId, SloId, Condition, Threshold, NotificationType, Target, Cooldown, Enabled, CreatedAt
+
+.ingest inline into table AlertRules <|
+7985bd36-111f-4394-b52c-8282d1e6bab7;97a209aa-c9de-49b3-a81b-bfab2ab8b364;slo_breach;1;email;data-eng@contoso.com;60;true;2026-02-23T19:59:38.529Z
+25e0dcd3-e31d-4994-b0b7-b39c98096e99;568f361e-4958-492d-9fa7-1d869c9f7618;slo_warning;1;email;data-eng@contoso.com;120;true;2026-02-23T19:59:38.529Z
+92a1b24a-ddf9-44b9-9505-3960bda5c5df;;success_rate_below;0.9;teams;#fabric-alerts;30;true;2026-02-23T19:59:38.529Z
+7d2ade54-e27a-4105-9735-b2259f85c68f;;success_rate_below;0.8;email;oncall@contoso.com;15;true;2026-02-23T19:59:38.529Z
+db7abbe4-d144-40dc-9f8d-a859335a8def;;consecutive_failures;3;email;data-eng@contoso.com;30;true;2026-02-23T19:59:38.529Z
+48d4e711-57dd-4d0a-9dce-25ddf7a959b6;;consecutive_failures;5;pagerduty;svc-fabric-prod;15;true;2026-02-23T19:59:38.529Z
+377b8a7a-7e50-4359-9bdd-a0c1e7bcb68d;;duration_spike;3;teams;#fabric-perf;60;true;2026-02-23T19:59:38.529Z
+a6f3d593-2532-4d24-b3e5-cd1041e6a316;;freshness_stale;24;email;data-eng@contoso.com;120;true;2026-02-23T19:59:38.529Z
+dd627e48-5081-43d7-b9a3-9c7cad6bcdce;;freshness_stale;48;pagerduty;svc-fabric-prod;60;true;2026-02-23T19:59:38.529Z
+cbb7f7a2-94ee-4a28-b120-e966a301f126;;no_recent_runs;72;teams;#fabric-alerts;240;true;2026-02-23T19:59:38.529Z
+dc996976-51f1-4ea0-8341-fc9e18a8b443;;failure_cascade;3;email;oncall@contoso.com;30;true;2026-02-23T19:59:38.529Z
+0bf124e7-051d-4a12-a86a-eb3beb85f990;;error_budget_burn;80;teams;#fabric-slo;120;true;2026-02-23T19:59:38.529Z
+86d861b3-8215-44ea-8de8-59d0f19c0ed7;;error_budget_burn;100;pagerduty;svc-fabric-prod;60;true;2026-02-23T19:59:38.529Z
+5134e714-df00-47ee-8bc8-d7573e9857e7;;capacity_throttle;0.8;email;platform@contoso.com;60;true;2026-02-23T19:59:38.529Z
+cbc9d4e7-55e0-42b9-aacc-653a26507542;;success_rate_below;0.95;teams;#fabric-staging;60;false;2026-02-23T19:59:38.529Z

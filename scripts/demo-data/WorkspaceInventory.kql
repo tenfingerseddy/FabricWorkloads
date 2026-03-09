@@ -1,0 +1,22 @@
+// ── WorkspaceInventory (18 rows) ──────────────────────────────
+// Columns: WorkspaceId, WorkspaceName, ItemId, ItemName, ItemType, CapacityId, DiscoveredAt, LastSeenAt
+
+.ingest inline into table WorkspaceInventory <|
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;20f628b8-a765-4813-8e40-1fedbfc53d0c;PL_MasterOrchestrator;DataPipeline;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;2b14438d-59bb-4735-be86-8e6ba0c4840a;PL_DailyIngest;DataPipeline;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;80a1f277-97c6-4fe0-bab3-ced4a4b98529;PL_IncrementalRefresh;DataPipeline;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;c6256fbc-e00c-419c-96e5-b4cdc839668d;NB_TransformSilver;Notebook;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;2b273f87-2a8d-4c27-8a4f-e94845aa0751;NB_TransformGold;Notebook;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;cc928b5a-c058-4e3e-9f99-e2a7d0b89b15;NB_DataQualityChecks;Notebook;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;b3f49828-e3ec-4794-8c26-7b8798f30fce;NB_FeatureEngineering;Notebook;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;385d0e96-78c6-428c-b566-e13582ea70e9;LH_Bronze;Lakehouse;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;4e75a24d-4128-4fe9-91fb-dfd55a298b9c;LH_Gold;Lakehouse;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;c6de0ebb-76b5-4631-97b7-8c0a3b695e09;SM_SalesAnalytics;SemanticModel;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;86c25608-8859-4ac3-89e6-6fe02ddf47b4;SM_FinanceReporting;SemanticModel;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;Analytics-Production;771a6138-6ada-46d7-91dd-d1513920a498;SQL_AnalyticsEndpoint;SQLEndpoint;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+f6e5d4c3-b2a1-4098-8765-432109876543;Analytics-Staging;b8f4b825-1284-4b73-bf05-edecd25d8648;PL_StagingIngest;DataPipeline;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+f6e5d4c3-b2a1-4098-8765-432109876543;Analytics-Staging;ec91cadd-fa52-4625-b732-13b40c2e44e2;PL_TestPipeline;DataPipeline;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+f6e5d4c3-b2a1-4098-8765-432109876543;Analytics-Staging;016d3161-0e35-431d-ac8c-dcca0e82a6dc;NB_StagingTransform;Notebook;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+f6e5d4c3-b2a1-4098-8765-432109876543;Analytics-Staging;9b1ea5d6-60c9-4b14-be18-044db7d5c6ba;NB_ExperimentalML;Notebook;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+f6e5d4c3-b2a1-4098-8765-432109876543;Analytics-Staging;3b87f267-3861-4046-92a7-d3c8879962b9;LH_StagingLake;Lakehouse;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z
+f6e5d4c3-b2a1-4098-8765-432109876543;Analytics-Staging;7866e7c0-c3e4-499a-a984-bacda5b9011f;SM_StagingModel;SemanticModel;1f61331b-db2a-4afd-9a26-e159aa338cee;2026-03-02T19:59:38.529Z;2026-03-09T19:59:38.529Z

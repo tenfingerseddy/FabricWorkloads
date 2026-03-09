@@ -1,0 +1,36 @@
+// ── EventCorrelations (26 rows) ───────────────────────────────
+// Columns: UpstreamEventId, DownstreamEventId, RelationshipType, ConfidenceScore, DetectedAt
+//
+// Chain types:
+//   - Pipeline -> Notebook (orchestrated ETL)
+//   - Pipeline -> SemanticModel (refresh trigger)
+//   - Notebook -> SemanticModel (multi-hop)
+//   - Relationship types: rootActivityId, activityRun, timeWindow
+
+.ingest inline into table EventCorrelations <|
+95d30873-ec1b-4522-93a8-9f3b4e8ba194;cea97559-44ab-4a62-bf78-a1d74f980bfd;timeWindow;0.74;2026-03-09T19:59:38.529Z
+50b1c68f-5ebb-42ce-a723-97995841ac0d;1190a4e9-34a2-4897-800e-f8e9041c420a;rootActivityId;1;2026-03-09T19:59:38.529Z
+4d44f365-830c-448c-903c-a7e84a69b5ec;33cf3147-3ae8-464b-b323-f28bb07a2716;rootActivityId;1;2026-03-09T19:59:38.529Z
+02cd7841-a726-4e9c-842a-edc63408669a;e114741b-23e1-41a6-aa89-7dc8a4b926e1;activityRun;0.97;2026-03-09T19:59:38.529Z
+02cd7841-a726-4e9c-842a-edc63408669a;ff1eb7b1-7da9-42be-8fa8-f20044f9c1f9;timeWindow;0.84;2026-03-09T19:59:38.529Z
+f1bf117b-89f0-49bc-abd1-fe54adde56cb;9f4e43dd-5efd-4d6e-bc74-1c14db2f0ec0;rootActivityId;1;2026-03-09T19:59:38.529Z
+9e1c4667-5884-4a1f-808e-bcac0115e1d1;ded2efa3-1403-45ca-a445-6fbfddf03c99;timeWindow;0.74;2026-03-09T19:59:38.529Z
+9e1c4667-5884-4a1f-808e-bcac0115e1d1;5e73abe5-5cb1-4eac-b805-77a82776868c;rootActivityId;1;2026-03-09T19:59:38.529Z
+6f79b3b2-4bdf-4132-8ac7-f4fa9bea680d;4b08daf8-7762-46dc-8f5a-7fa99552827c;rootActivityId;1;2026-03-09T19:59:38.529Z
+b5a68d0e-74da-4ad6-bf6c-bfd36f5925b6;bb410805-52a0-4503-836f-eeb748329e5e;activityRun;0.96;2026-03-09T19:59:38.529Z
+374f3548-66da-4f01-916b-1183211d368e;7de33a63-97fd-4335-ab2d-5de061a3bb71;timeWindow;0.75;2026-03-09T19:59:38.529Z
+7bb7a13a-1ba1-4561-b95f-9635c6bb90e4;e114741b-23e1-41a6-aa89-7dc8a4b926e1;timeWindow;0.73;2026-03-09T19:59:38.529Z
+7bb7a13a-1ba1-4561-b95f-9635c6bb90e4;b2988fe3-9c81-459a-b10c-ab397eb163a9;rootActivityId;1;2026-03-09T19:59:38.529Z
+ec223702-52b3-4e01-9f27-af73d0df40a7;5a3ac373-da95-498c-b6ca-7a9a153a4209;timeWindow;0.7;2026-03-09T19:59:38.529Z
+bd1ee74f-bcc8-48ec-a474-ce2b2525a6b8;e3fdec1d-56d3-43ef-9969-43ca1a976a41;timeWindow;0.82;2026-03-09T19:59:38.529Z
+1bed6374-dac1-4553-b722-452c7d34fe6c;1401eb5f-b391-4ba9-b577-8f46e1f037d2;timeWindow;0.77;2026-03-09T19:59:38.529Z
+4dd260fd-674f-4f46-878c-648b4bff1448;de0ed57b-91de-40bd-b34e-487006f18162;rootActivityId;1;2026-03-09T19:59:38.529Z
+8fb4f404-f4db-4fed-83f0-dac47ee002df;386396e3-20a6-45d3-8d8d-3a35f7a692f9;rootActivityId;1;2026-03-09T19:59:38.529Z
+eebdef70-3392-406c-9c60-7816d9941f7b;4999d5df-7c3c-4c09-aaf8-6c534879fcdb;timeWindow;0.78;2026-03-09T19:59:38.529Z
+f47b007e-600a-4ca8-a326-07758d8cb600;ff1eb7b1-7da9-42be-8fa8-f20044f9c1f9;timeWindow;0.84;2026-03-09T19:59:38.529Z
+fb263e52-25b7-4ac9-ad84-beefaccede0f;ff1eb7b1-7da9-42be-8fa8-f20044f9c1f9;rootActivityId;1;2026-03-09T19:59:38.529Z
+e4830736-5691-48d0-8923-75356c337887;dbafa29e-9957-469e-b365-fd1f38c8d22e;rootActivityId;1;2026-03-09T19:59:38.529Z
+c02e2519-91a7-47df-8fc8-85a589244a31;e68c0e91-cb4b-4abd-90db-9f0307f00484;rootActivityId;1;2026-03-09T19:59:38.529Z
+18ef2fe3-28fb-4019-8d1d-6953c139fb10;d7183233-c5cb-4e87-874e-f5d907bd5a80;rootActivityId;1;2026-03-09T19:59:38.529Z
+902fb094-593f-4d83-9bb4-4aebc66086eb;e9cd5c27-3282-4453-b20e-32337f1c76db;rootActivityId;1;2026-03-09T19:59:38.529Z
+5e45a324-b398-4b4d-bc13-35c405318cbe;d561615b-f458-416e-a7f2-2d7eb9d2208a;rootActivityId;1;2026-03-09T19:59:38.529Z

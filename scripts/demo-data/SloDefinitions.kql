@@ -1,0 +1,16 @@
+// ── SloDefinitions (12 rows) ──────────────────────────────────
+// Columns: SloId, WorkspaceId, ItemId, ItemName, MetricType, TargetValue, WarningThreshold, EvaluationWindow, CreatedAt, IsActive
+
+.ingest inline into table SloDefinitions <|
+568f361e-4958-492d-9fa7-1d869c9f7618;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;20f628b8-a765-4813-8e40-1fedbfc53d0c;PL_MasterOrchestrator;SuccessRate;0.95;0.97;7d;2026-02-07T19:59:38.529Z;true
+a4ec632f-ecce-496b-bbab-b8fd966ca3a6;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;2b14438d-59bb-4735-be86-8e6ba0c4840a;PL_DailyIngest;SuccessRate;0.99;0.995;7d;2026-02-07T19:59:38.529Z;true
+fdf81135-13a1-4026-91fe-463156242d6e;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;c6256fbc-e00c-419c-96e5-b4cdc839668d;NB_TransformSilver;DurationRegression;2;1.5;7d;2026-02-07T19:59:38.529Z;true
+97a209aa-c9de-49b3-a81b-bfab2ab8b364;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;c6de0ebb-76b5-4631-97b7-8c0a3b695e09;SM_SalesAnalytics;Freshness;24;18;24h;2026-02-07T19:59:38.529Z;true
+84b6f34b-366b-4f9a-bec4-7e968360c816;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;b3f49828-e3ec-4794-8c26-7b8798f30fce;NB_FeatureEngineering;SuccessRate;0.95;0.97;7d;2026-02-07T19:59:38.529Z;true
+16873511-c014-41cf-bbf1-fc8b8068d67a;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;86c25608-8859-4ac3-89e6-6fe02ddf47b4;SM_FinanceReporting;Freshness;12;8;12h;2026-02-07T19:59:38.529Z;true
+4f5948d2-0561-4d9c-bcbf-c969495ff2a8;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;80a1f277-97c6-4fe0-bab3-ced4a4b98529;PL_IncrementalRefresh;DurationRegression;2;1.5;7d;2026-02-07T19:59:38.529Z;true
+cbf376b0-043e-4743-bebf-721b86d9d667;f6e5d4c3-b2a1-4098-8765-432109876543;9b1ea5d6-60c9-4b14-be18-044db7d5c6ba;NB_ExperimentalML;SuccessRate;0.9;0.93;7d;2026-02-07T19:59:38.529Z;true
+ce8fc971-6d24-471e-bae7-bf53e76e4895;f6e5d4c3-b2a1-4098-8765-432109876543;ec91cadd-fa52-4625-b732-13b40c2e44e2;PL_TestPipeline;SuccessRate;0.95;0.97;7d;2026-02-07T19:59:38.529Z;true
+32233526-e007-406e-9529-f86fb2845301;f6e5d4c3-b2a1-4098-8765-432109876543;016d3161-0e35-431d-ac8c-dcca0e82a6dc;NB_StagingTransform;Freshness;6;4;6h;2026-02-07T19:59:38.529Z;true
+c4664e15-a5f4-4db4-b8a1-2b52cd7e077f;f6e5d4c3-b2a1-4098-8765-432109876543;b8f4b825-1284-4b73-bf05-edecd25d8648;PL_StagingIngest;SuccessRate;0.95;0.97;7d;2026-02-07T19:59:38.529Z;true
+3633eabd-cdbe-4162-8652-46c70b86e7fc;a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d;2b273f87-2a8d-4c27-8a4f-e94845aa0751;NB_TransformGold;DurationRegression;2;1.5;7d;2026-02-07T19:59:38.529Z;true
