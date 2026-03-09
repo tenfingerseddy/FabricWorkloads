@@ -178,6 +178,42 @@ for ws_id, ws_data in workspace_items.items():
 
 print(f"Collected {len(all_events)} job events")
 
+# Cell 4.5: Deduplication — query existing EventIds to avoid re-ingestion
+# ─────────────────────────────────────────────────────────────────────────────
+
+def kusto_query(query):
+    """Execute a KQL query and return rows as list of dicts."""
+    resp = requests.post(
+        f"{KUSTO_URI}/v1/rest/query",
+        headers={
+            "Authorization": f"Bearer {kusto_token}",
+            "Content-Type": "application/json",
+        },
+        json={"db": KUSTO_DB, "csl": query},
+    )
+    resp.raise_for_status()
+    result = resp.json()
+    tables = result.get("Tables", [])
+    if not tables:
+        return []
+    primary = tables[0]
+    columns = [col["ColumnName"] for col in primary["Columns"]]
+    return [dict(zip(columns, row)) for row in primary["Rows"]]
+
+# Get all EventIds already in the table
+existing_ids = set()
+try:
+    rows = kusto_query("FabricEvents | distinct EventId")
+    existing_ids = {r["EventId"] for r in rows}
+    print(f"Found {len(existing_ids)} existing EventIds in Eventhouse")
+except Exception as e:
+    print(f"Warning: Could not query existing EventIds ({e}), will ingest all")
+
+# Filter to new events only
+new_events = [e for e in all_events if e["EventId"] not in existing_ids]
+skipped = len(all_events) - len(new_events)
+print(f"New events to ingest: {len(new_events)} (skipping {skipped} duplicates)")
+
 # Cell 5: Ingest into Eventhouse
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -209,8 +245,8 @@ def kusto_ingest(table, rows):
 
     return ingested
 
-count = kusto_ingest("FabricEvents", all_events)
-print(f"Ingested {count}/{len(all_events)} events into FabricEvents")
+count = kusto_ingest("FabricEvents", new_events)
+print(f"Ingested {count}/{len(new_events)} new events into FabricEvents")
 
 # Cell 6: Update workspace inventory
 # ─────────────────────────────────────────────────────────────────────────────
@@ -230,8 +266,20 @@ for ws_id, ws_data in workspace_items.items():
             "LastSeenAt": now,
         })
 
+# Dedup inventory: only ingest items not already present
+existing_inventory = set()
+try:
+    rows = kusto_query("WorkspaceInventory | distinct ItemId")
+    existing_inventory = {r["ItemId"] for r in rows}
+    print(f"Found {len(existing_inventory)} existing inventory items")
+except Exception as e:
+    print(f"Warning: Could not query inventory ({e}), will ingest all")
+
+new_inventory = [r for r in inventory_rows if r["ItemId"] not in existing_inventory]
+print(f"New inventory items: {len(new_inventory)} (skipping {len(inventory_rows) - len(new_inventory)} known)")
+
 inv_count = 0
-for row in inventory_rows:
+for row in new_inventory:
     values = ",".join(str(row.get(k, "")) for k in [
         "WorkspaceId", "WorkspaceName", "ItemId", "ItemName",
         "ItemType", "CapacityId", "DiscoveredAt", "LastSeenAt"
@@ -248,7 +296,7 @@ for row in inventory_rows:
     if resp.status_code == 200:
         inv_count += 1
 
-print(f"Inventoried {inv_count}/{len(inventory_rows)} items")
+print(f"Inventoried {inv_count}/{len(new_inventory)} new items")
 
 # Cell 7: Summary
 # ─────────────────────────────────────────────────────────────────────────────
@@ -256,6 +304,8 @@ print(f"Inventoried {inv_count}/{len(inventory_rows)} items")
 print(f"\n{'='*60}")
 print(f"NB_ObsIngestion completed at {datetime.now(timezone.utc).isoformat()}")
 print(f"  Workspaces scanned: {len(workspaces)}")
-print(f"  Job events ingested: {count}")
-print(f"  Inventory items updated: {inv_count}")
+print(f"  Total events collected: {len(all_events)}")
+print(f"  Duplicates skipped: {skipped}")
+print(f"  New events ingested: {count}")
+print(f"  New inventory items: {inv_count}")
 print(f"{'='*60}")

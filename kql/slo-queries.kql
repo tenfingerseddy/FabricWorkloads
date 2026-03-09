@@ -60,6 +60,57 @@ FabricEvents
 | extend BudgetConsumed = round(FailureRate / ErrorBudget * 100, 1)
 | order by StartTimeUtc desc, BudgetConsumed desc
 
+// ── CU Waste Score: quantify compute waste per item ─────────
+// F64 pricing: $11.52/hr = $0.192/min = $0.0032/CU-second
+let CU_RATE_PER_SECOND = 0.0032;
+let RetryWaste = FabricEvents
+| where coalesce(StartTimeUtc, IngestedAt) > ago(7d)
+| where Status == "Failed" and DurationSeconds > 0
+| summarize
+    FailedRuns = count(),
+    FailedDurationSeconds = sum(DurationSeconds)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| extend RetryWasteCost = round(FailedDurationSeconds * CU_RATE_PER_SECOND, 2);
+let DurationWaste = (
+    let Baseline = FabricEvents
+    | where coalesce(StartTimeUtc, IngestedAt) between (ago(30d) .. ago(7d))
+    | where Status == "Completed" and DurationSeconds > 0
+    | summarize BaselineP95 = percentile(DurationSeconds, 95) by ItemId;
+    FabricEvents
+    | where coalesce(StartTimeUtc, IngestedAt) > ago(7d)
+    | where Status == "Completed" and DurationSeconds > 0
+    | summarize
+        CurrentP95 = percentile(DurationSeconds, 95),
+        RunCount = count(),
+        TotalDuration = sum(DurationSeconds)
+        by ItemId, ItemName, ItemType, WorkspaceName
+    | join kind=leftouter Baseline on ItemId
+    | extend DurationRatio = iff(isnotnull(BaselineP95) and BaselineP95 > 0, CurrentP95 / BaselineP95, 1.0)
+    | extend ExcessSeconds = iff(DurationRatio > 1.5, (CurrentP95 - BaselineP95) * RunCount, 0.0)
+    | extend DurationWasteCost = round(ExcessSeconds * CU_RATE_PER_SECOND, 2)
+);
+RetryWaste
+| join kind=fullouter DurationWaste on ItemId
+| extend
+    FinalItemName = coalesce(RetryWaste.ItemName, DurationWaste.ItemName),
+    FinalItemType = coalesce(RetryWaste.ItemType, DurationWaste.ItemType),
+    FinalWorkspace = coalesce(RetryWaste.WorkspaceName, DurationWaste.WorkspaceName),
+    RetryWasteCost = coalesce(RetryWasteCost, 0.0),
+    DurationWasteCost = coalesce(DurationWasteCost, 0.0)
+| extend TotalWasteCost = RetryWasteCost + DurationWasteCost
+| extend MonthlyProjected = round(TotalWasteCost * (30.0 / 7.0), 2)
+| project
+    ItemName = FinalItemName,
+    ItemType = FinalItemType,
+    WorkspaceName = FinalWorkspace,
+    FailedRuns = coalesce(FailedRuns, 0),
+    RetryWasteCost,
+    DurationRatio = coalesce(DurationRatio, 1.0),
+    DurationWasteCost,
+    TotalWasteCost,
+    MonthlyProjected
+| order by TotalWasteCost desc
+
 // ── Consecutive failures (detect sustained outages) ─────────
 FabricEvents
 | where StartTimeUtc > ago(7d)

@@ -119,5 +119,5 @@
       }
     },
     "itemJobTypes": ["evaluateSLOs", "runAlertChecks"],
-    "compatibleItemTypes": ["Lakehouse", "Pipeline", "Notebook"]
+    "compatibleItemTypes": ["Lakehouse", "Pipeline", "Notebook", "Dataflow", "Eventhouse", "SemanticModel"]
 }

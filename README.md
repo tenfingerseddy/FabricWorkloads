@@ -78,7 +78,8 @@ npx fabric-health-check
 4. **Computes** SLO metrics: success rate, P50/P95 duration, freshness
 5. **Ingests** into Fabric Eventhouse (KQL database) for long-term storage
 6. **Alerts** on SLO breaches, duration regressions, consecutive failures
-7. **Renders** a CLI dashboard with workspace inventory, job history, and SLO status
+7. **Scores** CU waste per item — quantifies retry, duration regression, and duplicate run waste in dollars
+8. **Renders** a CLI dashboard with workspace inventory, job history, SLO status, and waste metrics
 
 ## Configuration
 
@@ -101,15 +102,16 @@ src/                    # CLI tool (TypeScript)
   kql-client.ts         #   Eventhouse KQL ingestion
   dashboard.ts          #   Terminal dashboard renderer
   alerts.ts             #   Alert engine (SLO breach, regression, freshness)
+  waste-score.ts        #   CU Waste Score calculator (retry, duration, duplicate waste)
   scheduler.ts          #   Polling scheduler for continuous mode
-  __tests__/            #   53 unit tests (vitest)
+  __tests__/            #   Unit tests (vitest)
 workload/               # Fabric Extensibility Toolkit workload
   app/items/            #   3 item types: WorkbenchDashboard, AlertRule, SLODefinition
   Manifest/             #   Fabric manifests and item definitions
 kql/                    # Ready-to-use KQL queries
   create-tables.kql     #   Table creation with retention policies
   dashboard-queries.kql #   Success rates, duration trends, heatmaps
-  slo-queries.kql       #   SLO tracking, error budgets
+  slo-queries.kql       #   SLO tracking, error budgets, CU waste scoring
   correlation-queries.kql # Cross-item correlation analysis
   troubleshooting.kql   #   Incident investigation queries
 notebooks/              # Fabric PySpark notebooks
@@ -125,7 +127,7 @@ landing-page/           # Marketing site
 
 The workload adds 3 native item types to Fabric:
 
-- **WorkbenchDashboard** — SLO status grid, incident timeline, failed jobs view
+- **WorkbenchDashboard** — SLO status grid, CU waste scoring, incident timeline, failed jobs view
 - **AlertRule** — Condition builder, notification targets, test alerts
 - **SLODefinition** — Metric configuration, error budget visualization
 
@@ -139,6 +141,7 @@ The workload adds 3 native item types to Fabric:
 | `SloDefinitions` | SLO target configurations |
 | `SloSnapshots` | Point-in-time SLO measurements |
 | `AlertRules` | Alert rule definitions |
+| `AlertLog` | Triggered alert history |
 
 ## Testing
 

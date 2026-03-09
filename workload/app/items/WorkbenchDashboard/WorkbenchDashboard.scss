@@ -141,6 +141,53 @@
 }
 
 // ============================================================================
+// CU Waste Score Section
+// ============================================================================
+
+.workbench-dashboard-waste-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalXXL);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  margin-bottom: var(--spacingVerticalM);
+}
+
+.workbench-dashboard-waste-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacingVerticalXS);
+  min-width: 120px;
+}
+
+.workbench-dashboard-waste-gauge-ring {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  width: 100px;
+  height: 100px;
+  border: 6px solid #107c10;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: center;
+}
+
+.workbench-dashboard-waste-stats {
+  display: flex;
+  gap: var(--spacingHorizontalXXL);
+  flex: 1;
+}
+
+.workbench-dashboard-waste-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXS);
+}
+
+// ============================================================================
 // Incident Timeline
 // ============================================================================
 
