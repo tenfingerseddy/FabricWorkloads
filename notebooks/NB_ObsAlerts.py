@@ -11,7 +11,16 @@ import requests
 import json
 from datetime import datetime, timezone, timedelta
 
-# Service Principal credentials
+# Authentication: Try notebookutils (Fabric-native) first, fall back to spark.conf
+USE_FABRIC_NATIVE_AUTH = True
+try:
+    import notebookutils
+    print("Using Fabric-native authentication (notebookutils)")
+except ImportError:
+    USE_FABRIC_NATIVE_AUTH = False
+    print("notebookutils not available, falling back to service principal")
+
+# Service Principal credentials (only needed if notebookutils unavailable)
 TENANT_ID = spark.conf.get("spark.obs.tenantId", "")
 CLIENT_ID = spark.conf.get("spark.obs.clientId", "")
 CLIENT_SECRET = spark.conf.get("spark.obs.clientSecret", "")
@@ -36,6 +45,8 @@ print(f"[{datetime.now(timezone.utc).isoformat()}] NB_ObsAlerts starting")
 
 def get_kusto_token():
     """Acquire Kusto/Eventhouse access token."""
+    if USE_FABRIC_NATIVE_AUTH:
+        return notebookutils.credentials.getToken(KUSTO_URI)
     url = f"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token"
     data = {
         "client_id": CLIENT_ID,
