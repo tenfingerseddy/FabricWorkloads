@@ -489,25 +489,25 @@ create_table = """.create-merge table AlertLog (
 
 kql_mgmt(create_table)
 
-# Ingest alerts
+# Ingest alerts using pipe-delimited format
 ingested = 0
 for a in alerts:
     alert_id = str(uuid.uuid4())
-    values = ",".join([
+    values = "|".join([
         alert_id,
         a["Kind"],
         a["Severity"],
         a["WorkspaceId"],
-        a["WorkspaceName"],
+        a["WorkspaceName"].replace("|", " "),
         a["ItemId"],
-        a["ItemName"],
-        a["Message"].replace(",", ";"),
+        a["ItemName"].replace("|", " "),
+        a["Message"].replace("|", " "),
         str(a["Value"]),
         str(a["Threshold"]),
         str(notifications_sent > 0).lower(),
         a["Timestamp"],
     ])
-    csl = f".ingest inline into table AlertLog <| {values}"
+    csl = f".ingest inline into table AlertLog with (format=psv) <| {values}"
 
     resp = kql_mgmt(csl)
     if resp.status_code == 200:
