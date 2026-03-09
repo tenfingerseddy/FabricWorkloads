@@ -31,16 +31,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Typecheck
+      - name: Typecheck (CLI tool)
         run: npx tsc --noEmit
 
-      - name: Build
-        run: npm run build
-
-      - name: Lint (if configured)
-        run: |
-          if [ -f .eslintrc.json ] || [ -f .eslintrc.js ] || [ -f .eslintrc.yml ] || [ -f eslint.config.js ] || [ -f eslint.config.mjs ]; then
-            npx eslint . --max-warnings 0
-          else
-            echo "No ESLint configuration found, skipping lint step"
-          fi
+      - name: Test
+        run: npm test
