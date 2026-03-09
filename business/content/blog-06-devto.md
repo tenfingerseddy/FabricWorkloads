@@ -2,7 +2,7 @@
 title: "Building Native Fabric Workloads With the Extensibility Toolkit"
 published: false
 description: "The Extensibility Toolkit replaces the WDK for building Fabric workloads. No mandatory .NET backend, TypeScript-first, minutes to first render."
-tags: microsoft-fabric, typescript, opensource, tutorial
+tags: microsoft-fabric, dataengineering, observability, opensource
 cover_image:
 canonical_url:
 series: "Fabric Observability Deep Dives"

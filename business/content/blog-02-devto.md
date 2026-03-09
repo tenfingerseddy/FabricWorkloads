@@ -2,7 +2,7 @@
 title: "Cross-Item Correlation in Microsoft Fabric"
 published: false
 description: "Fabric's monitoring hub shows individual items but not their relationships. Here's how to build a correlation engine that traces failures across pipelines, notebooks, and semantic models."
-tags: microsoft-fabric, observability, data-engineering, kql
+tags: microsoft-fabric, dataengineering, observability, opensource
 series: "Fabric Observability Deep Dives"
 cover_image: ""
 canonical_url: ""

@@ -2,10 +2,10 @@
 title: "What FabCon 2026 Reveals About the Fabric Observability Gap (And What's Coming Next)"
 published: false
 description: "FabCon 2026 was the biggest week in the Fabric calendar. Microsoft shipped real monitoring improvements -- but the structural observability gaps remain. Here's what changed, what hasn't, and why the Extensibility Toolkit changes the equation."
-tags: microsoftfabric, observability, dataengineering, fabcon
+tags: microsoft-fabric, dataengineering, observability, opensource
 cover_image:
 canonical_url:
-series: "Fabric Observability"
+series: "Fabric Observability Deep Dives"
 ---
 
 Last week, thousands of data engineers, BI developers, and platform architects converged on the Georgia World Congress Center in Atlanta for FabCon 2026 -- the third annual Microsoft Fabric Community Conference. Five days. Over 200 sessions. Keynotes from Arun Ulag, Amir Netz, Kim Manis, and the rest of Microsoft's Fabric leadership. And for the first time, the co-located SQLCon running alongside it, making it the most significant week in the Microsoft data platform calendar.

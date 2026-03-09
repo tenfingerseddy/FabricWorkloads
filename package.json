@@ -13,8 +13,10 @@
     "dev": "tsx watch src/index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --reporter=verbose",
     "test:notebooks": "vitest run src/__tests__/notebook-logic.test.ts",
-    "validate:notebooks": "node scripts/validate-notebooks.mjs"
+    "validate:notebooks": "node scripts/validate-notebooks.mjs",
+    "health": "node scripts/health-check.mjs"
   },
   "keywords": ["fabric", "observability", "monitoring", "microsoft-fabric"],
   "license": "MIT",

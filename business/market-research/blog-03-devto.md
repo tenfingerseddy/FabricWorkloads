@@ -2,10 +2,10 @@
 title: "The Hidden Cost of Bad Data in Microsoft Fabric: How Data Quality Failures Silently Drain Your CU Budget"
 published: false
 description: "Failed pipelines, stale data reprocessing, timeout-induced full refreshes, and duplicate scheduled runs are silently consuming your Fabric CU budget. Here's how to calculate the waste and fix it."
-tags: microsoftfabric, dataengineering, observability, finops
+tags: microsoft-fabric, dataengineering, observability, opensource
 cover_image:
 canonical_url:
-series: "Fabric Observability"
+series: "Fabric Observability Deep Dives"
 ---
 
 Every Fabric team knows about the visible costs: your capacity SKU, the monthly Azure bill, the burst charges when Spark jobs run hot. These are the costs you plan for.

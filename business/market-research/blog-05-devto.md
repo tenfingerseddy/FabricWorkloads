@@ -2,7 +2,7 @@
 title: "CU Waste Score: Quantifying Compute Waste in Fabric"
 published: false
 description: "Last month your Fabric capacity burned thousands in compute. How much was wasted on failed retries, regressed jobs, and duplicate runs? Here's how to measure it with a single score."
-tags: microsoft-fabric, observability, data-engineering, finops
+tags: microsoft-fabric, dataengineering, observability, opensource
 series: "Fabric Observability Deep Dives"
 cover_image: ""
 canonical_url: ""
@@ -297,7 +297,7 @@ Common fixes for duration regression:
 
 - **Delta table maintenance.** Run `OPTIMIZE` and `VACUUM` on Lakehouse tables that notebooks read from. Fragmented small files force Spark to open thousands of file handles.
 - **Partition pruning.** Add or fix partition columns so queries scan less data. A notebook that scans 90 days of data when it only needs today's partition is doing 90x the work.
-- **Resource contention.** Use the concurrency analysis query from our [community query pack](https://github.com/tenfingerseddy/FabricWorkloads) (45+ KQL queries) to identify scheduling hotspots where jobs compete for capacity.
+- **Resource contention.** Use the concurrency analysis query from our [community query pack](https://github.com/tenfingerseddy/FabricWorkloads) (25 KQL queries) to identify scheduling hotspots where jobs compete for capacity.
 - **Upstream schema changes.** A new column in a source table can change query plans. Check whether upstream items changed around the time the regression started.
 
 ### Fixing Scheduling Waste (Low Effort, Moderate Impact)
@@ -326,7 +326,7 @@ When a waste SLO breaches, the alert includes the full breakdown: which componen
 
 ## Try It
 
-The CU Waste Score calculation, along with all three component queries, is part of the [Observability Workbench](https://github.com/tenfingerseddy/FabricWorkloads) -- an open-source Fabric-native workload for production observability. The project includes 205 passing tests, automated notebook validation, and a community query pack with 45+ KQL queries covering health, performance, failure investigation, cost intelligence, and SLO tracking.
+The CU Waste Score calculation, along with all three component queries, is part of the [Observability Workbench](https://github.com/tenfingerseddy/FabricWorkloads) -- an open-source Fabric-native workload for production observability. The project includes 243 passing tests across 8 test files, automated notebook validation, and a community query pack with 25 KQL queries covering health, performance, failure investigation, cost intelligence, and SLO tracking.
 
 Point it at your F64 (or any Fabric capacity) and find out what your waste score looks like. The number might surprise you. More importantly, the per-item breakdown will tell you exactly where to start optimizing.
 
