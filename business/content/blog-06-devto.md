@@ -1,8 +1,8 @@
 ---
 title: "Building Native Fabric Workloads With the Extensibility Toolkit"
 published: false
-description: "The Extensibility Toolkit replaces the WDK as the way to build custom Fabric workloads. No mandatory .NET backend, TypeScript-first, minutes to first render. Here's what changed and why it matters for ISVs and platform teams."
-tags: microsoft-fabric, data-engineering, typescript, devops
+description: "The Extensibility Toolkit replaces the WDK for building Fabric workloads. No mandatory .NET backend, TypeScript-first, minutes to first render."
+tags: microsoft-fabric, typescript, opensource, tutorial
 cover_image:
 canonical_url:
 series: "Fabric Observability Deep Dives"
@@ -65,11 +65,11 @@ The Extensibility Toolkit opens a direct path to market through the **Fabric Wor
 
 ## What This Means for the Observability Workbench
 
-We have written about the [observability gaps in Fabric](https://dev.to/observability-workbench/the-state-of-fabric-observability-in-2026): the 30-day retention ceiling, the lack of [cross-item correlation](https://dev.to/observability-workbench/cross-item-correlation-in-microsoft-fabric), the absence of an SLO framework. Everything we have described -- the long-retention event store, the correlation engine, the SLO metrics, the proactive alerting -- is designed to run as a native Fabric workload.
+We have written about the [observability gaps in Fabric](https://dev.to/series/fabric-observability-deep-dives): the 30-day retention ceiling, the lack of cross-item correlation, the absence of an SLO framework. Everything we have described -- the long-retention event store, the correlation engine, the SLO metrics, the proactive alerting -- is designed to run as a native Fabric workload.
 
 The Extensibility Toolkit is what makes this practical:
 
-**Custom item type: Observability Dashboard.** A new item type in your workspace that renders our monitoring UI inside Fabric -- correlation chains, SLO status, alert history, [CU waste scores](https://dev.to/observability-workbench/cu-waste-score) -- all without leaving the Fabric portal.
+**Custom item type: Observability Dashboard.** A new item type in your workspace that renders our monitoring UI inside Fabric -- correlation chains, SLO status, alert history, capacity usage analysis -- all without leaving the Fabric portal.
 
 **OneLake-native storage.** SLO configurations, alert rules, and dashboard layouts stored through the toolkit's state management. Your observability config participates in Fabric's CI/CD system. Promote SLO definitions from dev to prod through standard deployment pipelines.
 
@@ -85,7 +85,39 @@ If you are considering building a Fabric workload:
 
 **1. Start with the Starter Kit.** Fork the [Extensibility Toolkit repository](https://github.com/microsoft/fabric-extensibility-toolkit), open a GitHub Codespace, run the setup. Working workload in Fabric within 15 minutes.
 
-**2. Understand the manifest.** The manifest declares your item types, capabilities, and permissions. Study the Starter Kit's manifest to understand how Fabric discovers your workload.
+**2. Understand the manifest.** The manifest declares your item types, capabilities, and permissions. Study the Starter Kit's manifest to understand how Fabric discovers your workload. Here is an abbreviated example of a `WorkloadManifest.xml` that registers a custom item type:
+
+```xml
+<WorkloadManifest>
+  <Name>Observability Workbench</Name>
+  <Version>1.0.0</Version>
+  <Items>
+    <Item>
+      <Name>WorkbenchDashboard</Name>
+      <DisplayName>Observability Dashboard</DisplayName>
+      <Description>Cross-item correlation, SLO tracking, and alerting for Fabric workspaces</Description>
+      <SupportedCapabilities>
+        <Capability>Read</Capability>
+        <Capability>Write</Capability>
+        <Capability>Delete</Capability>
+      </SupportedCapabilities>
+      <EntryPoint>
+        <Type>iFrame</Type>
+        <Url>https://your-host.com/dashboard</Url>
+      </EntryPoint>
+    </Item>
+  </Items>
+  <Authentication>
+    <Authority>https://login.microsoftonline.com/{tenantId}</Authority>
+    <ClientId>{your-entra-app-id}</ClientId>
+    <Scopes>
+      <Scope>https://analysis.windows.net/powerbi/api/.default</Scope>
+    </Scopes>
+  </Authentication>
+</WorkloadManifest>
+```
+
+The manifest is the contract between your workload and the Fabric platform. It controls what items appear in the workspace creation menu, what permissions they request, and where the iFrame points.
 
 **3. Build your first item type.** Replace the "Hello World" item with your use case. Define state, API requirements, and UI.
 

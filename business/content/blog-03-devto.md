@@ -1,9 +1,10 @@
 ---
-title: "Building Your First Fabric SLO: A Practical Guide to Success Rate, Duration, and Freshness Tracking"
+title: "Your First Fabric SLO: A Practical Guide to Reliability Tracking"
 published: false
-description: "SLOs are the foundation of reliable data operations. Here's how to define, measure, and track success rate, duration, and freshness SLOs for Microsoft Fabric -- with KQL queries you can run today."
+description: "SLOs are the foundation of reliable data ops. Here's how to define and track success rate, duration, and freshness SLOs for Microsoft Fabric with KQL."
 tags: microsoft-fabric, observability, data-engineering, kql
 series: "Fabric Observability Deep Dives"
+cover_image:
 canonical_url:
 ---
 
@@ -14,6 +15,8 @@ Most Fabric teams can answer basic questions: Did the pipeline finish? Did the n
 This is the gap that Service Level Objectives fill. SLOs give you a precise, measurable definition of "good enough" for every critical workload. They replace gut feelings with numbers. They replace reactive firefighting with proactive trend tracking. And they give you a shared language to discuss reliability with stakeholders who do not care about pipeline internals but care deeply about whether the revenue report is accurate by 8 AM.
 
 This guide walks through building your first three SLOs for Microsoft Fabric: success rate, duration, and freshness. Every example uses KQL queries against the `FabricEvents` table schema from our open-source [Observability Workbench](https://github.com/tenfingerseddy/FabricWorkloads), but the concepts apply regardless of your tooling.
+
+If you have not read it yet, start with [The State of Fabric Observability in 2026](https://dev.to/series/fabric-observability-deep-dives) for the full picture of what Fabric's native monitoring tools miss and why SLOs matter.
 
 ## What Is an SLO, and Why Does Fabric Need One?
 
@@ -350,7 +353,7 @@ npm start
 
 It discovers workspaces, collects jobs, computes SLO metrics, evaluates alerts, ingests into Eventhouse, and renders a CLI dashboard.
 
-**Option 3: KQL Query Pack** -- We maintain a community-contributed query pack with 30+ queries at the [GitHub repo](https://github.com/tenfingerseddy/FabricWorkloads).
+**Option 3: KQL Query Pack** -- We maintain a community-contributed query pack with 45+ queries at the [GitHub repo](https://github.com/tenfingerseddy/FabricWorkloads).
 
 ## Common Mistakes When Starting with SLOs
 

@@ -1,8 +1,11 @@
 ---
 title: "The State of Fabric Observability in 2026: What's Missing and Why It Matters"
 published: false
-description: "Microsoft Fabric's native monitoring tools have serious gaps for production operations — 30-day retention, no cross-item correlation, no SLO tracking. Here's what's missing, why it matters, and what enterprise-grade Fabric observability should look like."
+description: "Microsoft Fabric's monitoring tools have hard limits: 30-day retention, no cross-item correlation, no SLO framework. Here's what's missing and what it should look like."
 tags: microsoft-fabric, observability, data-engineering, monitoring
+series: "Fabric Observability Deep Dives"
+cover_image:
+canonical_url:
 ---
 
 It's 2 AM. Your phone buzzes. A stakeholder in finance just noticed the daily revenue report is showing yesterday's numbers. You pull up the Fabric portal, open the monitoring hub, and start scrolling through activities. The semantic model refresh... did it run? It says "Succeeded" at 11 PM, but the pipeline that feeds the Lakehouse upstream -- did that actually land fresh data? You click through to find the notebook execution it triggered. The notebook shows "Stopped." Does that mean it failed? Was it cancelled? Did it finish successfully and the status is just... wrong?
@@ -167,9 +170,13 @@ Everything described above -- the long-retention event store, the correlation en
 
 Not a separate SaaS product you send data to. Not a Power BI report you bolt on. A first-class Fabric item, integrated with the monitoring hub, backed by Eventhouse for hot storage and Lakehouse for cold archive, with scheduled jobs for ingestion, correlation, and alerting that show up in your monitoring hub alongside everything else.
 
+It's already running against live infrastructure: **137 job events ingested, 88 SLO snapshots tracked, 8 cross-item correlations detected, and 52 alerts triggered** -- all from real Fabric workspaces, not demo data. The project includes 205 tests covering ingestion, correlation, alerting, and dashboard rendering.
+
 It understands Fabric items natively -- Pipelines, Notebooks, Dataflows Gen2, Semantic Models, Lakehouses, Warehouses -- because it's built on the same platform APIs and runs in the same workspace as the items it monitors.
 
-The project is open source -- check out the [GitHub repo](https://github.com/tenfingerseddy/FabricWorkloads) to follow along, open issues, or contribute.
+{% embed https://github.com/tenfingerseddy/FabricWorkloads %}
+
+The project is open source. Star the repo, open issues, or contribute.
 
 ## We Want to Hear From You
 

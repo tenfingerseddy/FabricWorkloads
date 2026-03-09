@@ -1,9 +1,10 @@
 ---
 title: "Why Your Fabric Pipeline Succeeded But Your Data Is Wrong"
 published: false
-description: "Your monitoring hub shows green. Every pipeline 'Completed.' But the revenue report has yesterday's numbers. Here's how silent failures work in Microsoft Fabric and why cross-item correlation is the only way to catch them."
+description: "Your monitoring hub shows green. Every pipeline 'Completed.' But the revenue report has yesterday's numbers. Here's how silent failures work in Fabric."
 tags: microsoft-fabric, data-engineering, observability, data-quality
 series: "Fabric Observability Deep Dives"
+cover_image:
 canonical_url:
 ---
 
@@ -19,7 +20,7 @@ They were. The Dataflow Gen2 that feeds the staging Lakehouse table had silently
 
 Every item in the chain did its job. Every item reported success. And every report in the workspace was wrong for eight hours.
 
-If this story sounds implausible, I promise you it is not. Variations of it happen in production Fabric environments regularly.
+If this story sounds implausible, I promise you it is not. Variations of it happen in production Fabric environments regularly. (If you have not read it yet, [The State of Fabric Observability in 2026](https://dev.to/series/fabric-observability-deep-dives) covers the full landscape of monitoring gaps that make scenarios like this possible.)
 
 ## Why "Succeeded" Does Not Mean "Correct"
 
@@ -247,4 +248,4 @@ The project is open source. If you have experienced the "successful pipeline, wr
 
 ---
 
-*This is part of the "Fabric Observability Deep Dives" series. Previous: [Building Your First Fabric SLO](https://dev.to/series/fabric-observability-deep-dives). The pipeline lied to you. Now you know how to catch it.*
+*This is part of the "Fabric Observability Deep Dives" series. Previous: [Building Your First Fabric SLO](https://dev.to/series/fabric-observability-deep-dives). Started from the beginning? Read [The State of Fabric Observability in 2026](https://dev.to/series/fabric-observability-deep-dives). The pipeline lied to you. Now you know how to catch it.*
