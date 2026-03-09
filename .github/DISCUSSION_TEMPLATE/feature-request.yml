@@ -1,0 +1,136 @@
+name: Feature Request
+description: Suggest a feature or improvement for Observability Workbench
+title: "[Feature] "
+labels:
+  - enhancement
+  - community-request
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature for Observability Workbench.
+
+        Before submitting, please search existing discussions and issues to avoid duplicates.
+        If a similar request exists, add a thumbs-up reaction to signal demand.
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature Area
+      description: Which area of the product does this feature relate to?
+      options:
+        - SLO Tracking and Dashboards
+        - Alert Rules and Notifications
+        - Cross-Item Correlation
+        - Data Ingestion and Retention
+        - KQL Queries and Analysis
+        - Pipeline Monitoring
+        - Notebook Monitoring
+        - Dataflow Monitoring
+        - Semantic Model Refresh Tracking
+        - Capacity and CU Monitoring
+        - CLI / npx fabric-health-check
+        - API and Integrations
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: |
+        What problem does this feature solve? Describe the pain point you experience today.
+        The more specific, the better. Include concrete examples from your workflow.
+      placeholder: |
+        Example: "When a pipeline fails at 3 AM, I have to manually check the monitoring hub,
+        then cross-reference with notebook runs, then check dataflow status. This takes 30+
+        minutes and I often miss related failures in other items."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How should this feature work? Describe your ideal experience.
+      placeholder: |
+        Example: "Automatically group related failures into an incident timeline.
+        When I open a failed pipeline, show me all downstream items that were affected,
+        with timestamps and error messages in a single view."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches have you tried or considered?
+      placeholder: |
+        Example: "I tried building a Power BI report on top of the monitoring hub, but
+        the 30-day retention limit and lack of correlation IDs made it impractical."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: fabric-items
+    attributes:
+      label: Related Fabric Item Types
+      description: Which Fabric item types does this feature involve? Select all that apply.
+      multiple: true
+      options:
+        - Data Pipeline
+        - Notebook
+        - Dataflow Gen2
+        - Semantic Model
+        - Lakehouse
+        - Warehouse
+        - Eventhouse / KQL Database
+        - Report / Dashboard
+        - Spark Job
+        - Copy Job
+        - All / General
+    validations:
+      required: true
+
+  - type: dropdown
+    id: pain-point
+    attributes:
+      label: Related Pain Point
+      description: |
+        Which of the known Fabric monitoring pain points does this relate to?
+        See our research: https://github.com/tenfingerseddy/FabricWorkloads
+      options:
+        - Monitoring hub 100-activity / 30-day retention limit
+        - No cross-item correlation
+        - No SLO / SLA framework
+        - Status inconsistencies in monitoring hub
+        - Keyword search limitations
+        - Workspace monitoring retention (30 days)
+        - No proactive alerting
+        - Capacity / CU cost visibility
+        - Other (describe in problem statement)
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: How important is this to you?
+      options:
+        - Nice to have - would improve my workflow
+        - Important - significant pain point in my daily work
+        - Critical - blocking my team from adopting the tool
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other context, screenshots, KQL queries, or references that help explain
+        the feature request. If you have seen this solved well in another tool, mention it.
+    validations:
+      required: false

@@ -1,0 +1,204 @@
+name: Bug Report
+description: Report a bug in the Observability Workbench
+title: "[Bug] "
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Please fill out the sections below so we can
+        reproduce and fix the issue quickly.
+
+        **Security issues**: If you believe this is a security vulnerability, please
+        do NOT open a public issue. Instead, follow the process in our
+        [SECURITY.md](https://github.com/tenfingerseddy/FabricWorkloads/blob/main/SECURITY.md).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: "When I run the ingestion notebook, it completes successfully but no events appear in the Eventhouse."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide detailed steps to reproduce the behavior. Include exact commands,
+        configuration values (redact secrets), and the sequence of actions.
+      placeholder: |
+        1. Install package: `npm install @kane-ai/observability-workbench`
+        2. Configure Eventhouse connection in notebook parameters
+        3. Run NB_ObsIngestion notebook manually
+        4. Query FabricEvents table: `.show table FabricEvents | count`
+        5. Result shows 0 records (expected > 0)
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: "After running the ingestion notebook, the FabricEvents table should contain monitoring hub events from the workspace."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened instead?
+      placeholder: "The notebook completed with Succeeded status, but the FabricEvents table remained empty. No errors in notebook output."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component is affected? Select all that apply.
+      multiple: true
+      options:
+        - Ingestion Notebook (NB_ObsIngestion)
+        - Correlation Notebook (NB_ObsCorrelation)
+        - Alerting Notebook (NB_ObsAlerts)
+        - Eventhouse / KQL Database
+        - Lakehouse Archive
+        - SLO Engine
+        - Alert Rules Engine
+        - Frontend / Dashboard
+        - API / Backend
+        - CLI / npx commands
+        - npm Package
+        - Authentication / Permissions
+        - Scheduling / Jobs
+        - Documentation
+        - CI/CD / Build
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severely does this impact your workflow?
+      options:
+        - Low - cosmetic issue or minor inconvenience
+        - Medium - feature partially broken, workaround exists
+        - High - feature broken, no workaround
+        - Critical - data loss, security issue, or complete failure
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      placeholder: "e.g., Windows 11, Ubuntu 22.04, macOS 14"
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: Output of `node --version`
+      placeholder: "e.g., v20.11.0"
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package Version
+      description: Version of @kane-ai/observability-workbench
+      placeholder: "e.g., 0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: fabric-capacity
+    attributes:
+      label: Fabric Capacity SKU
+      description: What Fabric capacity are you running on?
+      options:
+        - Trial (FTL64)
+        - F2
+        - F4
+        - F8
+        - F16
+        - F32
+        - F64
+        - F128
+        - F256
+        - F512
+        - F1024
+        - F2048
+        - P1 (legacy)
+        - P2 (legacy)
+        - P3 (legacy)
+        - Other / Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: fabric-region
+    attributes:
+      label: Fabric Region
+      description: Which Azure region is your Fabric capacity deployed to?
+      placeholder: "e.g., Australia East, East US, West Europe"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: eventhouse-enabled
+    attributes:
+      label: Eventhouse / KQL Database Enabled
+      description: Is Eventhouse (Real-Time Intelligence) enabled in your capacity?
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output
+      description: |
+        Paste the full error message, stack trace, or relevant log output.
+        IMPORTANT: Redact any tokens, client secrets, tenant IDs, or other sensitive values.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other context about the problem: screenshots, KQL query output,
+        notebook cell output, configuration snippets (with secrets redacted),
+        or links to related issues.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and this bug has not been reported before
+          required: true
+        - label: I have redacted all sensitive information (tokens, secrets, tenant IDs) from this report
+          required: true
+        - label: I am using a supported Node.js version (v20.x or v22.x)
+          required: false

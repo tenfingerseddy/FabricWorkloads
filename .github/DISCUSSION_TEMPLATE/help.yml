@@ -1,0 +1,140 @@
+name: Help Request
+description: Get help with setup, configuration, troubleshooting, or usage questions
+title: "[Help] "
+labels:
+  - help-wanted
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need help with Observability Workbench? You are in the right place.
+
+        Before posting, check these resources:
+        - [README and quickstart](https://github.com/tenfingerseddy/FabricWorkloads#readme)
+        - [KQL Community Query Pack](https://github.com/tenfingerseddy/FabricWorkloads/tree/main/kql)
+        - [Existing discussions and issues](https://github.com/tenfingerseddy/FabricWorkloads/issues)
+
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you need help with?
+      description: Describe your question or the problem you are trying to solve.
+      placeholder: |
+        Example: "I installed the package and ran the ingestion notebook, but no events
+        are appearing in my Eventhouse. The notebook completes successfully but the
+        FabricEvents table stays empty."
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-tried
+    attributes:
+      label: What have you tried?
+      description: |
+        What steps have you already taken to solve this? Include commands you ran,
+        documentation you checked, and error messages you encountered.
+      placeholder: |
+        Example:
+        1. Ran NB_ObsIngestion manually -- completed with status Succeeded
+        2. Checked FabricEvents table with .show table FabricEvents extents -- shows 0 extents
+        3. Verified Eventhouse connection string in notebook parameters
+        4. Checked the monitoring hub -- notebook shows as completed
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of the tool is involved?
+      options:
+        - Installation / Setup
+        - Ingestion Notebook (NB_ObsIngestion)
+        - Correlation Notebook (NB_ObsCorrelation)
+        - Alerting Notebook (NB_ObsAlerts)
+        - Eventhouse / KQL Database
+        - Lakehouse Archive
+        - SLO Definitions and Tracking
+        - Alert Rules
+        - KQL Queries
+        - CLI / npx fabric-health-check
+        - Frontend / Dashboard
+        - API / Backend
+        - Scheduling / Jobs
+        - Authentication / Permissions
+        - Other / Not Sure
+    validations:
+      required: true
+
+  - type: input
+    id: fabric-capacity
+    attributes:
+      label: Fabric Capacity SKU
+      description: What Fabric capacity are you using?
+      placeholder: "e.g., F64, F128, Trial, P1"
+    validations:
+      required: true
+
+  - type: input
+    id: fabric-region
+    attributes:
+      label: Fabric Region
+      description: Which Azure region is your Fabric capacity in?
+      placeholder: "e.g., Australia East, East US, West Europe"
+    validations:
+      required: false
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: Output of `node --version`
+      placeholder: "e.g., v20.11.0"
+    validations:
+      required: false
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package Version
+      description: Version of @kane-ai/observability-workbench you are using.
+      placeholder: "e.g., 0.1.0"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: workspace-type
+    attributes:
+      label: Workspace Type
+      description: What kind of Fabric workspace are you working in?
+      options:
+        - Personal workspace
+        - Shared workspace (Pro license)
+        - Premium / Fabric capacity workspace
+        - Trial capacity workspace
+        - Not sure
+    validations:
+      required: false
+
+  - type: textarea
+    id: error-output
+    attributes:
+      label: Error Output or Logs
+      description: Paste any relevant error messages, log output, or KQL query results.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other details that might help. Screenshots, configuration snippets,
+        or links to related issues are welcome.
+
+        IMPORTANT: Never paste authentication tokens, client secrets, or tenant IDs
+        in public discussions. Redact sensitive values before sharing.
+    validations:
+      required: false

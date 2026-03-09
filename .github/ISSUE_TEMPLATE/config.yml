@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a Question
+    url: https://github.com/tenfingerseddy/FabricWorkloads/discussions/categories/q-a
+    about: Use GitHub Discussions for questions about setup, configuration, KQL queries, and general usage.
+  - name: Share Your Setup
+    url: https://github.com/tenfingerseddy/FabricWorkloads/discussions/categories/show-and-tell
+    about: Show the community how you are using Observability Workbench in your environment.
+  - name: Feature Ideas (Discussion)
+    url: https://github.com/tenfingerseddy/FabricWorkloads/discussions/categories/ideas
+    about: Discuss feature ideas with the community before submitting a formal request.
+  - name: KQL Query Sharing
+    url: https://github.com/tenfingerseddy/FabricWorkloads/discussions/categories/kql-queries
+    about: Share and discover KQL queries for Fabric observability.

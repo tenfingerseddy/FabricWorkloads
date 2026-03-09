@@ -1,0 +1,165 @@
+name: Feature Request
+description: Suggest a feature for the Observability Workbench
+title: "[Feature] "
+labels:
+  - enhancement
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature. Your feedback directly shapes the roadmap.
+
+        **Tip**: If a similar request already exists, add a thumbs-up reaction instead
+        of opening a duplicate. Reaction count helps us prioritize.
+
+        For general discussion about ideas and approaches, consider using
+        [GitHub Discussions](https://github.com/tenfingerseddy/FabricWorkloads/discussions) instead.
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature Area
+      description: Which area of the product does this feature relate to?
+      options:
+        - SLO Tracking and Dashboards
+        - Alert Rules and Notifications
+        - Cross-Item Correlation
+        - Data Ingestion and Retention
+        - KQL Queries and Analysis
+        - Pipeline Monitoring
+        - Notebook Monitoring
+        - Dataflow Monitoring
+        - Semantic Model Refresh Tracking
+        - Capacity / CU Monitoring
+        - CLI / npx fabric-health-check
+        - API and Integrations (PagerDuty, Slack, Teams, etc.)
+        - Frontend / Dashboard UI
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: |
+        What problem does this feature solve? Describe the pain point from your
+        day-to-day work with Microsoft Fabric.
+      placeholder: |
+        Example: "When a semantic model refresh fails, I only find out when users
+        complain about stale reports. By then, the data is hours old and the root
+        cause is buried in the monitoring hub's 100-activity window."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How should this feature work? Describe your ideal experience.
+      placeholder: |
+        Example: "An SLO definition for 'semantic model freshness' that measures the
+        time since last successful refresh. When freshness exceeds 2 hours, trigger
+        an alert to Teams/Slack with the refresh history and recommended actions."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches have you tried or considered?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: fabric-items
+    attributes:
+      label: Related Fabric Item Types
+      description: Which Fabric item types are involved? Select all that apply.
+      multiple: true
+      options:
+        - Data Pipeline
+        - Notebook
+        - Dataflow Gen2
+        - Semantic Model
+        - Lakehouse
+        - Warehouse
+        - Eventhouse / KQL Database
+        - Report / Dashboard
+        - Spark Job
+        - Copy Job
+        - All / General
+    validations:
+      required: true
+
+  - type: dropdown
+    id: pain-point
+    attributes:
+      label: Related Fabric Pain Point
+      description: |
+        Which known Fabric monitoring limitation does this address?
+      options:
+        - Monitoring hub 100-activity / 30-day retention limit
+        - No cross-item correlation natively
+        - No SLO / SLA tracking framework
+        - Status inconsistencies in monitoring hub
+        - Keyword search only queries loaded data
+        - Workspace monitoring 30-day retention limit
+        - No proactive / predictive alerting
+        - Capacity / CU cost opacity
+        - Filtering and search limitations
+        - Not related to a specific pain point
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-type
+    attributes:
+      label: Your Role
+      description: What best describes your role? Helps us understand the persona.
+      options:
+        - Data Engineer
+        - IT Admin / Platform Owner
+        - BI Developer
+        - Analytics Engineer
+        - Data Architect
+        - DevOps / DataOps Engineer
+        - Manager / Team Lead
+        - Other
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Importance
+      description: How important is this feature to your workflow?
+      options:
+        - Nice to have
+        - Important - significant improvement to my workflow
+        - Critical - blocking adoption or daily work
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other context: screenshots, mockups, KQL query examples, links to
+        similar features in other tools, or references to Fabric documentation.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and feature requests for duplicates
+          required: true
+        - label: I have checked the project roadmap for planned features
+          required: false
