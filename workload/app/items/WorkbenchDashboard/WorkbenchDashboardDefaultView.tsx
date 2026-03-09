@@ -38,8 +38,11 @@ import {
   PlugConnected20Regular,
   ArrowUp20Regular,
   ArrowDown20Regular,
-  Subtract20Regular
+  Subtract20Regular,
+  Search20Regular
 } from "@fluentui/react-icons";
+import IncidentTimeline from "./IncidentTimeline";
+import EventSearch from "./EventSearch";
 import "./WorkbenchDashboard.scss";
 
 // ============================================================================
@@ -499,11 +502,13 @@ interface RecentFailuresPanelProps {
     duration: string;
   }>;
   isLoading: boolean;
+  onInvestigate?: (itemName: string) => void;
 }
 
 function RecentFailuresPanel({
   failures,
-  isLoading
+  isLoading,
+  onInvestigate
 }: RecentFailuresPanelProps) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
@@ -585,6 +590,19 @@ function RecentFailuresPanel({
           {expandedIdx === idx && (
             <div className="workbench-dashboard-failure-reason">
               {job.errorMessage}
+              {onInvestigate && (
+                <Button
+                  appearance="subtle"
+                  size="small"
+                  style={{ marginTop: 8 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onInvestigate(job.itemName);
+                  }}
+                >
+                  View Incident Timeline
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -748,6 +766,15 @@ export function WorkbenchDashboardDefaultView({
   const [selectedTimeRange, setSelectedTimeRange] = useState(
     definition?.timeRange || "24h"
   );
+
+  // Timeline view state
+  const [timelineEvent, setTimelineEvent] = useState<{
+    eventId: string;
+    itemName: string;
+  } | null>(null);
+
+  // Search view state
+  const [showSearch, setShowSearch] = useState(false);
 
   const handleTimeRangeChange = (value: string) => {
     setSelectedTimeRange(value);
@@ -971,6 +998,14 @@ export function WorkbenchDashboardDefaultView({
           </div>
         )}
 
+        <Tooltip content="Search all events" relationship="label">
+          <Button
+            appearance="subtle"
+            icon={<Search20Regular />}
+            onClick={() => setShowSearch(true)}
+            aria-label="Search Events"
+          />
+        </Tooltip>
         <Tooltip content="Refresh all dashboard data" relationship="label">
           <Button
             appearance="subtle"
@@ -1099,6 +1134,9 @@ export function WorkbenchDashboardDefaultView({
               <RecentFailuresPanel
                 failures={obsData.failedJobs}
                 isLoading={obsLoading && !obsLastUpdated}
+                onInvestigate={(itemName) =>
+                  setTimelineEvent({ eventId: `evt-${itemName}`, itemName })
+                }
               />
             </div>
           </div>
@@ -1389,6 +1427,36 @@ export function WorkbenchDashboardDefaultView({
       )}
     </div>
   );
+
+  // If search view is active, render it instead of the dashboard
+  if (showSearch) {
+    return (
+      <ItemEditorDefaultView
+        center={{
+          content: <EventSearch onClose={() => setShowSearch(false)} />,
+          ariaLabel: "Event Search"
+        }}
+      />
+    );
+  }
+
+  // If timeline view is active, render it instead of the dashboard
+  if (timelineEvent) {
+    return (
+      <ItemEditorDefaultView
+        center={{
+          content: (
+            <IncidentTimeline
+              selectedEventId={timelineEvent.eventId}
+              selectedItemName={timelineEvent.itemName}
+              onClose={() => setTimelineEvent(null)}
+            />
+          ),
+          ariaLabel: "Incident Timeline"
+        }}
+      />
+    );
+  }
 
   return (
     <ItemEditorDefaultView

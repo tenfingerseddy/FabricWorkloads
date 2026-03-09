@@ -1,0 +1,215 @@
+/* ============================================================================
+   Event Search — Full-text search with filters
+   ============================================================================ */
+
+.event-search {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  min-height: 400px;
+}
+
+/* ── Header ────────────────────────────────────────────────────── */
+
+.event-search-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── Search Bar ────────────────────────────────────────────────── */
+
+.event-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-search-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ── Filter Panel ──────────────────────────────────────────────── */
+
+.event-search-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--colorNeutralBackground2, #f5f5f5);
+  border-radius: 8px;
+  border: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+}
+
+.event-search-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-search-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── Stats ─────────────────────────────────────────────────────── */
+
+.event-search-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+/* ── Results Table ─────────────────────────────────────────────── */
+
+.event-search-results {
+  overflow-x: auto;
+}
+
+.event-search-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    background: var(--colorNeutralBackground2, #f5f5f5);
+    border-bottom: 2px solid var(--colorNeutralStroke1, #e0e0e0);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--colorNeutralForeground2, #424242);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+
+    &:hover {
+      background: var(--colorNeutralBackground3, #ebebeb);
+    }
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--colorNeutralStroke2, #f0f0f0);
+    vertical-align: middle;
+    max-width: 250px;
+  }
+}
+
+.event-search-row {
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--colorNeutralBackground1Hover, #f5f5f5);
+  }
+
+  &:nth-child(even) {
+    background: var(--colorNeutralBackground2, #fafafa);
+
+    &:hover {
+      background: var(--colorNeutralBackground3, #f0f0f0);
+    }
+  }
+}
+
+.event-search-row--selected {
+  background: var(--colorBrandBackground2, #e8f0fe) !important;
+  outline: 1px solid var(--colorBrandStroke1, #0078d4);
+}
+
+.event-search-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.event-search-sort-indicator {
+  font-size: 11px;
+  color: var(--colorBrandForeground1, #0078d4);
+}
+
+/* ── Empty State ───────────────────────────────────────────────── */
+
+.event-search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+/* ── Detail Panel ──────────────────────────────────────────────── */
+
+.event-search-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--colorNeutralBackground2, #f5f5f5);
+  border-radius: 8px;
+  border: 1px solid var(--colorNeutralStroke1, #e0e0e0);
+  margin-top: 8px;
+}
+
+.event-search-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.event-search-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.event-search-detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-search-detail-error {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-search-detail-error-text {
+  margin: 0;
+  padding: 12px;
+  background: var(--colorNeutralBackground1, #fff);
+  border: 1px solid #d1343833;
+  border-radius: 6px;
+  font-family: "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #d13438;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .event-search-bar {
+    flex-wrap: wrap;
+  }
+
+  .event-search-input {
+    width: 100%;
+  }
+
+  .event-search-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
