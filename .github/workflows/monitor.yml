@@ -1,0 +1,253 @@
+name: Fabric Health Monitor
+
+on:
+  schedule:
+    # Run every 6 hours at minute 15 (to avoid top-of-hour congestion)
+    - cron: '15 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      create_issue_on_failure:
+        description: 'Create GitHub issue if health check fails'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  FABRIC_KQL_ENDPOINT: 'https://trd-685p3abk6ym487egyj.z9.kusto.fabric.microsoft.com'
+  FABRIC_KQL_DATABASE: 'EH_Observability'
+  FABRIC_WORKSPACE_NAME: 'ObservabilityWorkbench-Dev'
+  DATA_FRESHNESS_WARN_HOURS: '2'
+  DATA_FRESHNESS_CRIT_HOURS: '6'
+
+jobs:
+  health-check:
+    name: Fabric Health Check
+    runs-on: ubuntu-latest
+
+    outputs:
+      status: ${{ steps.health.outputs.status }}
+      summary: ${{ steps.health.outputs.summary }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run health check
+        id: health
+        env:
+          FABRIC_TENANT_ID: ${{ secrets.FABRIC_TENANT_ID }}
+          FABRIC_CLIENT_ID: ${{ secrets.FABRIC_CLIENT_ID }}
+          FABRIC_CLIENT_SECRET: ${{ secrets.FABRIC_CLIENT_SECRET }}
+        run: |
+          # Ensure script is executable
+          chmod +x scripts/fabric-monitoring-cron.sh
+
+          # Run the health check and capture output
+          set +e
+          OUTPUT=$(bash scripts/fabric-monitoring-cron.sh 2>&1)
+          EXIT_CODE=$?
+          set -e
+
+          echo "$OUTPUT"
+
+          # Determine status from exit code
+          case $EXIT_CODE in
+            0) STATUS="healthy" ;;
+            1) STATUS="degraded" ;;
+            2) STATUS="critical" ;;
+            *) STATUS="unknown" ;;
+          esac
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+
+          # Create a summary for the issue body
+          {
+            echo "summary<<SUMMARY_EOF"
+            echo "$OUTPUT"
+            echo "SUMMARY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+          # Write step summary
+          {
+            echo "## Fabric Health Check Results"
+            echo ""
+            echo "**Status**: \`${STATUS}\`"
+            echo "**Timestamp**: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo ""
+            echo "### Check Results"
+            echo ""
+            echo '```'
+            echo "$OUTPUT"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Report the health check JSON if available
+          if [ -f /tmp/fabric-health-report.json ]; then
+            echo ""
+            echo "### Health Report JSON"
+            echo ""
+            echo '```json'
+            cat /tmp/fabric-health-report.json
+            echo '```'
+          fi >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload health report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report-${{ github.run_number }}
+          path: /tmp/fabric-health-report.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ─── Create Issue on Failure ──────────────────────────────────────────────────
+  create-issue:
+    name: Create Issue on Failure
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: |
+      needs.health-check.outputs.status != 'healthy' &&
+      (github.event_name == 'schedule' || github.event.inputs.create_issue_on_failure == 'true')
+
+    steps:
+      - name: Check for existing open health issue
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Search for existing open health check issues
+          EXISTING=$(gh issue list \
+            --repo "${{ github.repository }}" \
+            --label "fabric-health" \
+            --state open \
+            --json number,title \
+            --limit 1 2>/dev/null || echo "[]")
+
+          ISSUE_NUMBER=$(echo "$EXISTING" | python3 -c "
+          import sys, json
+          issues = json.load(sys.stdin)
+          print(issues[0]['number'] if issues else '')
+          " 2>/dev/null || echo "")
+
+          echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+          if [ -n "$ISSUE_NUMBER" ]; then
+            echo "Found existing health issue: #$ISSUE_NUMBER"
+          else
+            echo "No existing health issue found"
+          fi
+
+      - name: Update existing issue or create new one
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEALTH_STATUS: ${{ needs.health-check.outputs.status }}
+          HEALTH_SUMMARY: ${{ needs.health-check.outputs.summary }}
+          EXISTING_ISSUE: ${{ steps.existing.outputs.issue_number }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          STATUS_EMOJI=""
+          if [ "$HEALTH_STATUS" = "degraded" ]; then
+            STATUS_EMOJI="Warning"
+          else
+            STATUS_EMOJI="Critical"
+          fi
+
+          BODY=$(cat <<ISSUE_EOF
+          ## Fabric Health Check ${STATUS_EMOJI} — ${HEALTH_STATUS^^}
+
+          **Detected**: ${TIMESTAMP}
+          **Status**: \`${HEALTH_STATUS}\`
+          **Run**: [Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          ### Health Check Output
+
+          \`\`\`
+          ${HEALTH_SUMMARY}
+          \`\`\`
+
+          ### Recommended Actions
+
+          - Review the health check output above for specific failures
+          - Check [Eventhouse connectivity](${FABRIC_KQL_ENDPOINT})
+          - Verify notebook schedules in the [Fabric workspace](https://app.fabric.microsoft.com)
+          - Run the health check manually: \`./scripts/fabric-monitoring-cron.sh\`
+
+          ---
+          *This issue was automatically created by the [Fabric Health Monitor](.github/workflows/monitor.yml) workflow.*
+          ISSUE_EOF
+          )
+
+          if [ -n "$EXISTING_ISSUE" ]; then
+            # Add a comment to the existing issue
+            gh issue comment "$EXISTING_ISSUE" \
+              --repo "${{ github.repository }}" \
+              --body "### Update: ${TIMESTAMP}
+
+          Status changed to \`${HEALTH_STATUS}\`.
+
+          \`\`\`
+          ${HEALTH_SUMMARY}
+          \`\`\`
+
+          [Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+            echo "Updated existing issue #${EXISTING_ISSUE}"
+          else
+            # Create a new issue
+            gh issue create \
+              --repo "${{ github.repository }}" \
+              --title "Fabric Health Check ${STATUS_EMOJI}: ${HEALTH_STATUS} — ${TIMESTAMP}" \
+              --body "$BODY" \
+              --label "fabric-health,automated,${HEALTH_STATUS}"
+
+            echo "Created new health check issue"
+          fi
+
+  # ─── Auto-close issue when healthy ────────────────────────────────────────────
+  close-issue:
+    name: Close Issue When Healthy
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: needs.health-check.outputs.status == 'healthy'
+
+    steps:
+      - name: Close resolved health issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find open health check issues
+          ISSUES=$(gh issue list \
+            --repo "${{ github.repository }}" \
+            --label "fabric-health" \
+            --state open \
+            --json number \
+            --limit 10 2>/dev/null || echo "[]")
+
+          ISSUE_NUMBERS=$(echo "$ISSUES" | python3 -c "
+          import sys, json
+          for issue in json.load(sys.stdin):
+              print(issue['number'])
+          " 2>/dev/null || echo "")
+
+          if [ -z "$ISSUE_NUMBERS" ]; then
+            echo "No open health issues to close"
+            exit 0
+          fi
+
+          while IFS= read -r ISSUE_NUM; do
+            if [ -n "$ISSUE_NUM" ]; then
+              gh issue close "$ISSUE_NUM" \
+                --repo "${{ github.repository }}" \
+                --comment "Health check is now passing. Automatically closing this issue.
+
+          [Healthy run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+
+              echo "Closed issue #${ISSUE_NUM}"
+            fi
+          done <<< "$ISSUE_NUMBERS"
