@@ -10,7 +10,6 @@ import {
   Button,
   MessageBar,
   MessageBarBody,
-  ProgressBar,
   Spinner,
   Text
 } from "@fluentui/react-components";
@@ -18,19 +17,13 @@ import {
   ArrowLeft20Regular,
   ArrowRight20Regular,
   ArrowCircleRight20Regular,
-  CheckmarkCircle20Filled,
   ErrorCircle20Filled,
-  Warning20Filled,
-  Info20Regular,
-  Dismiss20Regular,
-  Clock20Regular,
   PlugConnected20Regular
 } from "@fluentui/react-icons";
 import TimelineNode, {
   TimelineEvent,
   TimelineLink,
-  formatDuration,
-  formatTimestamp
+  formatDuration
 } from "./TimelineNode";
 import "./IncidentTimeline.scss";
 

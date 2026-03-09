@@ -18,16 +18,13 @@
 import { WorkloadClientAPI } from "@ms-fabric/workload-client";
 import { JobSchedulerClient } from "../clients/JobSchedulerClient";
 import {
-  ItemJobInstance,
   RunOnDemandItemJobRequest,
 } from "../clients/FabricPlatformTypes";
 import {
   JOB_TYPES,
   ObservabilityJobType,
-  JOB_TYPE_DESCRIPTIONS,
   JOB_NOTEBOOK_MAP,
   JobStatus,
-  isTerminalStatus,
   SubmitJobRequest,
   CancelJobRequest,
   ObservabilityJobInstance,
@@ -48,7 +45,6 @@ import {
 // ════════════════════════════════════════════════════════════════
 
 export class JobService {
-  private workloadClient: WorkloadClientAPI;
   private jobSchedulerClient: JobSchedulerClient;
   private auditLogger: IAuditLogger;
 
@@ -56,7 +52,6 @@ export class JobService {
   private submittedJobs: Map<string, ObservabilityJobInstance> = new Map();
 
   constructor(workloadClient: WorkloadClientAPI, auditLogger: IAuditLogger) {
-    this.workloadClient = workloadClient;
     this.jobSchedulerClient = new JobSchedulerClient(workloadClient);
     this.auditLogger = auditLogger;
   }

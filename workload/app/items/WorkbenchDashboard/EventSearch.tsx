@@ -17,9 +17,6 @@ import {
 import {
   Search20Regular,
   Dismiss20Regular,
-  Clock20Regular,
-  ArrowSort20Regular,
-  ChevronRight20Regular,
   ErrorCircle20Filled,
   CheckmarkCircle20Filled,
   Warning20Filled,

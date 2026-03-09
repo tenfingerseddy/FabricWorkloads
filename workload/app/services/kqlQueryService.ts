@@ -65,13 +65,11 @@ const KUSTO_SCOPE = "https://kusto.kusto.windows.net/.default";
 export class KqlQueryService {
   private config: KqlServiceConfig;
   private authService: FabricAuthenticationService;
-  private workloadClient: WorkloadClientAPI;
 
   constructor(
     workloadClient: WorkloadClientAPI,
     config?: Partial<KqlServiceConfig>
   ) {
-    this.workloadClient = workloadClient;
     this.authService = new FabricAuthenticationService(workloadClient);
     this.config = { ...DEFAULT_CONFIG, ...config };
     if (!this.config.queryEndpoint) {
@@ -90,7 +88,7 @@ export class KqlQueryService {
    * Execute a KQL query against the Eventhouse and return typed rows.
    * Handles token acquisition, HTTP transport, and row-to-object mapping.
    */
-  private async executeQuery<T extends Record<string, unknown>>(
+  private async executeQuery<T extends object>(
     kql: string
   ): Promise<T[]> {
     const token = await this.authService.acquireAccessToken(KUSTO_SCOPE);
@@ -154,7 +152,7 @@ export class KqlQueryService {
    * The v2 format returns an array of frames; we find the PrimaryResult
    * table and map each row using the column descriptors.
    */
-  private parseResponse<T extends Record<string, unknown>>(
+  private parseResponse<T extends object>(
     response: KqlQueryResponse
   ): T[] {
     // v2 progressive frames format
@@ -189,7 +187,7 @@ export class KqlQueryService {
    * When `useFallbackData` is enabled and the query fails, the
    * provided fallback function is called instead of throwing.
    */
-  private async safeQuery<T extends Record<string, unknown>>(
+  private async safeQuery<T extends object>(
     kql: string,
     fallback: () => T[]
   ): Promise<{ rows: T[]; isLive: boolean }> {

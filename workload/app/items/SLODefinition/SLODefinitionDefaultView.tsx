@@ -20,7 +20,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableCellLayout,
   TableHeader,
   TableHeaderCell,
   TableRow,

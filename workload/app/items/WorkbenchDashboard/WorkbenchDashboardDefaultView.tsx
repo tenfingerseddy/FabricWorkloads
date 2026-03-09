@@ -595,7 +595,7 @@ function RecentFailuresPanel({
                   appearance="subtle"
                   size="small"
                   style={{ marginTop: 8 }}
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent) => {
                     e.stopPropagation();
                     onInvestigate(job.itemName);
                   }}

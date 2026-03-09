@@ -46,6 +46,7 @@ export class AppError extends Error {
   public readonly code: string;
   public readonly safeMessage: string;
   public readonly statusCode: number;
+  public readonly cause?: Error;
 
   constructor(
     message: string,

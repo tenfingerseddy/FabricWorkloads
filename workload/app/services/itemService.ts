@@ -42,7 +42,7 @@ import {
 import { WorkbenchDashboardDefinition } from "../items/WorkbenchDashboard/WorkbenchDashboardDefinition";
 import { AlertRuleDefinition } from "../items/AlertRule/AlertRuleDefinition";
 import { SLODefinitionDefinition } from "../items/SLODefinition/SLODefinitionDefinition";
-import { AuditEntry, AUDIT_ACTIONS, IAuditLogger } from "../types/audit";
+import { AUDIT_ACTIONS, IAuditLogger } from "../types/audit";
 import { createAuditEntry } from "./auditService";
 import {
   generateRequestId,
