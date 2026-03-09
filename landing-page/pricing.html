@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Observability Workbench for Microsoft Fabric</title>
+<meta name="description" content="Simple, transparent pricing for Observability Workbench. Start free and scale to enterprise. Per-capacity pricing for Microsoft Fabric custom workloads.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & BASE — matches index.html design system
+   ============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-primary:   #0d0d1a;
+  --bg-secondary: #141428;
+  --bg-card:      #1a1a2e;
+  --bg-card-hover:#222240;
+  --text-primary: #f0f0f5;
+  --text-secondary:#a0a0b8;
+  --text-muted:   #6a6a80;
+  --accent-blue:  #0078D4;
+  --accent-blue-hover: #1a8fe8;
+  --accent-orange:#e8712a;
+  --accent-orange-hover:#f58a42;
+  --accent-green: #2ecc71;
+  --accent-purple: #7c5cbf;
+  --border-subtle:#2a2a44;
+  --border-card:  #2e2e4a;
+  --radius-sm:    8px;
+  --radius-md:    12px;
+  --radius-lg:    20px;
+  --shadow-card:  0 4px 24px rgba(0,0,0,.35);
+  --shadow-glow:  0 0 60px rgba(0,120,212,.12);
+  --max-width:    1180px;
+  --transition:   .25s cubic-bezier(.4,0,.2,1);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+
+.section {
+  padding: 100px 0;
+  position: relative;
+}
+.section--alt { background: var(--bg-secondary); }
+
+.section-label {
+  display: inline-block;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 640px;
+  line-height: 1.7;
+}
+
+.text-center { text-align: center; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  font-family: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0,120,212,.3);
+}
+.btn-primary:hover {
+  background: var(--accent-blue-hover);
+  box-shadow: 0 0 32px rgba(0,120,212,.45);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-subtle);
+}
+.btn-secondary:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+}
+
+.btn-orange {
+  background: var(--accent-orange);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(232,113,42,.25);
+}
+.btn-orange:hover {
+  background: var(--accent-orange-hover);
+  box-shadow: 0 0 32px rgba(232,113,42,.4);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 0 24px;
+  background: rgba(13,13,26,.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.nav__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.nav__logo {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-orange));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav__links a {
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+}
+.nav__links a:hover { color: var(--text-primary); }
+.nav__links a.active { color: var(--accent-blue); }
+
+.nav__cta .btn { padding: 9px 22px; font-size: .85rem; }
+
+.nav__toggle { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+.nav__toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text-primary);
+  margin: 5px 0;
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+@media (max-width: 768px) {
+  .nav__toggle { display: block; }
+  .nav__links {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: rgba(13,13,26,.96);
+    backdrop-filter: blur(16px);
+    padding: 24px;
+    gap: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    transform: translateY(-120%);
+    transition: transform var(--transition);
+  }
+  .nav__links.open { transform: translateY(0); }
+}
+
+/* ============================================================
+   PRICING HERO
+   ============================================================ */
+.pricing-hero {
+  padding: 140px 24px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(0,120,212,.10) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.pricing-hero__title {
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.pricing-hero__title span {
+  background: linear-gradient(135deg, var(--accent-blue) 20%, var(--accent-orange) 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pricing-hero__subtitle {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 580px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   BILLING TOGGLE
+   ============================================================ */
+.billing-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+  position: relative;
+  z-index: 1;
+}
+
+.billing-toggle__label {
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color var(--transition);
+  cursor: pointer;
+}
+.billing-toggle__label--active {
+  color: var(--text-primary);
+}
+
+.billing-toggle__switch {
+  width: 52px;
+  height: 28px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-card);
+  border-radius: 100px;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.billing-toggle__switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  transition: transform var(--transition);
+}
+
+.billing-toggle__switch.annual::after {
+  transform: translateX(24px);
+}
+
+.billing-toggle__switch.annual {
+  border-color: var(--accent-blue);
+}
+
+.billing-toggle__save {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--accent-green);
+  background: rgba(46,204,113,.1);
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+/* ============================================================
+   PRICING CARDS
+   ============================================================ */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+  align-items: stretch;
+}
+
+@media (max-width: 960px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.pricing-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition);
+  position: relative;
+}
+.pricing-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
+}
+
+.pricing-card--featured {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-glow);
+}
+
+.pricing-card--enterprise {
+  border-color: var(--border-card);
+}
+.pricing-card--enterprise:hover {
+  border-color: var(--accent-orange);
+}
+
+.pricing-card__badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 5px 18px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.pricing-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.pricing-card--free .pricing-card__icon {
+  background: rgba(160,160,184,.08);
+}
+
+.pricing-card--featured .pricing-card__icon {
+  background: rgba(0,120,212,.1);
+}
+
+.pricing-card--enterprise .pricing-card__icon {
+  background: rgba(232,113,42,.08);
+}
+
+.pricing-card__name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.pricing-card__tagline {
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.pricing-card__price-wrapper {
+  margin-bottom: 8px;
+  min-height: 56px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.pricing-card__price {
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pricing-card__price-period {
+  font-size: .9rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.pricing-card__price-note {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.pricing-card__divider {
+  height: 1px;
+  background: var(--border-card);
+  margin-bottom: 24px;
+}
+
+.pricing-card__features-label {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.pricing-card__features {
+  list-style: none;
+  margin-bottom: 32px;
+  flex: 1;
+}
+
+.pricing-card__features li {
+  font-size: .88rem;
+  color: var(--text-secondary);
+  padding: 7px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.pricing-card__features li .check {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pricing-card--free .pricing-card__features li .check {
+  background: rgba(160,160,184,.1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pricing-card--featured .pricing-card__features li .check {
+  background: rgba(0,120,212,.12);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%230078D4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pricing-card--enterprise .pricing-card__features li .check {
+  background: rgba(232,113,42,.1);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23e8712a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.pricing-card .btn { width: 100%; justify-content: center; }
+
+.per-capacity {
+  display: block;
+  font-size: .78rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   FEATURE COMPARISON TABLE
+   ============================================================ */
+.comparison {
+  margin-top: 0;
+}
+
+.comparison__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 48px;
+  cursor: pointer;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+  background: none;
+  border: none;
+  font-family: inherit;
+  transition: color var(--transition);
+}
+.comparison__toggle:hover {
+  color: var(--accent-blue-hover);
+}
+.comparison__toggle svg {
+  transition: transform var(--transition);
+}
+.comparison__toggle.expanded svg {
+  transform: rotate(180deg);
+}
+
+.comparison__table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+
+.comparison__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .88rem;
+  min-width: 700px;
+}
+
+.comparison__table thead th {
+  padding: 20px 24px;
+  font-weight: 700;
+  font-size: .82rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-card);
+  text-align: left;
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+}
+
+.comparison__table thead th:first-child {
+  width: 40%;
+}
+
+.comparison__table thead th:not(:first-child) {
+  text-align: center;
+  width: 20%;
+}
+
+.comparison__table thead th.th--pro {
+  color: var(--accent-blue);
+}
+
+.comparison__table thead th.th--enterprise {
+  color: var(--accent-orange);
+}
+
+.comparison__table tbody tr {
+  border-bottom: 1px solid rgba(46,46,74,.5);
+  transition: background var(--transition);
+}
+.comparison__table tbody tr:last-child {
+  border-bottom: none;
+}
+.comparison__table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+.comparison__table td {
+  padding: 16px 24px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.comparison__table td:not(:first-child) {
+  text-align: center;
+}
+
+.comparison__table .category-row td {
+  padding: 12px 24px 8px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(13,13,26,.4);
+  border-bottom: 1px solid var(--border-card);
+}
+
+.comparison__table .val--yes {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+
+.comparison__table .val--no {
+  color: var(--text-muted);
+}
+
+.comparison__table .val--text {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.check-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(46,204,113,.12);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+}
+
+.dash-icon {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--text-muted);
+  border-radius: 2px;
+  vertical-align: middle;
+  opacity: .5;
+}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+  .faq-grid { grid-template-columns: 1fr; }
+}
+
+.faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all var(--transition);
+}
+
+.faq-item:hover {
+  border-color: var(--accent-blue);
+}
+
+.faq-item__question {
+  width: 100%;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: left;
+  line-height: 1.4;
+  transition: color var(--transition);
+}
+.faq-item__question:hover {
+  color: var(--accent-blue);
+}
+
+.faq-item__icon {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,120,212,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+
+.faq-item.open .faq-item__icon {
+  background: rgba(0,120,212,.15);
+  transform: rotate(180deg);
+}
+
+.faq-item__answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s ease, padding .35s ease;
+}
+
+.faq-item.open .faq-item__answer {
+  max-height: 300px;
+}
+
+.faq-item__answer-inner {
+  padding: 0 28px 24px;
+  font-size: .9rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+.faq-item__answer-inner a {
+  color: var(--accent-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.faq-item__answer-inner a:hover {
+  color: var(--accent-blue-hover);
+}
+
+/* ============================================================
+   CTA FOOTER
+   ============================================================ */
+.cta-section {
+  padding: 100px 0 120px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0,120,212,.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.cta-section__title {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.cta-section__subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin: 0 auto 40px;
+  line-height: 1.7;
+}
+
+.cta-section__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   TRUST BAR
+   ============================================================ */
+.trust-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 48px;
+  padding: 24px 0;
+}
+
+.trust-bar__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+
+.trust-bar__item svg {
+  color: var(--accent-green);
+  min-width: 16px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 40px 0;
+}
+
+.footer__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer__copy {
+  font-size: .82rem;
+  color: var(--text-muted);
+}
+
+.footer__links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.footer__links a {
+  font-size: .82rem;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+.footer__links a:hover { color: var(--text-primary); }
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  opacity: 0;
+  animation: fade-up .7s ease-out forwards;
+}
+
+.animate-in:nth-child(2) { animation-delay: .1s; }
+.animate-in:nth-child(3) { animation-delay: .2s; }
+.animate-in:nth-child(4) { animation-delay: .3s; }
+.animate-in:nth-child(5) { animation-delay: .4s; }
+.animate-in:nth-child(6) { animation-delay: .5s; }
+</style>
+</head>
+
+<body>
+
+<!-- ======================== NAV ======================== -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav__inner">
+    <a href="index.html" class="nav__brand">
+      <div class="nav__logo">OW</div>
+      Observability Workbench
+    </a>
+    <button class="nav__toggle" aria-label="Toggle menu" onclick="document.querySelector('.nav__links').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav__links">
+      <li><a href="index.html#problem">Problem</a></li>
+      <li><a href="index.html#solution">Solution</a></li>
+      <li><a href="index.html#how-it-works">How It Works</a></li>
+      <li><a href="pricing.html" class="active">Pricing</a></li>
+      <li class="nav__cta"><a href="mailto:beta@observability-workbench.dev" class="btn btn-primary">Join the Beta</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ======================== PRICING HERO ======================== -->
+<section class="pricing-hero">
+  <div class="container">
+    <span class="section-label">Pricing</span>
+    <h1 class="pricing-hero__title">
+      Simple pricing that<br><span>scales with your platform</span>
+    </h1>
+    <p class="pricing-hero__subtitle">
+      Start free with core monitoring. Upgrade when you need correlation, SLOs, and enterprise-grade features. All plans include native Fabric integration.
+    </p>
+
+    <!-- Billing Toggle -->
+    <div class="billing-toggle" role="group" aria-label="Billing period">
+      <span class="billing-toggle__label billing-toggle__label--active" id="label-monthly">Monthly</span>
+      <button class="billing-toggle__switch" id="billing-switch" role="switch" aria-checked="false" aria-label="Toggle annual billing" tabindex="0"></button>
+      <span class="billing-toggle__label" id="label-annual">Annual</span>
+      <span class="billing-toggle__save">Save 20%</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== PRICING CARDS ======================== -->
+<section class="section" style="padding-top: 0;">
+  <div class="container">
+    <div class="pricing-grid">
+
+      <!-- Free -->
+      <div class="pricing-card pricing-card--free animate-in">
+        <div class="pricing-card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a0a0b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+        </div>
+        <h3 class="pricing-card__name">Free</h3>
+        <p class="pricing-card__tagline">For individuals exploring Fabric observability</p>
+        <div class="pricing-card__price-wrapper">
+          <span class="pricing-card__price">$0</span>
+          <span class="pricing-card__price-period">/ mo</span>
+        </div>
+        <p class="pricing-card__price-note">No credit card required. Free forever.</p>
+        <div class="pricing-card__divider"></div>
+        <span class="pricing-card__features-label">Includes</span>
+        <ul class="pricing-card__features">
+          <li><span class="check"></span> 1 monitored workspace</li>
+          <li><span class="check"></span> 7-day metric retention</li>
+          <li><span class="check"></span> Up to 5 SLO definitions</li>
+          <li><span class="check"></span> Basic dashboards</li>
+          <li><span class="check"></span> Email alerts (up to 25/month)</li>
+          <li><span class="check"></span> Community support</li>
+        </ul>
+        <a href="mailto:beta@observability-workbench.dev?subject=Free%20Tier%20%E2%80%93%20Get%20Started&body=I%27d%20like%20to%20get%20started%20with%20the%20Free%20tier%20of%20Observability%20Workbench.%0A%0AOrganization%3A%20%0AFabric%20Tenant%20ID%3A%20%0A" class="btn btn-secondary">Get Started Free</a>
+      </div>
+
+      <!-- Professional -->
+      <div class="pricing-card pricing-card--featured animate-in">
+        <div class="pricing-card__badge">Most Popular</div>
+        <div class="pricing-card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3 class="pricing-card__name">Professional</h3>
+        <p class="pricing-card__tagline">For data teams running production workloads</p>
+        <div class="pricing-card__price-wrapper">
+          <span class="pricing-card__price" data-monthly="$499" data-annual="$399">$499</span>
+          <span class="pricing-card__price-period">/ mo <span class="per-capacity">per capacity</span></span>
+        </div>
+        <p class="pricing-card__price-note" data-monthly="Billed monthly. Cancel anytime." data-annual="Billed annually at $4,788/yr. Save $1,200.">Billed monthly. Cancel anytime.</p>
+        <div class="pricing-card__divider"></div>
+        <span class="pricing-card__features-label">Everything in Free, plus</span>
+        <ul class="pricing-card__features">
+          <li><span class="check"></span> Up to 5 monitored workspaces</li>
+          <li><span class="check"></span> 90-day metric retention</li>
+          <li><span class="check"></span> Unlimited SLO definitions</li>
+          <li><span class="check"></span> Cross-item correlation engine</li>
+          <li><span class="check"></span> CU Waste Score analytics</li>
+          <li><span class="check"></span> Incident timelines</li>
+          <li><span class="check"></span> Full-text log search</li>
+          <li><span class="check"></span> Teams and email alerts (unlimited)</li>
+          <li><span class="check"></span> Priority email support</li>
+        </ul>
+        <a href="mailto:beta@observability-workbench.dev?subject=Professional%20Tier%20%E2%80%93%2014-Day%20Trial&body=I%27d%20like%20to%20start%20a%2014-day%20trial%20of%20the%20Professional%20tier.%0A%0AOrganization%3A%20%0AFabric%20Tenant%20ID%3A%20%0ACapacities%3A%20%0A" class="btn btn-primary">
+          Start 14-Day Trial
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="pricing-card pricing-card--enterprise animate-in">
+        <div class="pricing-card__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        </div>
+        <h3 class="pricing-card__name">Enterprise</h3>
+        <p class="pricing-card__tagline">For organizations with compliance and scale needs</p>
+        <div class="pricing-card__price-wrapper">
+          <span class="pricing-card__price" data-monthly="$1,499" data-annual="$1,199">$1,499</span>
+          <span class="pricing-card__price-period">/ mo <span class="per-capacity">per capacity</span></span>
+        </div>
+        <p class="pricing-card__price-note" data-monthly="Billed monthly. Volume discounts available." data-annual="Billed annually at $14,388/yr. Save $3,600.">Billed monthly. Volume discounts available.</p>
+        <div class="pricing-card__divider"></div>
+        <span class="pricing-card__features-label">Everything in Professional, plus</span>
+        <ul class="pricing-card__features">
+          <li><span class="check"></span> Unlimited monitored workspaces</li>
+          <li><span class="check"></span> 365-day metric retention</li>
+          <li><span class="check"></span> SSO / SCIM provisioning</li>
+          <li><span class="check"></span> RBAC and audit logging</li>
+          <li><span class="check"></span> PagerDuty and ServiceNow integration</li>
+          <li><span class="check"></span> Custom SLO dashboards</li>
+          <li><span class="check"></span> Multi-tenant workspace isolation</li>
+          <li><span class="check"></span> 99.9% uptime SLA</li>
+          <li><span class="check"></span> Dedicated support engineer</li>
+          <li><span class="check"></span> Custom integrations</li>
+        </ul>
+        <a href="mailto:beta@observability-workbench.dev?subject=Enterprise%20Tier%20Inquiry&body=I%27d%20like%20to%20discuss%20Enterprise%20pricing%20for%20Observability%20Workbench.%0A%0AOrganization%3A%20%0AFabric%20Tenant%20ID%3A%20%0ANumber%20of%20capacities%3A%20%0ANumber%20of%20workspaces%3A%20%0A" class="btn btn-orange">
+          Contact Sales
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Trust bar -->
+    <div class="trust-bar">
+      <div class="trust-bar__item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
+        SOC 2 ready architecture
+      </div>
+      <div class="trust-bar__item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Data never leaves your tenant
+      </div>
+      <div class="trust-bar__item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        No long-term contracts
+      </div>
+      <div class="trust-bar__item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        Native Fabric workload
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FEATURE COMPARISON ======================== -->
+<section class="section section--alt" id="compare">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">Compare Plans</span>
+      <h2 class="section-title">Detailed feature comparison</h2>
+      <p class="section-subtitle mx-auto">
+        Every plan includes native Fabric integration, zero external dependencies, and Entra ID authentication.
+      </p>
+    </div>
+
+    <button class="comparison__toggle" id="comparison-toggle" aria-expanded="true" aria-controls="comparison-table">
+      <span>Show full comparison</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+
+    <div class="comparison__table-wrapper" id="comparison-table">
+      <table class="comparison__table" role="table" aria-label="Feature comparison across pricing tiers">
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col">Free</th>
+            <th scope="col" class="th--pro">Professional</th>
+            <th scope="col" class="th--enterprise">Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Monitoring -->
+          <tr class="category-row"><td colspan="4">Monitoring</td></tr>
+          <tr>
+            <td>Monitored workspaces</td>
+            <td class="val--text">1</td>
+            <td class="val--text">5</td>
+            <td class="val--text">Unlimited</td>
+          </tr>
+          <tr>
+            <td>Metric retention</td>
+            <td class="val--text">7 days</td>
+            <td class="val--text">90 days</td>
+            <td class="val--text">365 days</td>
+          </tr>
+          <tr>
+            <td>Item types monitored</td>
+            <td class="val--text">All</td>
+            <td class="val--text">All</td>
+            <td class="val--text">All</td>
+          </tr>
+          <tr>
+            <td>Real-time dashboards</td>
+            <td class="val--text">Basic</td>
+            <td class="val--text">Advanced</td>
+            <td class="val--text">Custom</td>
+          </tr>
+          <tr>
+            <td>Full-text log search</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+
+          <!-- Correlation & Intelligence -->
+          <tr class="category-row"><td colspan="4">Correlation and Intelligence</td></tr>
+          <tr>
+            <td>Cross-item correlation engine</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>Incident timelines</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>CU Waste Score analytics</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>Root cause analysis</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+
+          <!-- SLOs & Alerting -->
+          <tr class="category-row"><td colspan="4">SLOs and Alerting</td></tr>
+          <tr>
+            <td>SLO definitions</td>
+            <td class="val--text">5</td>
+            <td class="val--text">Unlimited</td>
+            <td class="val--text">Unlimited</td>
+          </tr>
+          <tr>
+            <td>Error budget tracking</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>Email alerts</td>
+            <td class="val--text">25/month</td>
+            <td class="val--text">Unlimited</td>
+            <td class="val--text">Unlimited</td>
+          </tr>
+          <tr>
+            <td>Microsoft Teams alerts</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>PagerDuty / ServiceNow</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>Proactive "likely to breach" alerts</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+
+          <!-- Security & Compliance -->
+          <tr class="category-row"><td colspan="4">Security and Compliance</td></tr>
+          <tr>
+            <td>Entra ID authentication</td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>SSO / SCIM provisioning</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>RBAC and audit logging</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+          <tr>
+            <td>Multi-tenant workspace isolation</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+
+          <!-- Support & SLA -->
+          <tr class="category-row"><td colspan="4">Support and SLA</td></tr>
+          <tr>
+            <td>Support channel</td>
+            <td class="val--text">Community</td>
+            <td class="val--text">Email (priority)</td>
+            <td class="val--text">Dedicated engineer</td>
+          </tr>
+          <tr>
+            <td>Uptime SLA</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td class="val--text">99.9%</td>
+          </tr>
+          <tr>
+            <td>Custom integrations</td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="dash-icon" role="img" aria-label="Not included"></span></td>
+            <td><span class="check-icon" role="img" aria-label="Included"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FAQ ======================== -->
+<section class="section" id="faq">
+  <div class="container">
+    <div class="text-center">
+      <span class="section-label">FAQ</span>
+      <h2 class="section-title">Frequently asked questions</h2>
+      <p class="section-subtitle mx-auto">
+        Everything you need to know about pricing, billing, and how Observability Workbench integrates with your Fabric environment.
+      </p>
+    </div>
+
+    <div class="faq-grid">
+
+      <div class="faq-item open">
+        <button class="faq-item__question" aria-expanded="true">
+          What counts as a "capacity"?
+          <span class="faq-item__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__answer">
+          <div class="faq-item__answer-inner">
+            A "capacity" refers to a single Microsoft Fabric capacity (e.g., F2, F64, F128). Each Fabric capacity is an independent compute unit that hosts your workspaces. Our per-capacity pricing means you pay based on how many Fabric capacities you monitor, not how many individual workspaces or items are inside them. If you have one F64 capacity with 20 workspaces, that counts as one capacity.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__question" aria-expanded="false">
+          Can I switch between tiers?
+          <span class="faq-item__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__answer">
+          <div class="faq-item__answer-inner">
+            Yes, you can upgrade or downgrade at any time. Upgrades take effect immediately and you'll be prorated for the remaining billing period. Downgrades take effect at the start of your next billing cycle. When downgrading, your data retention will adjust to the new tier's limit, so we recommend exporting any data you need to keep beyond the new retention window.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__question" aria-expanded="false">
+          Is there a free trial for paid plans?
+          <span class="faq-item__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__answer">
+          <div class="faq-item__answer-inner">
+            Yes. The Professional tier includes a 14-day free trial with full feature access. No credit card is required to start. At the end of the trial, you can choose to continue on the Professional plan or stay on the Free tier without losing any data collected during the trial period (subject to Free tier retention limits). For Enterprise trials, <a href="mailto:beta@observability-workbench.dev?subject=Enterprise%20Trial%20Request">contact our sales team</a> to arrange a custom evaluation.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__question" aria-expanded="false">
+          What happens when I exceed my plan limits?
+          <span class="faq-item__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__answer">
+          <div class="faq-item__answer-inner">
+            We never cut off monitoring without warning. If you hit your workspace limit, you'll receive an in-app notification and email prompting you to upgrade. Existing workspaces continue to be monitored normally. For retention limits, data older than your tier's retention window is automatically archived to your Fabric Lakehouse before being removed from the active store, so nothing is permanently lost. SLO limits on the Free tier are a soft cap with a 7-day grace period to give you time to upgrade.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__question" aria-expanded="false">
+          Where is my data stored?
+          <span class="faq-item__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__answer">
+          <div class="faq-item__answer-inner">
+            All monitoring data stays within your own Microsoft Fabric tenant. Observability Workbench uses Fabric Eventhouse for real-time querying and Fabric Lakehouse for long-term archival. No data ever leaves your tenant boundary or is sent to third-party services. This architecture ensures compliance with your organization's data residency and sovereignty requirements.
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-item__question" aria-expanded="false">
+          Do I need a specific Fabric SKU?
+          <span class="faq-item__icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <div class="faq-item__answer">
+          <div class="faq-item__answer-inner">
+            Observability Workbench works with any Fabric capacity SKU from F2 and above. However, we recommend F64 or higher for production deployments to ensure the workload's background ingestion and correlation jobs have sufficient compute headroom alongside your regular workloads. The Free tier works well with Fabric trial capacities for evaluation purposes.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ======================== CTA ======================== -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-section__title">Ready to see what you've been missing?</h2>
+    <p class="cta-section__subtitle">
+      Start with the Free tier today. No credit card, no commitment, no data leaving your tenant.
+    </p>
+    <div class="cta-section__actions">
+      <a href="mailto:beta@observability-workbench.dev?subject=Free%20Tier%20%E2%80%93%20Get%20Started&body=I%27d%20like%20to%20get%20started%20with%20Observability%20Workbench.%0A%0AOrganization%3A%20%0AFabric%20Tenant%20ID%3A%20%0A" class="btn btn-primary">
+        Get Started Free
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="mailto:beta@observability-workbench.dev?subject=Enterprise%20Inquiry" class="btn btn-secondary">Talk to Sales</a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FOOTER ======================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer__inner">
+      <p class="footer__copy">&copy; 2026 Observability Workbench. All rights reserved.</p>
+      <ul class="footer__links">
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="https://github.com/tenfingerseddy/FabricWorkloads" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<!-- ======================== SCRIPTS ======================== -->
+<script>
+(function() {
+  'use strict';
+
+  // ---- Scroll-triggered animations ----
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.style.animationPlayState = 'running';
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.animate-in').forEach(function(el) {
+    el.style.animationPlayState = 'paused';
+    observer.observe(el);
+  });
+
+  // ---- Billing toggle (monthly / annual) ----
+  var billingSwitch = document.getElementById('billing-switch');
+  var labelMonthly = document.getElementById('label-monthly');
+  var labelAnnual = document.getElementById('label-annual');
+  var isAnnual = false;
+
+  function updatePricing() {
+    var mode = isAnnual ? 'annual' : 'monthly';
+    billingSwitch.setAttribute('aria-checked', isAnnual ? 'true' : 'false');
+
+    if (isAnnual) {
+      billingSwitch.classList.add('annual');
+      labelAnnual.classList.add('billing-toggle__label--active');
+      labelMonthly.classList.remove('billing-toggle__label--active');
+    } else {
+      billingSwitch.classList.remove('annual');
+      labelMonthly.classList.add('billing-toggle__label--active');
+      labelAnnual.classList.remove('billing-toggle__label--active');
+    }
+
+    document.querySelectorAll('.pricing-card__price[data-monthly]').forEach(function(el) {
+      el.textContent = el.getAttribute('data-' + mode);
+    });
+
+    document.querySelectorAll('.pricing-card__price-note[data-monthly]').forEach(function(el) {
+      el.textContent = el.getAttribute('data-' + mode);
+    });
+  }
+
+  billingSwitch.addEventListener('click', function() {
+    isAnnual = !isAnnual;
+    updatePricing();
+  });
+
+  billingSwitch.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      isAnnual = !isAnnual;
+      updatePricing();
+    }
+  });
+
+  labelMonthly.addEventListener('click', function() {
+    if (isAnnual) { isAnnual = false; updatePricing(); }
+  });
+
+  labelAnnual.addEventListener('click', function() {
+    if (!isAnnual) { isAnnual = true; updatePricing(); }
+  });
+
+  // ---- Comparison table toggle ----
+  var compToggle = document.getElementById('comparison-toggle');
+  var compTable = document.getElementById('comparison-table');
+  var compExpanded = true;
+
+  // Start expanded
+  compToggle.classList.add('expanded');
+  compToggle.querySelector('span').textContent = 'Hide full comparison';
+
+  compToggle.addEventListener('click', function() {
+    compExpanded = !compExpanded;
+    compToggle.setAttribute('aria-expanded', compExpanded ? 'true' : 'false');
+
+    if (compExpanded) {
+      compTable.style.display = '';
+      compToggle.classList.add('expanded');
+      compToggle.querySelector('span').textContent = 'Hide full comparison';
+    } else {
+      compTable.style.display = 'none';
+      compToggle.classList.remove('expanded');
+      compToggle.querySelector('span').textContent = 'Show full comparison';
+    }
+  });
+
+  // ---- FAQ accordion ----
+  document.querySelectorAll('.faq-item__question').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item = btn.closest('.faq-item');
+      var isOpen = item.classList.contains('open');
+
+      // Close all
+      document.querySelectorAll('.faq-item').forEach(function(faq) {
+        faq.classList.remove('open');
+        faq.querySelector('.faq-item__question').setAttribute('aria-expanded', 'false');
+      });
+
+      // Open clicked if it was closed
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  // ---- Sticky nav shadow on scroll ----
+  var nav = document.querySelector('.nav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 10) {
+      nav.style.boxShadow = '0 2px 20px rgba(0,0,0,.3)';
+    } else {
+      nav.style.boxShadow = 'none';
+    }
+  }, { passive: true });
+
+})();
+</script>
+
+</body>
+</html>

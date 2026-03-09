@@ -5,11 +5,18 @@ import { ItemWithDefinition } from "../../controller/ItemCRUDController";
 import { ItemEditorDefaultView } from "../../components/ItemEditor";
 import { WorkbenchDashboardDefinition } from "./WorkbenchDashboardDefinition";
 import {
+  useObservabilityData,
+  SLOCardData
+} from "../../hooks/useObservabilityData";
+import {
   Badge,
   Button,
   Dropdown,
+  MessageBar,
+  MessageBarBody,
   Option,
   ProgressBar,
+  Spinner,
   Table,
   TableBody,
   TableCell,
@@ -39,190 +46,6 @@ interface WorkbenchDashboardDefaultViewProps {
   definition?: WorkbenchDashboardDefinition;
   onDefinitionChange?: (def: WorkbenchDashboardDefinition) => void;
 }
-
-/** Sample SLO card data for rendering */
-interface SLOCardData {
-  name: string;
-  itemType: string;
-  successRate: number;
-  successTarget: number;
-  p50Duration: string;
-  p95Duration: string;
-  freshness: string;
-  freshnessStatus: "healthy" | "warning" | "critical";
-  errorBudgetRemaining: number;
-}
-
-const SAMPLE_SLO_CARDS: SLOCardData[] = [
-  {
-    name: "Sales Pipeline Daily",
-    itemType: "Pipeline",
-    successRate: 99.7,
-    successTarget: 99.5,
-    p50Duration: "4m 12s",
-    p95Duration: "8m 45s",
-    freshness: "12 min ago",
-    freshnessStatus: "healthy",
-    errorBudgetRemaining: 82
-  },
-  {
-    name: "Customer 360 Dataflow",
-    itemType: "Dataflow",
-    successRate: 98.1,
-    successTarget: 99.0,
-    p50Duration: "12m 30s",
-    p95Duration: "22m 10s",
-    freshness: "2h 15m ago",
-    freshnessStatus: "warning",
-    errorBudgetRemaining: 12
-  },
-  {
-    name: "Inventory Notebook",
-    itemType: "Notebook",
-    successRate: 95.2,
-    successTarget: 99.0,
-    p50Duration: "45m 18s",
-    p95Duration: "1h 12m",
-    freshness: "6h ago",
-    freshnessStatus: "critical",
-    errorBudgetRemaining: 0
-  },
-  {
-    name: "Finance Lakehouse Refresh",
-    itemType: "Pipeline",
-    successRate: 99.9,
-    successTarget: 99.5,
-    p50Duration: "2m 08s",
-    p95Duration: "3m 50s",
-    freshness: "5 min ago",
-    freshnessStatus: "healthy",
-    errorBudgetRemaining: 95
-  }
-];
-
-interface IncidentRow {
-  timestamp: string;
-  sloName: string;
-  metric: string;
-  severity: "warning" | "critical";
-  detail: string;
-  resolved: boolean;
-}
-
-const SAMPLE_INCIDENTS: IncidentRow[] = [
-  {
-    timestamp: "2026-03-09 08:42",
-    sloName: "Inventory Notebook",
-    metric: "Success Rate",
-    severity: "critical",
-    detail: "Dropped to 95.2% (target: 99.0%)",
-    resolved: false
-  },
-  {
-    timestamp: "2026-03-09 06:15",
-    sloName: "Customer 360 Dataflow",
-    metric: "Data Freshness",
-    severity: "warning",
-    detail: "Last refresh 2h 15m ago (target: 1h)",
-    resolved: false
-  },
-  {
-    timestamp: "2026-03-08 22:10",
-    sloName: "Sales Pipeline Daily",
-    metric: "P95 Duration",
-    severity: "warning",
-    detail: "P95 exceeded 8m threshold",
-    resolved: true
-  }
-];
-
-interface FailedJobRow {
-  timestamp: string;
-  itemName: string;
-  itemType: string;
-  errorMessage: string;
-  duration: string;
-}
-
-const SAMPLE_FAILED_JOBS: FailedJobRow[] = [
-  {
-    timestamp: "2026-03-09 08:38",
-    itemName: "Inventory Notebook",
-    itemType: "Notebook",
-    errorMessage: "OutOfMemoryError: Spark executor exceeded 8GB limit",
-    duration: "47m 22s"
-  },
-  {
-    timestamp: "2026-03-09 03:12",
-    itemName: "Customer 360 Dataflow",
-    itemType: "Dataflow",
-    errorMessage: "Connection timeout to source system (SAP)",
-    duration: "15m 04s"
-  },
-  {
-    timestamp: "2026-03-08 21:55",
-    itemName: "Sales Pipeline Daily",
-    itemType: "Pipeline",
-    errorMessage: "Schema drift detected in staging table",
-    duration: "8m 45s"
-  }
-];
-
-/** Sample CU waste data */
-interface WasteItemData {
-  name: string;
-  itemType: string;
-  wasteScore: number;
-  retryWaste: number;
-  durationWaste: number;
-  totalWaste: number;
-  monthlyProjected: number;
-}
-
-const SAMPLE_WASTE_ITEMS: WasteItemData[] = [
-  {
-    name: "Inventory Notebook",
-    itemType: "Notebook",
-    wasteScore: 62,
-    retryWaste: 18.40,
-    durationWaste: 12.80,
-    totalWaste: 31.20,
-    monthlyProjected: 133.71
-  },
-  {
-    name: "Customer 360 Dataflow",
-    itemType: "Dataflow",
-    wasteScore: 78,
-    retryWaste: 4.20,
-    durationWaste: 8.90,
-    totalWaste: 13.10,
-    monthlyProjected: 56.14
-  },
-  {
-    name: "Sales Pipeline Daily",
-    itemType: "Pipeline",
-    wasteScore: 91,
-    retryWaste: 1.80,
-    durationWaste: 2.40,
-    totalWaste: 4.20,
-    monthlyProjected: 18.00
-  },
-  {
-    name: "Finance Lakehouse Refresh",
-    itemType: "Pipeline",
-    wasteScore: 97,
-    retryWaste: 0.60,
-    durationWaste: 0.00,
-    totalWaste: 0.60,
-    monthlyProjected: 2.57
-  }
-];
-
-const AGGREGATE_WASTE = {
-  score: 82,
-  totalMonthly: 210.42,
-  totalWeekly: 49.10
-};
 
 const TIME_RANGES = ["1h", "6h", "12h", "24h", "7d", "30d"];
 
@@ -327,10 +150,21 @@ function SLOCard({ data }: { data: SLOCardData }) {
   );
 }
 
+/** Format a Date as "HH:MM:SS" for the last-updated indicator. */
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
+
 /**
  * WorkbenchDashboardDefaultView - Main dashboard view
  *
- * Renders: SLO status cards grid, incident timeline, failed jobs table.
+ * Renders: SLO status cards grid, CU waste score, incident timeline,
+ * failed jobs table. Data is fetched via the useObservabilityData hook
+ * with 60-second auto-refresh.
  */
 export function WorkbenchDashboardDefaultView({
   workloadClient,
@@ -348,8 +182,37 @@ export function WorkbenchDashboardDefaultView({
     onDefinitionChange?.({ ...definition, timeRange: value });
   };
 
+  // --- Live data hook ---
+  const {
+    data,
+    isLoading,
+    error,
+    lastUpdated,
+    refresh
+  } = useObservabilityData(
+    selectedTimeRange,
+    definition?.workspaceIds || []
+  );
+
+  // Suppress unused-local for workloadClient (used by parent; needed in prop interface)
+  void workloadClient;
+  void item;
+
   const DashboardContent = () => (
     <div className="workbench-dashboard-view">
+      {/* Error banner */}
+      {error && (
+        <MessageBar intent="error" style={{ marginBottom: 12 }}>
+          <MessageBarBody>
+            {t(
+              "WorkbenchDashboard_FetchError",
+              "Failed to load dashboard data: {{error}}",
+              { error }
+            )}
+          </MessageBarBody>
+        </MessageBar>
+      )}
+
       {/* Header */}
       <div>
         <h2 className="workbench-dashboard-title">
@@ -358,7 +221,12 @@ export function WorkbenchDashboardDefaultView({
         <p className="workbench-dashboard-subtitle">
           {t(
             "WorkbenchDashboard_Subtitle",
-            "Monitoring 4 workspaces \u00B7 12 items \u00B7 3 active alerts"
+            "Monitoring {{workspaceCount}} workspaces \u00B7 {{itemCount}} items \u00B7 {{alertCount}} active alerts",
+            {
+              workspaceCount: definition?.workspaceIds?.length || 4,
+              itemCount: data.sloCards.length * 3,
+              alertCount: data.incidents.filter((i) => !i.resolved).length
+            }
           )}
         </p>
       </div>
@@ -371,8 +239,8 @@ export function WorkbenchDashboardDefaultView({
           </label>
           <Dropdown
             value={selectedTimeRange}
-            onOptionSelect={(_, data) =>
-              handleTimeRangeChange(data.optionValue as string)
+            onOptionSelect={(_, d) =>
+              handleTimeRangeChange(d.optionValue as string)
             }
             style={{ minWidth: 100 }}
           >
@@ -391,257 +259,304 @@ export function WorkbenchDashboardDefaultView({
             {definition?.workspaceIds?.length || 4} connected
           </Badge>
         </div>
+
+        {/* Last updated indicator */}
+        {lastUpdated && (
+          <Text
+            size={200}
+            style={{
+              color: "var(--colorNeutralForeground3)",
+              alignSelf: "center"
+            }}
+          >
+            Updated {formatTime(lastUpdated)}
+          </Text>
+        )}
+
         <Tooltip content="Refresh dashboard data" relationship="label">
           <Button
             appearance="subtle"
-            icon={<ArrowSync20Regular />}
+            icon={
+              isLoading ? (
+                <Spinner size="tiny" />
+              ) : (
+                <ArrowSync20Regular />
+              )
+            }
+            onClick={refresh}
+            disabled={isLoading}
             aria-label="Refresh"
           />
         </Tooltip>
       </div>
 
-      {/* SLO Cards Grid */}
-      <div className="workbench-dashboard-section">
-        <h3 className="workbench-dashboard-section-title">
-          {t("WorkbenchDashboard_SLOStatus", "SLO Status")}
-        </h3>
-        <div className="workbench-dashboard-slo-grid">
-          {SAMPLE_SLO_CARDS.map((card) => (
-            <SLOCard key={card.name} data={card} />
-          ))}
+      {/* Loading overlay for initial load */}
+      {isLoading && !lastUpdated && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: 48
+          }}
+        >
+          <Spinner
+            size="large"
+            label={t(
+              "WorkbenchDashboard_Loading",
+              "Loading dashboard data..."
+            )}
+          />
         </div>
-      </div>
+      )}
 
-      {/* CU Waste Score */}
-      <div className="workbench-dashboard-section">
-        <h3 className="workbench-dashboard-section-title">
-          {t("WorkbenchDashboard_WasteScore", "CU Waste Score")}
-        </h3>
-        <div className="workbench-dashboard-waste-summary">
-          <div className="workbench-dashboard-waste-gauge">
-            <div className="workbench-dashboard-waste-gauge-ring">
-              <Text size={800} weight="bold">
-                {AGGREGATE_WASTE.score}
-              </Text>
-              <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
-                / 100
-              </Text>
-            </div>
-            <Text size={200}>Efficiency Score</Text>
-          </div>
-          <div className="workbench-dashboard-waste-stats">
-            <div className="workbench-dashboard-waste-stat">
-              <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
-                Weekly Waste
-              </Text>
-              <Text size={500} weight="semibold" style={{ color: "#d13438" }}>
-                ${AGGREGATE_WASTE.totalWeekly.toFixed(2)}
-              </Text>
-            </div>
-            <div className="workbench-dashboard-waste-stat">
-              <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
-                Monthly Projected
-              </Text>
-              <Text size={500} weight="semibold" style={{ color: "#d13438" }}>
-                ${AGGREGATE_WASTE.totalMonthly.toFixed(2)}
-              </Text>
+      {/* Only render data sections after the first successful load */}
+      {lastUpdated && (
+        <>
+          {/* SLO Cards Grid */}
+          <div className="workbench-dashboard-section">
+            <h3 className="workbench-dashboard-section-title">
+              {t("WorkbenchDashboard_SLOStatus", "SLO Status")}
+            </h3>
+            <div className="workbench-dashboard-slo-grid">
+              {data.sloCards.map((card) => (
+                <SLOCard key={card.name} data={card} />
+              ))}
             </div>
           </div>
-        </div>
-        <div className="workbench-dashboard-table-container">
-          <Table aria-label="CU waste by item">
-            <TableHeader>
-              <TableRow>
-                <TableHeaderCell style={{ width: 200 }}>Item</TableHeaderCell>
-                <TableHeaderCell style={{ width: 100 }}>Type</TableHeaderCell>
-                <TableHeaderCell style={{ width: 100 }}>Score</TableHeaderCell>
-                <TableHeaderCell style={{ width: 120 }}>Retry Waste</TableHeaderCell>
-                <TableHeaderCell style={{ width: 140 }}>Duration Waste</TableHeaderCell>
-                <TableHeaderCell style={{ width: 120 }}>Total Waste</TableHeaderCell>
-                <TableHeaderCell style={{ width: 140 }}>Monthly Cost</TableHeaderCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {SAMPLE_WASTE_ITEMS.map((item, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    <TableCellLayout>
-                      <Money20Regular
-                        style={{
-                          verticalAlign: "middle",
-                          marginRight: 4,
-                          color: "var(--colorNeutralForeground3)"
-                        }}
-                      />
-                      <Text weight="semibold">{item.name}</Text>
-                    </TableCellLayout>
-                  </TableCell>
-                  <TableCell>
-                    <Badge appearance="outline" color="informative">
-                      {item.itemType}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      appearance="filled"
-                      color={
-                        item.wasteScore >= 90
-                          ? "success"
-                          : item.wasteScore >= 70
-                          ? "warning"
-                          : "danger"
-                      }
-                    >
-                      {item.wasteScore}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Text size={200}>${item.retryWaste.toFixed(2)}</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text size={200}>${item.durationWaste.toFixed(2)}</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text weight="semibold">${item.totalWaste.toFixed(2)}</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text
-                      weight="semibold"
-                      style={{
-                        color:
-                          item.monthlyProjected > 100
-                            ? "#d13438"
-                            : item.monthlyProjected > 20
-                            ? "#e8712a"
-                            : "inherit"
-                      }}
-                    >
-                      ${item.monthlyProjected.toFixed(2)}/mo
-                    </Text>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
 
-      {/* Incident Timeline */}
-      <div className="workbench-dashboard-section">
-        <h3 className="workbench-dashboard-section-title">
-          {t("WorkbenchDashboard_Incidents", "Recent Incidents")}
-        </h3>
-        <div className="workbench-dashboard-table-container">
-          <Table aria-label="Incident timeline">
-            <TableHeader>
-              <TableRow>
-                <TableHeaderCell style={{ width: 160 }}>Time</TableHeaderCell>
-                <TableHeaderCell style={{ width: 180 }}>SLO</TableHeaderCell>
-                <TableHeaderCell style={{ width: 130 }}>Metric</TableHeaderCell>
-                <TableHeaderCell style={{ width: 90 }}>Severity</TableHeaderCell>
-                <TableHeaderCell>Detail</TableHeaderCell>
-                <TableHeaderCell style={{ width: 100 }}>Status</TableHeaderCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {SAMPLE_INCIDENTS.map((inc, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    <TableCellLayout>
-                      <Clock20Regular
-                        style={{
-                          verticalAlign: "middle",
-                          marginRight: 4,
-                          color: "var(--colorNeutralForeground3)"
-                        }}
-                      />
-                      {inc.timestamp}
-                    </TableCellLayout>
-                  </TableCell>
-                  <TableCell>
-                    <Text weight="semibold">{inc.sloName}</Text>
-                  </TableCell>
-                  <TableCell>{inc.metric}</TableCell>
-                  <TableCell>
-                    <Badge
-                      appearance="filled"
-                      color={inc.severity === "critical" ? "danger" : "warning"}
-                    >
-                      {inc.severity}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Text size={200}>{inc.detail}</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      appearance="outline"
-                      color={inc.resolved ? "success" : "danger"}
-                    >
-                      {inc.resolved ? "Resolved" : "Active"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+          {/* CU Waste Score */}
+          <div className="workbench-dashboard-section">
+            <h3 className="workbench-dashboard-section-title">
+              {t("WorkbenchDashboard_WasteScore", "CU Waste Score")}
+            </h3>
+            <div className="workbench-dashboard-waste-summary">
+              <div className="workbench-dashboard-waste-gauge">
+                <div className="workbench-dashboard-waste-gauge-ring">
+                  <Text size={800} weight="bold">
+                    {data.aggregateWaste.score}
+                  </Text>
+                  <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                    / 100
+                  </Text>
+                </div>
+                <Text size={200}>Efficiency Score</Text>
+              </div>
+              <div className="workbench-dashboard-waste-stats">
+                <div className="workbench-dashboard-waste-stat">
+                  <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                    Weekly Waste
+                  </Text>
+                  <Text size={500} weight="semibold" style={{ color: "#d13438" }}>
+                    ${data.aggregateWaste.totalWeekly.toFixed(2)}
+                  </Text>
+                </div>
+                <div className="workbench-dashboard-waste-stat">
+                  <Text size={200} style={{ color: "var(--colorNeutralForeground3)" }}>
+                    Monthly Projected
+                  </Text>
+                  <Text size={500} weight="semibold" style={{ color: "#d13438" }}>
+                    ${data.aggregateWaste.totalMonthly.toFixed(2)}
+                  </Text>
+                </div>
+              </div>
+            </div>
+            <div className="workbench-dashboard-table-container">
+              <Table aria-label="CU waste by item">
+                <TableHeader>
+                  <TableRow>
+                    <TableHeaderCell style={{ width: 200 }}>Item</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 100 }}>Type</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 100 }}>Score</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 120 }}>Retry Waste</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 140 }}>Duration Waste</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 120 }}>Total Waste</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 140 }}>Monthly Cost</TableHeaderCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.wasteItems.map((wasteItem, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <TableCellLayout>
+                          <Money20Regular
+                            style={{
+                              verticalAlign: "middle",
+                              marginRight: 4,
+                              color: "var(--colorNeutralForeground3)"
+                            }}
+                          />
+                          <Text weight="semibold">{wasteItem.name}</Text>
+                        </TableCellLayout>
+                      </TableCell>
+                      <TableCell>
+                        <Badge appearance="outline" color="informative">
+                          {wasteItem.itemType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          appearance="filled"
+                          color={
+                            wasteItem.wasteScore >= 90
+                              ? "success"
+                              : wasteItem.wasteScore >= 70
+                              ? "warning"
+                              : "danger"
+                          }
+                        >
+                          {wasteItem.wasteScore}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Text size={200}>${wasteItem.retryWaste.toFixed(2)}</Text>
+                      </TableCell>
+                      <TableCell>
+                        <Text size={200}>${wasteItem.durationWaste.toFixed(2)}</Text>
+                      </TableCell>
+                      <TableCell>
+                        <Text weight="semibold">${wasteItem.totalWaste.toFixed(2)}</Text>
+                      </TableCell>
+                      <TableCell>
+                        <Text
+                          weight="semibold"
+                          style={{
+                            color:
+                              wasteItem.monthlyProjected > 100
+                                ? "#d13438"
+                                : wasteItem.monthlyProjected > 20
+                                ? "#e8712a"
+                                : "inherit"
+                          }}
+                        >
+                          ${wasteItem.monthlyProjected.toFixed(2)}/mo
+                        </Text>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
 
-      {/* Failed Jobs */}
-      <div className="workbench-dashboard-section">
-        <h3 className="workbench-dashboard-section-title">
-          {t("WorkbenchDashboard_FailedJobs", "Failed Jobs")}
-        </h3>
-        <div className="workbench-dashboard-table-container">
-          <Table aria-label="Failed jobs">
-            <TableHeader>
-              <TableRow>
-                <TableHeaderCell style={{ width: 160 }}>Time</TableHeaderCell>
-                <TableHeaderCell style={{ width: 200 }}>Item</TableHeaderCell>
-                <TableHeaderCell style={{ width: 100 }}>Type</TableHeaderCell>
-                <TableHeaderCell>Error</TableHeaderCell>
-                <TableHeaderCell style={{ width: 100 }}>Duration</TableHeaderCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {SAMPLE_FAILED_JOBS.map((job, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    <TableCellLayout>
-                      <Clock20Regular
-                        style={{
-                          verticalAlign: "middle",
-                          marginRight: 4,
-                          color: "var(--colorNeutralForeground3)"
-                        }}
-                      />
-                      {job.timestamp}
-                    </TableCellLayout>
-                  </TableCell>
-                  <TableCell>
-                    <Text weight="semibold">{job.itemName}</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Badge appearance="outline" color="informative">
-                      {job.itemType}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Text
-                      size={200}
-                      style={{ color: "var(--colorStatusDangerForeground1)" }}
-                    >
-                      {job.errorMessage}
-                    </Text>
-                  </TableCell>
-                  <TableCell>{job.duration}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+          {/* Incident Timeline */}
+          <div className="workbench-dashboard-section">
+            <h3 className="workbench-dashboard-section-title">
+              {t("WorkbenchDashboard_Incidents", "Recent Incidents")}
+            </h3>
+            <div className="workbench-dashboard-table-container">
+              <Table aria-label="Incident timeline">
+                <TableHeader>
+                  <TableRow>
+                    <TableHeaderCell style={{ width: 160 }}>Time</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 180 }}>SLO</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 130 }}>Metric</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 90 }}>Severity</TableHeaderCell>
+                    <TableHeaderCell>Detail</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 100 }}>Status</TableHeaderCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.incidents.map((inc, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <TableCellLayout>
+                          <Clock20Regular
+                            style={{
+                              verticalAlign: "middle",
+                              marginRight: 4,
+                              color: "var(--colorNeutralForeground3)"
+                            }}
+                          />
+                          {inc.timestamp}
+                        </TableCellLayout>
+                      </TableCell>
+                      <TableCell>
+                        <Text weight="semibold">{inc.sloName}</Text>
+                      </TableCell>
+                      <TableCell>{inc.metric}</TableCell>
+                      <TableCell>
+                        <Badge
+                          appearance="filled"
+                          color={inc.severity === "critical" ? "danger" : "warning"}
+                        >
+                          {inc.severity}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Text size={200}>{inc.detail}</Text>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          appearance="outline"
+                          color={inc.resolved ? "success" : "danger"}
+                        >
+                          {inc.resolved ? "Resolved" : "Active"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+
+          {/* Failed Jobs */}
+          <div className="workbench-dashboard-section">
+            <h3 className="workbench-dashboard-section-title">
+              {t("WorkbenchDashboard_FailedJobs", "Failed Jobs")}
+            </h3>
+            <div className="workbench-dashboard-table-container">
+              <Table aria-label="Failed jobs">
+                <TableHeader>
+                  <TableRow>
+                    <TableHeaderCell style={{ width: 160 }}>Time</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 200 }}>Item</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 100 }}>Type</TableHeaderCell>
+                    <TableHeaderCell>Error</TableHeaderCell>
+                    <TableHeaderCell style={{ width: 100 }}>Duration</TableHeaderCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.failedJobs.map((job, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <TableCellLayout>
+                          <Clock20Regular
+                            style={{
+                              verticalAlign: "middle",
+                              marginRight: 4,
+                              color: "var(--colorNeutralForeground3)"
+                            }}
+                          />
+                          {job.timestamp}
+                        </TableCellLayout>
+                      </TableCell>
+                      <TableCell>
+                        <Text weight="semibold">{job.itemName}</Text>
+                      </TableCell>
+                      <TableCell>
+                        <Badge appearance="outline" color="informative">
+                          {job.itemType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Text
+                          size={200}
+                          style={{ color: "var(--colorStatusDangerForeground1)" }}
+                        >
+                          {job.errorMessage}
+                        </Text>
+                      </TableCell>
+                      <TableCell>{job.duration}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 
