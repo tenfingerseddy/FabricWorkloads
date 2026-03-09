@@ -8,7 +8,7 @@
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/actions"><img src="https://img.shields.io/github/actions/workflow/status/tenfingerseddy/FabricWorkloads/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/stargazers"><img src="https://img.shields.io/github/stars/tenfingerseddy/FabricWorkloads?style=flat-square" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/tests-187%20passed-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/tests-205%20passed-brightgreen?style=flat-square" alt="Tests">
   <img src="https://img.shields.io/badge/events%20tracked-137%2B-brightgreen?style=flat-square" alt="Events Tracked">
   <img src="https://img.shields.io/badge/SLOs%20tracked-88-blue?style=flat-square" alt="SLOs Tracked">
   <img src="https://img.shields.io/badge/free%20tier-available-purple?style=flat-square" alt="Free Tier">

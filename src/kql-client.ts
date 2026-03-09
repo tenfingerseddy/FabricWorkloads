@@ -406,8 +406,13 @@ function sleep(ms: number): Promise<void> {
  * and newlines are replaced to avoid breaking the row format.
  */
 function escapeKql(value: string): string {
+  if (typeof value !== "string") return String(value ?? "");
   return value
     .replace(/;/g, ",")
     .replace(/\n/g, " ")
-    .replace(/\r/g, "");
+    .replace(/\r/g, "")
+    .replace(/`/g, "'")
+    .replace(/<\|/g, "< |")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
 }
