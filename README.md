@@ -1,55 +1,89 @@
 <p align="center">
   <strong>Observability Workbench for Microsoft Fabric</strong>
   <br>
-  Open-source monitoring, SLO tracking, cross-item correlation, and CU waste scoring
+  Long-retention monitoring, cross-item correlation, SLO tracking, and CU waste scoring -- open source, Fabric-native.
 </p>
 
 <p align="center">
-  <a href="https://github.com/tenfingerseddy/FabricWorkloads/actions"><img src="https://img.shields.io/github/actions/workflow/status/tenfingerseddy/FabricWorkloads/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
+  <a href="https://github.com/tenfingerseddy/FabricWorkloads/actions"><img src="https://img.shields.io/github/actions/workflow/status/tenfingerseddy/FabricWorkloads/ci.yml?branch=main&style=flat-square" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
+  <img src="https://img.shields.io/badge/tests-243%20passed-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square" alt="Node">
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/stargazers"><img src="https://img.shields.io/github/stars/tenfingerseddy/FabricWorkloads?style=flat-square" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/tests-205%20passed-brightgreen?style=flat-square" alt="Tests">
-  <img src="https://img.shields.io/badge/events%20tracked-137%2B-brightgreen?style=flat-square" alt="Events Tracked">
-  <img src="https://img.shields.io/badge/SLOs%20tracked-88-blue?style=flat-square" alt="SLOs Tracked">
-  <img src="https://img.shields.io/badge/free%20tier-available-purple?style=flat-square" alt="Free Tier">
 </p>
 
 ---
 
-## The Problem
+## Why This Exists
 
-Microsoft Fabric's built-in monitoring has gaps that compound in production:
-- **30-day retention** — no long-term trending or quarter-over-quarter analysis
-- **No cross-item correlation** — can't trace pipeline → notebook → semantic model chains
-- **No SLO framework** — no way to define and track service level objectives or error budgets
-- **No cost visibility** — no way to quantify compute waste from failed, regressed, or duplicate runs
-- **Fragmented tools** — Monitoring Hub, Capacity Metrics, Spark UI are all separate with no unified view
+Fabric's built-in monitoring has three gaps that compound in production:
 
-## Live Results
+- **30-day retention ceiling** -- Monitoring Hub and Workspace Monitoring both cap at 30 days. No quarter-over-quarter trending, no long-term regression detection.
+- **No cross-item correlation** -- A pipeline triggers a notebook that refreshes a semantic model. When the report is stale, there is no native way to trace the failure back through that chain.
+- **No SLO framework** -- No way to define "pipeline X must succeed 99% of the time" or "refresh must complete within 2 hours," track compliance, or alert before a breach.
 
-Running against real Fabric infrastructure right now:
+Observability Workbench fills all three gaps with an open-source CLI, Fabric notebooks, a KQL query pack, and a native Fabric workload.
 
-| Metric | Value |
-|--------|-------|
-| Job events ingested | 137+ |
-| SLO snapshots tracked | 88 |
-| Cross-item correlations | 8 |
-| Alerts triggered | 52 |
-| Fabric notebooks on schedule | 3 |
+## 30-Second Quickstart
+
+```bash
+git clone https://github.com/tenfingerseddy/FabricWorkloads.git
+cd FabricWorkloads
+npm install
+```
+
+Configure your service principal:
+
+```bash
+export FABRIC_TENANT_ID="your-tenant-id"
+export FABRIC_CLIENT_ID="your-client-id"
+export FABRIC_CLIENT_SECRET="your-client-secret"
+```
+
+Run:
+
+```bash
+npm start
+```
+
+Expected output:
+
+```
+Authenticating with Fabric API...            OK
+Discovering workspaces...                    3 found
+Collecting job instances...                  137 events
+Computing SLOs...                            8 definitions evaluated
+Scoring CU waste...                          4 items scored
+Checking alert rules...                      2 breaches detected
+
+=== Workspace Health Dashboard ===
+  Pipelines: 12 OK | 2 Warning | 1 Failed
+  SLO Compliance: 87.5% (7/8 passing)
+  CU Waste Score: 73/100 (efficient)
+```
+
+Other modes:
+
+```bash
+npm run collect           # Collect only (no dashboard)
+npm run dashboard         # Dashboard only (cached data)
+npm run monitor           # Continuous monitoring (every 5 min)
+npx fabric-health-check   # Quick health check (zero install)
+```
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     subgraph Fabric["Microsoft Fabric"]
-        MH[Monitoring Hub] --> NB1[NB_ObsIngestion]
-        API[REST APIs] --> NB1
-        NB1 --> EH[(Eventhouse\nEH_Observability)]
-        EH --> NB2[NB_ObsCorrelation]
+        API[REST APIs] --> NB1[NB_ObsIngestion<br>every 5 min]
+        NB1 --> EH[(Eventhouse<br>EH_Observability<br>90-day hot)]
+        EH --> NB2[NB_ObsCorrelation<br>every 15 min]
         NB2 --> EH
-        EH --> NB3[NB_ObsAlerts]
+        EH --> NB3[NB_ObsAlerts<br>every 15 min]
         NB3 --> EH
-        EH --> WL[Workload UI]
+        EH --> LH[(Lakehouse<br>LH_ObsArchive<br>365-day cold)]
+        EH --> WL[Workload UI<br>3 item types]
     end
     subgraph CLI["CLI Tool"]
         COL[Collector] --> SLO[SLO Engine]
@@ -62,79 +96,68 @@ flowchart LR
     API --> COL
 ```
 
-## The Solution
+**Four components work together:**
 
-This repo provides four things:
+| Component | Location | What It Does |
+|-----------|----------|-------------|
+| CLI Tool | `src/` | Collect jobs, compute SLOs, score CU waste, detect alerts, render dashboard |
+| Fabric Notebooks | `notebooks/` | Scheduled ingestion, correlation, and alerting inside Fabric |
+| KQL Query Pack | `kql/` | 25+ ready-to-use analytical queries for Eventhouse |
+| Fabric Workload | `workload/` | Native item types for dashboards, alerts, and SLO definitions |
 
-| Component | Description |
-|-----------|-------------|
-| **CLI Tool** (`src/`) | Collect job data, compute SLOs, score CU waste, detect alerts, render dashboards |
-| **CU Waste Score** (`src/waste-score.ts`) | Quantify compute waste in dollars — retry, duration regression, and duplicate run waste per item |
-| **Fabric Workload** (`workload/`) | Native Fabric item types for dashboards, alerts, and SLOs |
-| **KQL Query Pack** (`kql/`) | 45+ ready-to-use analytical queries for Eventhouse |
+## Features
 
-Plus: Fabric notebooks for in-platform execution, a standalone health check tool, notebook validation scripts, and a landing page.
+### Working Now
+
+- [x] **Job collection** -- Pipelines, notebooks, dataflows, copy jobs, semantic model refreshes
+- [x] **KQL ingestion** -- Stream events into Eventhouse with 90-day hot / 365-day cold retention
+- [x] **SLO tracking** -- Define success rate, duration, and freshness targets with error budgets
+- [x] **Alerting engine** -- SLO breach, likely-to-breach, duration regression, consecutive failure detection
+- [x] **Cross-item correlation** -- Automatic pipeline-to-notebook-to-refresh dependency linking
+- [x] **CU waste scoring** -- Quantify retry, duration regression, and duplicate run waste in dollars
+- [x] **Event search** -- Full-text search across all collected events (not limited to loaded data)
+- [x] **Incident timeline** -- Chronological failure view with correlated upstream/downstream items
+- [x] **CLI dashboard** -- Terminal-based workspace health, SLO grid, and alert summary
+- [x] **Scheduled notebooks** -- Three production notebooks on 5/15/15-minute schedules
+- [x] **Community query pack** -- 25 production-ready KQL queries ([browse them](kql/community-query-pack.kql))
+
+### Planned
+
+- [ ] **DevGateway integration** -- Run the workload UI locally against Fabric
+- [ ] **Teams / Slack notifications** -- Alert routing to team channels
+- [ ] **Lakehouse archive automation** -- Automated hot-to-cold tiering
+- [ ] **SLO burndown charts** -- Visual error budget consumption over time
+- [ ] **Shareable health reports** -- Export PDF/HTML workspace health cards
+- [ ] **AppSource listing** -- One-click install from the Fabric marketplace
+
+## Screenshots
+
+*Screenshots coming soon -- the DevGateway integration for the workload UI is in progress. The CLI dashboard and KQL queries are fully functional today.*
 
 ## CU Waste Score
 
-Every failed pipeline run, every duration regression, every duplicate execution costs real money. The CU Waste Score quantifies this per item across three dimensions:
+Every failed run, every duration regression, every duplicate execution costs real money. The CU Waste Score quantifies this per item:
 
 | Waste Type | What It Measures |
 |------------|-----------------|
-| **Retry waste** | CU-seconds consumed by failed runs — compute ran, output discarded |
-| **Duration waste** | Excess CU-seconds from runs that took longer than their P50 baseline |
-| **Duplicate waste** | CU-seconds from overlapping concurrent runs of the same item |
+| Retry waste | CU-seconds consumed by failed runs -- compute ran, output discarded |
+| Duration waste | Excess CU-seconds from runs exceeding their P50 baseline |
+| Duplicate waste | CU-seconds from overlapping concurrent runs of the same item |
 
-The score (0-100) represents efficiency. The calculator projects monthly cost based on F64 SKU pricing ($11.52/hr). Run the KQL version (`kql/slo-queries.kql`) directly in your Eventhouse to see waste per item in your environment.
+Score is 0-100 (higher = more efficient). Monthly cost projections use F64 SKU pricing ($11.52/hr). Run the KQL version directly in your Eventhouse: [`kql/slo-queries.kql`](kql/slo-queries.kql).
 
-## Quick Start
+## KQL Community Query Pack
 
-```bash
-git clone https://github.com/tenfingerseddy/FabricWorkloads.git
-cd FabricWorkloads
-npm install
-```
+The [`kql/`](kql/) directory contains 25+ KQL queries organized by use case:
 
-Set your environment variables:
+- **Pipeline failure analysis** -- Root cause breakdown, failure trends, retry patterns
+- **Capacity optimization** -- CU consumption heatmaps, peak usage windows, waste identification
+- **Data freshness monitoring** -- Stale dataset detection, refresh lag tracking
+- **Cross-item correlation** -- Dependency chain tracing, blast radius analysis
+- **SLO compliance reporting** -- Error budget burn rate, compliance trends
+- **Incident investigation** -- Timeline reconstruction, concurrent failure detection
 
-```bash
-export FABRIC_TENANT_ID="your-tenant-id"
-export FABRIC_CLIENT_ID="your-client-id"
-export FABRIC_CLIENT_SECRET="your-client-secret"
-```
-
-Run:
-
-```bash
-# Full collection + dashboard + alerts + waste scoring
-npm start
-
-# Collect only
-npm run collect
-
-# Dashboard only
-npm run dashboard
-
-# Continuous monitoring (every 5 min)
-npm run monitor
-```
-
-### Quick Health Check (no install needed)
-
-```bash
-npx fabric-health-check
-```
-
-## What It Does
-
-1. **Discovers** all workspaces and items via the Fabric REST API
-2. **Collects** job instances for pipelines, notebooks, dataflows, copy jobs, and more
-3. **Correlates** related items (pipeline triggers notebook → links them automatically)
-4. **Computes** SLO metrics: success rate, P50/P95 duration, freshness
-5. **Scores** CU waste per item — quantifies retry, duration regression, and duplicate run waste in dollars
-6. **Ingests** into Fabric Eventhouse (KQL database) for long-term storage (90-day hot, 365-day cold)
-7. **Alerts** on SLO breaches, likely breaches, duration regressions, and consecutive failures
-8. **Renders** a CLI dashboard with workspace inventory, job history, SLO status, and waste metrics
+The [community query pack](kql/community-query-pack.kql) (25 queries) is designed to drop directly into any Fabric Eventhouse. Each query includes documentation, expected output, and customization notes.
 
 ## Configuration
 
@@ -147,64 +170,66 @@ npx fabric-health-check
 | `KQL_QUERY_ENDPOINT` | Eventhouse query URI | When KQL enabled |
 | `KQL_DATABASE` | KQL database name | When KQL enabled |
 
+## KQL Eventhouse Tables
+
+| Table | Purpose | Retention |
+|-------|---------|-----------|
+| `FabricEvents` | All job instances with status, duration, timestamps | 90 days |
+| `WorkspaceInventory` | Item catalog across workspaces | 90 days |
+| `EventCorrelations` | Cross-item dependency links | 90 days |
+| `SloDefinitions` | SLO target configurations | Permanent |
+| `SloSnapshots` | Point-in-time SLO measurements | 90 days |
+| `AlertRules` | Alert rule definitions | Permanent |
+| `AlertLog` | Triggered alert history | 90 days |
+
+## Fabric Workload Item Types
+
+The workload adds three native item types to Fabric:
+
+- **WorkbenchDashboard** -- SLO grid, CU waste scoring, incident timeline, failed jobs
+- **AlertRule** -- Condition builder, notification targets, test-fire capability
+- **SLODefinition** -- Metric configuration, error budget visualization, threshold tuning
+
 ## Project Structure
 
 ```
 src/                    # CLI tool (TypeScript)
-  auth.ts               #   OAuth2 client credentials
-  fabric-client.ts      #   Fabric REST API client (pagination, retry, rate limiting)
-  collector.ts          #   Workspace discovery, job collection, correlation, SLOs
-  kql-client.ts         #   Eventhouse KQL ingestion
+  collector.ts          #   Workspace discovery, job collection, correlation
+  alerts.ts             #   Alert engine (breach, regression, freshness)
+  waste-score.ts        #   CU Waste Score calculator
+  kql-client.ts         #   Eventhouse ingestion
   dashboard.ts          #   Terminal dashboard renderer
-  alerts.ts             #   Alert engine (SLO breach, regression, freshness)
-  waste-score.ts        #   CU Waste Score calculator (retry, duration, duplicate waste)
-  scheduler.ts          #   Polling scheduler for continuous mode
   hooks/                #   React hooks for workload frontend
-  services/             #   Service layer (API clients, data transforms)
-  types/                #   Shared TypeScript type definitions
-  __tests__/            #   Unit tests — 269 tests (vitest)
+  services/             #   Backend service layer
+  __tests__/            #   243 tests (vitest)
 workload/               # Fabric Extensibility Toolkit workload
-  app/items/            #   3 item types: WorkbenchDashboard, AlertRule, SLODefinition
+  app/items/            #   3 item types with editors and views
   Manifest/             #   Fabric manifests and item definitions
-kql/                    # Ready-to-use KQL queries
-  create-tables.kql     #   Table creation with retention policies
-  dashboard-queries.kql #   Success rates, duration trends, heatmaps
-  slo-queries.kql       #   SLO tracking, error budgets, CU waste scoring
-  correlation-queries.kql # Cross-item correlation analysis
-  troubleshooting.kql   #   Incident investigation queries
-notebooks/              # Fabric PySpark notebooks
-  NB_ObsIngestion.py    #   Scheduled job data collection
-  NB_ObsCorrelation.py  #   Cross-item correlation engine
-  NB_ObsAlerts.py       #   Alert evaluation and notification
-packages/               # Standalone tools
-  fabric-health-check/  #   npx fabric-health-check (zero dependencies)
-scripts/                # Data quality and validation tools
-  fabric-health-check.sh #  Open-source Fabric health check (lead gen)
-  validate-notebooks.sh #   Notebook format validation for Fabric upload
-landing-page/           # Marketing site
+kql/                    # 25+ KQL queries by use case
+notebooks/              # 3 Fabric PySpark notebooks
+packages/               # Standalone tools (fabric-health-check)
+scripts/                # Deployment and validation
+landing-page/           # Marketing site with pricing
 ```
 
-## Fabric Item Types (Workload)
+## Roadmap
 
-The workload adds 3 native item types to Fabric:
+See the full [product specification](products/observability-workbench/specs/product-spec.md) for detailed plans.
 
-- **WorkbenchDashboard** — SLO status grid, CU waste scoring, incident timeline, failed jobs view
-- **AlertRule** — Condition builder, notification targets, test alerts
-- **SLODefinition** — Metric configuration, error budget visualization
+**Near-term:**
+- DevGateway workload UI testing
+- Teams and Slack alert integrations
+- Automated Lakehouse archive tiering
+- SLO template library (community-contributed)
 
-## KQL Eventhouse Tables
-
-| Table | Purpose |
-|-------|---------|
-| `FabricEvents` | All job instances (90-day retention) |
-| `WorkspaceInventory` | Item catalog across workspaces |
-| `EventCorrelations` | Cross-item dependency links |
-| `SloDefinitions` | SLO target configurations |
-| `SloSnapshots` | Point-in-time SLO measurements |
-| `AlertRules` | Alert rule definitions |
-| `AlertLog` | Triggered alert history |
+**Future products in the pipeline:**
+- **Release Orchestrator** -- Dependency-aware, test-gated deployments for Fabric
+- **FinOps Guardrails** -- Cost transparency, chargeback, and budget controls
+- **Schema Drift Gate** -- Data contracts, drift detection, promotion gates
 
 ## Pricing
+
+The open-source CLI, KQL queries, and notebooks are **free forever** (MIT license).
 
 | Tier | Price | Workspaces | Retention | SLOs |
 |------|-------|-----------|-----------|------|
@@ -212,26 +237,36 @@ The workload adds 3 native item types to Fabric:
 | Professional | $499/mo per capacity | 5 | 90 days | Unlimited |
 | Enterprise | $1,499/mo per capacity | Unlimited | 365 days | Unlimited + SSO + SLA |
 
-The open-source CLI and KQL queries are free forever. Paid tiers add managed infrastructure, extended retention, and enterprise features. See the [landing page](landing-page/) for details.
-
-## Resources
-
-- [Blog: The State of Fabric Observability in 2026](https://dev.to/observability-workbench/the-state-of-fabric-observability-in-2026) — the problem space and our approach
-- [Blog: Cross-Item Correlation in Microsoft Fabric](https://dev.to/observability-workbench/cross-item-correlation-in-microsoft-fabric) — technical deep-dive on the correlation engine
-- [KQL Query: CU Waste Score](kql/slo-queries.kql) — calculate compute waste per item in your Eventhouse
-- [KQL Community Query Pack](kql/community-query-pack.kql) — 20 production-ready queries for Fabric observability
+See the [pricing page](landing-page/) for full details.
 
 ## Testing
 
 ```bash
-npm test           # Run all 187 tests
-npm run test:watch # Watch mode
+npm test              # Run all 243 tests
+npm run test:watch    # Watch mode
+npx tsc --noEmit      # Type check
+npm run validate:notebooks  # Validate notebook format
 ```
+
+## Resources
+
+- [Product Specification](products/observability-workbench/specs/product-spec.md) -- Architecture, data models, API design
+- [KQL Community Query Pack](kql/community-query-pack.kql) -- 25 production-ready queries
+- [Blog: The State of Fabric Observability in 2026](https://dev.to/observability-workbench/the-state-of-fabric-observability-in-2026)
+- [Blog: Cross-Item Correlation in Microsoft Fabric](https://dev.to/observability-workbench/cross-item-correlation-in-microsoft-fabric)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
+We welcome contributions -- KQL queries, bug reports, feature requests, documentation, and code.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, code style, and PR guidelines.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT -- see [LICENSE](LICENSE).
+
+---
+
+<p align="center">
+  If this project is useful to you, <a href="https://github.com/tenfingerseddy/FabricWorkloads">give it a star on GitHub</a>. It helps others find it.
+</p>

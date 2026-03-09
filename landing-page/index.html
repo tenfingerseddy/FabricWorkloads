@@ -3,42 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Observability Workbench — Enterprise Observability for Microsoft Fabric</title>
-<meta name="description" content="Enterprise-grade observability for Microsoft Fabric. Long-retention metrics, cross-item correlation, SLO tracking, and proactive alerts — built natively inside the platform you already use.">
+<title>Observability Workbench for Microsoft Fabric</title>
+<meta name="description" content="Long-retention monitoring, cross-item correlation, SLO tracking, and proactive alerting — natively inside Microsoft Fabric. Open source. Start free.">
+<meta name="keywords" content="Microsoft Fabric, observability, monitoring, SLO, correlation, KQL, data engineering, FinOps, open source">
+<meta property="og:title" content="Observability Workbench for Microsoft Fabric">
+<meta property="og:description" content="Stop debugging Fabric in the dark. Long-retention monitoring, cross-item correlation, SLO dashboards, and proactive alerting — all running natively inside your Fabric tenant.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://github.com/tenfingerseddy/FabricWorkloads">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Observability Workbench for Microsoft Fabric">
+<meta name="twitter:description" content="Open-source observability for Microsoft Fabric. Long-retention metrics, cross-item correlation, SLO tracking, and proactive alerts.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
+   CSS CUSTOM PROPERTIES
+   ============================================================ */
+:root {
+  --color-primary:        #0078d4;
+  --color-primary-hover:  #1a8fe8;
+  --color-primary-light:  rgba(0, 120, 212, 0.10);
+  --color-primary-glow:   rgba(0, 120, 212, 0.15);
+  --color-primary-deep:   #005a9e;
+  --color-orange:         #e8712a;
+  --color-orange-hover:   #f58a42;
+  --color-orange-light:   rgba(232, 113, 42, 0.10);
+  --color-green:          #2ecc71;
+  --color-green-light:    rgba(46, 204, 113, 0.10);
+  --color-red:            #e74c3c;
+  --color-red-light:      rgba(231, 76, 60, 0.10);
+  --color-yellow:         #f1c40f;
+  --color-yellow-light:   rgba(241, 196, 15, 0.10);
+  --color-purple:         #7c5cbf;
+
+  --bg-primary:           #0a0a14;
+  --bg-secondary:         #0f0f1e;
+  --bg-tertiary:          #141428;
+  --bg-card:              #16162e;
+  --bg-card-hover:        #1e1e3a;
+  --bg-surface:           #1a1a34;
+
+  --text-primary:         #f0f0f5;
+  --text-secondary:       #a0a0b8;
+  --text-muted:           #6a6a80;
+  --text-accent:          #7db8e8;
+
+  --border-subtle:        #222244;
+  --border-card:          #2a2a4a;
+  --border-hover:         #3a3a5e;
+
+  --radius-sm:            8px;
+  --radius-md:            12px;
+  --radius-lg:            16px;
+  --radius-xl:            24px;
+
+  --shadow-card:          0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow:          0 0 60px var(--color-primary-glow);
+  --shadow-glow-sm:       0 0 30px var(--color-primary-glow);
+
+  --max-width:            1200px;
+  --transition:           0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:      0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
    RESET & BASE
    ============================================================ */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
-  --bg-primary:   #0d0d1a;
-  --bg-secondary: #141428;
-  --bg-card:      #1a1a2e;
-  --bg-card-hover:#222240;
-  --text-primary: #f0f0f5;
-  --text-secondary:#a0a0b8;
-  --text-muted:   #6a6a80;
-  --accent-blue:  #0078D4;
-  --accent-blue-hover: #1a8fe8;
-  --accent-orange:#e8712a;
-  --accent-orange-hover:#f58a42;
-  --accent-green: #2ecc71;
-  --border-subtle:#2a2a44;
-  --border-card:  #2e2e4a;
-  --radius-sm:    8px;
-  --radius-md:    12px;
-  --radius-lg:    20px;
-  --shadow-card:  0 4px 24px rgba(0,0,0,.35);
-  --shadow-glow:  0 0 60px rgba(0,120,212,.12);
-  --max-width:    1180px;
-  --transition:   .25s cubic-bezier(.4,0,.2,1);
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
 }
-
-html { scroll-behavior: smooth; }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -46,6 +83,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
@@ -55,22 +93,29 @@ img { max-width: 100%; display: block; }
 /* ============================================================
    UTILITIES
    ============================================================ */
-.container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
 
 .section {
   padding: 100px 0;
   position: relative;
 }
-.section--alt { background: var(--bg-secondary); }
+
+.section--alt {
+  background: var(--bg-secondary);
+}
 
 .section-label {
   display: inline-block;
-  font-size: .75rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: .12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent-blue);
-  margin-bottom: 12px;
+  color: var(--color-primary);
+  margin-bottom: 14px;
 }
 
 .section-title {
@@ -90,6 +135,13 @@ img { max-width: 100%; display: block; }
 .text-center { text-align: center; }
 .mx-auto { margin-left: auto; margin-right: auto; }
 
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #40a0ff 50%, var(--color-orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* ============================================================
    BUTTONS
    ============================================================ */
@@ -99,24 +151,25 @@ img { max-width: 100%; display: block; }
   gap: 8px;
   padding: 14px 32px;
   font-family: inherit;
-  font-size: .95rem;
+  font-size: 0.95rem;
   font-weight: 600;
   border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   transition: all var(--transition);
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .btn-primary {
-  background: var(--accent-blue);
+  background: var(--color-primary);
   color: #fff;
-  box-shadow: 0 0 20px rgba(0,120,212,.3);
+  box-shadow: 0 0 20px rgba(0, 120, 212, 0.3);
 }
 .btn-primary:hover {
-  background: var(--accent-blue-hover);
-  box-shadow: 0 0 32px rgba(0,120,212,.45);
-  transform: translateY(-1px);
+  background: var(--color-primary-hover);
+  box-shadow: 0 0 32px rgba(0, 120, 212, 0.45);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
@@ -125,19 +178,29 @@ img { max-width: 100%; display: block; }
   border: 1.5px solid var(--border-subtle);
 }
 .btn-secondary:hover {
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
-.btn-orange {
-  background: var(--accent-orange);
-  color: #fff;
-  box-shadow: 0 0 20px rgba(232,113,42,.25);
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
-.btn-orange:hover {
-  background: var(--accent-orange-hover);
-  box-shadow: 0 0 32px rgba(232,113,42,.4);
-  transform: translateY(-1px);
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-hover);
+}
+
+.btn-sm {
+  padding: 10px 20px;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 16px 40px;
+  font-size: 1rem;
 }
 
 /* ============================================================
@@ -150,10 +213,15 @@ img { max-width: 100%; display: block; }
   right: 0;
   z-index: 100;
   padding: 0 24px;
-  background: rgba(13,13,26,.82);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(10, 10, 20, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-subtle);
+  transition: background var(--transition);
+}
+
+.nav--scrolled {
+  background: rgba(10, 10, 20, 0.95);
 }
 
 .nav__inner {
@@ -170,47 +238,87 @@ img { max-width: 100%; display: block; }
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1rem;
+  transition: opacity var(--transition);
 }
+.nav__brand:hover { opacity: 0.85; }
 
 .nav__logo {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-orange));
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: .85rem;
+  font-size: 0.75rem;
   font-weight: 800;
   color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.nav__logo::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+  animation: logo-shine 4s ease-in-out infinite;
+}
+@keyframes logo-shine {
+  0%, 100% { transform: translateX(-100%) rotate(45deg); }
+  50% { transform: translateX(100%) rotate(45deg); }
 }
 
 .nav__links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
   list-style: none;
 }
 
 .nav__links a {
-  font-size: .875rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text-secondary);
   transition: color var(--transition);
+  position: relative;
 }
 .nav__links a:hover { color: var(--text-primary); }
+.nav__links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transition: width var(--transition);
+}
+.nav__links a:hover::after { width: 100%; }
 
-.nav__cta .btn { padding: 9px 22px; font-size: .85rem; }
+.nav__cta .btn { padding: 9px 22px; font-size: 0.85rem; }
+.nav__cta a::after { display: none; }
 
-/* Mobile nav toggle */
-.nav__toggle { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+/* Mobile nav */
+.nav__toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  position: relative;
+}
 .nav__toggle span {
   display: block;
   width: 22px;
   height: 2px;
   background: var(--text-primary);
-  margin: 5px 0;
+  margin: 5px auto;
   border-radius: 2px;
   transition: var(--transition);
 }
@@ -222,16 +330,19 @@ img { max-width: 100%; display: block; }
     top: 64px;
     left: 0;
     right: 0;
+    bottom: 0;
     flex-direction: column;
-    background: rgba(13,13,26,.96);
-    backdrop-filter: blur(16px);
-    padding: 24px;
-    gap: 20px;
-    border-bottom: 1px solid var(--border-subtle);
-    transform: translateY(-120%);
+    background: rgba(10, 10, 20, 0.98);
+    backdrop-filter: blur(20px);
+    padding: 40px 24px;
+    gap: 24px;
+    transform: translateX(100%);
     transition: transform var(--transition);
+    overflow-y: auto;
   }
-  .nav__links.open { transform: translateY(0); }
+  .nav__links.open { transform: translateX(0); }
+  .nav__links a { font-size: 1.1rem; }
+  .nav__links a::after { display: none; }
 }
 
 /* ============================================================
@@ -247,31 +358,51 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
 }
 
-.hero::before {
-  content: '';
+/* Ambient glow effects */
+.hero__glow {
   position: absolute;
-  top: -40%;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+}
+.hero__glow--1 {
+  top: -20%;
   left: 50%;
   transform: translateX(-50%);
-  width: 800px;
-  height: 800px;
-  background: radial-gradient(circle, rgba(0,120,212,.10) 0%, transparent 65%);
-  pointer-events: none;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(0, 120, 212, 0.12) 0%, transparent 60%);
+}
+.hero__glow--2 {
+  bottom: -10%;
+  right: -5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(232, 113, 42, 0.06) 0%, transparent 60%);
+}
+.hero__glow--3 {
+  top: 30%;
+  left: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(124, 92, 191, 0.06) 0%, transparent 60%);
 }
 
-.hero::after {
-  content: '';
+/* Grid pattern overlay */
+.hero__grid {
   position: absolute;
-  bottom: -20%;
-  right: -10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(232,113,42,.06) 0%, transparent 65%);
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
   pointer-events: none;
 }
 
 .hero__content {
-  max-width: 780px;
+  max-width: 800px;
   text-align: center;
   position: relative;
   z-index: 1;
@@ -281,50 +412,44 @@ img { max-width: 100%; display: block; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px;
+  padding: 6px 18px;
   border-radius: 100px;
   border: 1px solid var(--border-subtle);
-  background: rgba(0,120,212,.08);
-  font-size: .8rem;
+  background: rgba(0, 120, 212, 0.06);
+  font-size: 0.8rem;
   font-weight: 500;
-  color: var(--accent-blue);
-  margin-bottom: 28px;
+  color: var(--color-primary);
+  margin-bottom: 32px;
+  transition: border-color var(--transition);
 }
-
-.hero__badge::before {
-  content: '';
+.hero__badge:hover {
+  border-color: var(--color-primary);
+}
+.hero__badge-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent-green);
+  background: var(--color-green);
   animation: pulse-dot 2s infinite;
 }
-
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .4; }
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(46, 204, 113, 0); }
 }
 
 .hero__title {
-  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
   font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -.02em;
+  letter-spacing: -0.025em;
   margin-bottom: 24px;
 }
 
-.hero__title span {
-  background: linear-gradient(135deg, var(--accent-blue) 20%, var(--accent-orange) 80%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .hero__subtitle {
-  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
   color: var(--text-secondary);
-  line-height: 1.7;
-  max-width: 600px;
+  line-height: 1.75;
+  max-width: 640px;
   margin: 0 auto 40px;
 }
 
@@ -336,106 +461,432 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
 }
 
-.hero__proof {
+.hero__stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
   margin-top: 56px;
-  font-size: .82rem;
-  color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
-.hero__proof strong { color: var(--text-secondary); font-weight: 600; }
+.hero__stat {
+  text-align: center;
+}
+.hero__stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.hero__stat-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.hero__stat-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-subtle);
+}
+
+@media (max-width: 480px) {
+  .hero__stats { gap: 20px; }
+  .hero__stat-divider { display: none; }
+}
 
 /* ============================================================
    PROBLEM SECTION
    ============================================================ */
 .problems-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
   margin-top: 48px;
+}
+
+@media (max-width: 1024px) {
+  .problems-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .problems-grid { grid-template-columns: 1fr; }
 }
 
 .problem-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
-  padding: 36px 32px;
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
 }
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-orange), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
 .problem-card:hover {
-  border-color: var(--accent-orange);
+  border-color: rgba(232, 113, 42, 0.3);
   transform: translateY(-4px);
   box-shadow: var(--shadow-card);
 }
+.problem-card:hover::before { opacity: 1; }
 
 .problem-card__icon {
   width: 48px;
   height: 48px;
-  border-radius: var(--radius-sm);
-  background: rgba(232,113,42,.1);
+  border-radius: var(--radius-md);
+  background: var(--color-orange-light);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  font-size: 1.4rem;
 }
 
 .problem-card__title {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 10px;
 }
 
 .problem-card__text {
-  font-size: .925rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.7;
 }
 
 /* ============================================================
-   SOLUTION SECTION
+   SEE IT IN ACTION
    ============================================================ */
-.solutions-grid {
+.screenshots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   margin-top: 48px;
 }
 
-.solution-card {
+@media (max-width: 768px) {
+  .screenshots-grid { grid-template-columns: 1fr; }
+}
+
+.screenshot-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
-  padding: 32px 28px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
   transition: all var(--transition);
 }
-.solution-card:hover {
-  border-color: var(--accent-blue);
+.screenshot-card:hover {
+  border-color: var(--color-primary);
   transform: translateY(-3px);
   box-shadow: var(--shadow-card);
 }
 
-.solution-card__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-sm);
-  background: rgba(0,120,212,.1);
+.screenshot-card__preview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background: var(--bg-tertiary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-card);
+}
+
+/* Mock UI elements inside screenshot placeholders */
+.screenshot-card__preview--dashboard {
+  padding: 20px;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.mock-topbar {
+  height: 24px;
+  background: rgba(0, 120, 212, 0.08);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.mock-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.mock-dot--green { background: var(--color-green); }
+.mock-dot--yellow { background: var(--color-yellow); }
+.mock-dot--red { background: var(--color-red); }
+.mock-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(0, 120, 212, 0.15);
+  margin-left: auto;
+  width: 60px;
+}
+.mock-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+.mock-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mock-label {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.mock-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.mock-value--green { color: var(--color-green); }
+.mock-value--orange { color: var(--color-orange); }
+.mock-value--red { color: var(--color-red); }
+.mock-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 20px;
+  margin-top: auto;
+}
+.mock-sparkline-bar {
+  width: 4px;
+  border-radius: 2px;
+  background: var(--color-primary);
+  opacity: 0.5;
+}
+
+/* Timeline mock */
+.screenshot-card__preview--timeline {
+  padding: 20px;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+}
+.mock-timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.mock-timeline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mock-timeline-line {
+  position: absolute;
+  left: 23px;
+  top: 56px;
+  bottom: 20px;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--color-primary) 0%, var(--color-orange) 50%, var(--color-red) 100%);
+  opacity: 0.3;
+}
+.mock-timeline-label {
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  flex: 1;
+}
+.mock-timeline-time {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+}
+.mock-timeline-bar {
+  height: 4px;
+  border-radius: 2px;
+  flex: 1;
+}
+
+/* SLO cards mock */
+.screenshot-card__preview--slo {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+  align-content: start;
+}
+.mock-slo-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mock-slo-name {
+  font-size: 0.55rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.mock-slo-percent {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.mock-slo-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.mock-slo-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+.mock-slo-status {
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* CLI mock */
+.screenshot-card__preview--cli {
+  padding: 16px;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+.mock-terminal {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 10px 12px;
+  font-family: 'Courier New', Menlo, monospace;
+  font-size: 0.58rem;
+  line-height: 1.6;
+  overflow: hidden;
+}
+.mock-terminal-prompt {
+  color: var(--color-green);
+}
+.mock-terminal-cmd {
+  color: var(--text-primary);
+}
+.mock-terminal-comment {
+  color: var(--text-muted);
+}
+.mock-terminal-output {
+  color: var(--text-secondary);
+}
+.mock-terminal-success {
+  color: var(--color-green);
+}
+.mock-terminal-warn {
+  color: var(--color-orange);
+}
+.mock-terminal-header {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.screenshot-card__info {
+  padding: 20px 24px;
+}
+
+.screenshot-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.screenshot-card__desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ============================================================
+   FEATURES SECTION
+   ============================================================ */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+
+@media (max-width: 1024px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .features-grid { grid-template-columns: 1fr; }
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  transition: all var(--transition);
+  position: relative;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.feature-card:hover {
+  border-color: rgba(0, 120, 212, 0.3);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 18px;
-  font-size: 1.2rem;
 }
 
-.solution-card__title {
+.feature-card__title {
   font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
-.solution-card__text {
-  font-size: .9rem;
+.feature-card__text {
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.7;
 }
@@ -444,12 +895,11 @@ img { max-width: 100%; display: block; }
    HOW IT WORKS
    ============================================================ */
 .steps {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: start;
   gap: 0;
   margin-top: 64px;
-  flex-wrap: wrap;
 }
 
 .step {
@@ -457,8 +907,7 @@ img { max-width: 100%; display: block; }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  max-width: 260px;
-  position: relative;
+  padding: 0 16px;
 }
 
 .step__circle {
@@ -466,337 +915,61 @@ img { max-width: 100%; display: block; }
   height: 80px;
   border-radius: 50%;
   background: var(--bg-card);
-  border: 2px solid var(--accent-blue);
+  border: 2px solid var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
   margin-bottom: 24px;
   position: relative;
-  z-index: 2;
-  box-shadow: 0 0 30px rgba(0,120,212,.15);
+  box-shadow: var(--shadow-glow-sm);
+  transition: all var(--transition);
+}
+.step:hover .step__circle {
+  box-shadow: var(--shadow-glow);
+  transform: scale(1.05);
 }
 
 .step__connector {
-  width: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 38px;
-}
-
-.step__connector svg {
-  color: var(--accent-blue);
-  opacity: .5;
+  padding-top: 36px;
 }
 
 .step__number {
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--accent-blue);
+  color: var(--color-primary);
   margin-bottom: 8px;
 }
 
 .step__title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 8px;
 }
 
 .step__text {
-  font-size: .88rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.65;
 }
 
 @media (max-width: 768px) {
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
   .step__connector { display: none; }
-  .steps { flex-direction: column; align-items: center; gap: 40px; }
 }
 
 /* ============================================================
-   PRICING
+   OPEN SOURCE SECTION
    ============================================================ */
-.pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
-  margin-top: 48px;
-  align-items: stretch;
-}
-
-.pricing-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-lg);
-  padding: 40px 32px;
-  display: flex;
-  flex-direction: column;
-  transition: all var(--transition);
-  position: relative;
-}
-.pricing-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card);
-}
-
-.pricing-card--featured {
-  border-color: var(--accent-blue);
-  box-shadow: var(--shadow-glow);
-}
-
-.pricing-card__badge {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--accent-blue);
-  color: #fff;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  padding: 5px 18px;
-  border-radius: 100px;
-}
-
-.pricing-card__name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin-bottom: 8px;
-}
-
-.pricing-card__price {
-  font-size: 2.6rem;
-  font-weight: 800;
-  margin-bottom: 4px;
-  line-height: 1.1;
-}
-
-.pricing-card__price span {
-  font-size: .95rem;
-  font-weight: 400;
-  color: var(--text-secondary);
-}
-
-.pricing-card__desc {
-  font-size: .88rem;
-  color: var(--text-secondary);
-  margin-bottom: 28px;
-  line-height: 1.5;
-}
-
-.pricing-card__features {
-  list-style: none;
-  margin-bottom: 32px;
-  flex: 1;
-}
-
-.pricing-card__features li {
-  font-size: .88rem;
-  color: var(--text-secondary);
-  padding: 8px 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  line-height: 1.5;
-}
-
-.pricing-card__features li::before {
-  content: '';
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  border-radius: 50%;
-  background: rgba(0,120,212,.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%230078D4' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.pricing-card .btn { width: 100%; justify-content: center; }
-
-/* ============================================================
-   TESTIMONIAL
-   ============================================================ */
-.testimonial-placeholder {
-  background: var(--bg-card);
-  border: 1px dashed var(--border-card);
-  border-radius: var(--radius-lg);
-  padding: 60px 40px;
-  text-align: center;
-  max-width: 700px;
-  margin: 48px auto 0;
-}
-
-.testimonial-placeholder__icon {
-  font-size: 2.4rem;
-  margin-bottom: 20px;
-  opacity: .35;
-}
-
-.testimonial-placeholder__text {
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.testimonial-placeholder__sub {
-  font-size: .85rem;
-  color: var(--text-muted);
-  margin-top: 12px;
-}
-
-/* ============================================================
-   CTA FOOTER
-   ============================================================ */
-.cta-section {
-  padding: 100px 0 120px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.cta-section::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(0,120,212,.08) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.cta-section__title {
-  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-  font-weight: 800;
-  margin-bottom: 16px;
-  position: relative;
-}
-
-.cta-section__subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-  max-width: 520px;
-  margin: 0 auto 40px;
-  line-height: 1.7;
-}
-
-.cta-form {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  max-width: 480px;
-  margin: 0 auto;
-  flex-wrap: wrap;
-}
-
-.cta-form__input {
-  flex: 1;
-  min-width: 240px;
-  padding: 14px 20px;
-  font-family: inherit;
-  font-size: .95rem;
-  border: 1.5px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  transition: border-color var(--transition);
-  outline: none;
-}
-.cta-form__input:focus { border-color: var(--accent-blue); }
-.cta-form__input::placeholder { color: var(--text-muted); }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-.footer {
-  border-top: 1px solid var(--border-subtle);
-  padding: 40px 0;
-}
-
-.footer__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.footer__copy {
-  font-size: .82rem;
-  color: var(--text-muted);
-}
-
-.footer__links {
-  display: flex;
-  gap: 24px;
-  list-style: none;
-}
-
-.footer__links a {
-  font-size: .82rem;
-  color: var(--text-muted);
-  transition: color var(--transition);
-}
-.footer__links a:hover { color: var(--text-primary); }
-
-/* ============================================================
-   GRID BACKGROUND (subtle)
-   ============================================================ */
-.hero::before {
-  background:
-    radial-gradient(circle, rgba(0,120,212,.10) 0%, transparent 65%);
-}
-
-/* ============================================================
-   ANIMATIONS
-   ============================================================ */
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.animate-in {
-  opacity: 0;
-  animation: fade-up .7s ease-out forwards;
-}
-
-.animate-in:nth-child(2) { animation-delay: .1s; }
-.animate-in:nth-child(3) { animation-delay: .2s; }
-.animate-in:nth-child(4) { animation-delay: .3s; }
-.animate-in:nth-child(5) { animation-delay: .4s; }
-.animate-in:nth-child(6) { animation-delay: .5s; }
-
-/* ============================================================
-   CU WASTE SCORE FEATURE
-   ============================================================ */
-.waste-score {
-  position: relative;
-  overflow: hidden;
-}
-
-.waste-score::before {
-  content: '';
-  position: absolute;
-  top: -30%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  background: radial-gradient(circle, rgba(232,113,42,.06) 0%, transparent 65%);
-  pointer-events: none;
-}
-
-.waste-score__grid {
+.oss-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 48px;
@@ -805,66 +978,70 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 768px) {
-  .waste-score__grid { grid-template-columns: 1fr; gap: 32px; }
+  .oss-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 }
 
-.waste-score__content { position: relative; z-index: 1; }
+.oss-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
 
-.waste-score__badge {
+.oss-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 14px;
+  gap: 8px;
+  padding: 8px 16px;
   border-radius: 100px;
-  border: 1px solid rgba(232,113,42,.3);
-  background: rgba(232,113,42,.08);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--accent-orange);
-  margin-bottom: 16px;
-}
-
-.waste-score__title {
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
-  font-weight: 800;
-  line-height: 1.15;
-  margin-bottom: 8px;
-}
-
-.waste-score__title span {
-  background: linear-gradient(135deg, var(--accent-orange) 20%, #f5c542 80%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.waste-score__subtitle {
-  font-size: 1.1rem;
+  border: 1px solid var(--border-card);
+  background: var(--bg-card);
+  font-size: 0.82rem;
   font-weight: 600;
-  color: var(--accent-orange);
+  color: var(--text-primary);
+  transition: all var(--transition);
+}
+.oss-badge:hover {
+  border-color: var(--color-primary);
+}
+.oss-badge__icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oss-info__title {
+  font-size: 1.4rem;
+  font-weight: 700;
   margin-bottom: 16px;
+  line-height: 1.3;
 }
 
-.waste-score__desc {
-  font-size: .95rem;
+.oss-info__text {
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  line-height: 1.75;
-  margin-bottom: 32px;
+  line-height: 1.7;
+  margin-bottom: 24px;
 }
 
-.waste-score__stats {
+.oss-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.oss-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-@media (max-width: 480px) {
-  .waste-score__stats { grid-template-columns: 1fr; }
-}
-
-.waste-stat {
+.oss-stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
@@ -872,149 +1049,472 @@ img { max-width: 100%; display: block; }
   text-align: center;
   transition: all var(--transition);
 }
-.waste-stat:hover {
-  border-color: var(--accent-orange);
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-card);
+.oss-stat-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
 }
 
-.waste-stat__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-sm);
-  background: rgba(232,113,42,.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
-}
-
-.waste-stat__label {
-  font-size: .82rem;
-  font-weight: 700;
-  color: var(--text-primary);
+.oss-stat-card__value {
+  font-size: 1.8rem;
+  font-weight: 800;
   margin-bottom: 4px;
 }
+.oss-stat-card__value--blue { color: var(--color-primary); }
+.oss-stat-card__value--green { color: var(--color-green); }
+.oss-stat-card__value--orange { color: var(--color-orange); }
+.oss-stat-card__value--purple { color: var(--color-purple); }
 
-.waste-stat__desc {
-  font-size: .78rem;
+.oss-stat-card__label {
+  font-size: 0.78rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  font-weight: 500;
 }
 
-.waste-score__code {
+/* ============================================================
+   EARLY ACCESS FORM
+   ============================================================ */
+.early-access {
+  padding: 100px 0 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.early-access__glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0, 120, 212, 0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.early-access__card {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-xl);
+  padding: 48px 40px;
   position: relative;
   z-index: 1;
 }
 
-.waste-score__code-block {
-  background: #0f0f1e;
+@media (max-width: 540px) {
+  .early-access__card { padding: 32px 24px; }
+}
+
+.early-access__title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.early-access__subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 32px;
+  line-height: 1.7;
+}
+
+.early-access__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 540px) {
+  .early-access__form { grid-template-columns: 1fr; }
+}
+
+.form-full { grid-column: 1 / -1; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+}
+
+.form-input::placeholder { color: var(--text-muted); }
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236a6a80' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+}
+
+.form-select option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.form-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 12px;
+}
+
+/* ============================================================
+   BUILT FOR FABRIC (Social Proof / Content)
+   ============================================================ */
+.fabric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+  .fabric-grid { grid-template-columns: 1fr; }
+}
+
+.fabric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  transition: all var(--transition);
+}
+.fabric-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.fabric-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.fabric-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.fabric-card__text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.content-links {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+  .content-links { grid-template-columns: 1fr; }
+}
+
+.content-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: var(--radius-md);
-  padding: 28px 24px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: .82rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-  overflow-x: auto;
-  position: relative;
+  padding: 20px;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+.content-link:hover {
+  border-color: var(--color-primary);
+  transform: translateX(4px);
 }
 
-.waste-score__code-label {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  font-family: 'Inter', sans-serif;
-  font-size: .65rem;
-  font-weight: 600;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: rgba(42,42,68,.8);
-  padding: 3px 10px;
-  border-radius: 4px;
-}
-
-.waste-score__code-block .kql-keyword { color: #569cd6; }
-.waste-score__code-block .kql-function { color: #dcdcaa; }
-.waste-score__code-block .kql-string { color: #ce9178; }
-.waste-score__code-block .kql-number { color: #b5cea8; }
-.waste-score__code-block .kql-comment { color: #6a9955; font-style: italic; }
-.waste-score__code-block .kql-operator { color: #d4d4d4; }
-.waste-score__code-block .kql-table { color: #4ec9b0; }
-
-.waste-score__callout {
-  margin-top: 20px;
-  background: rgba(232,113,42,.06);
-  border: 1px solid rgba(232,113,42,.2);
+.content-link__icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
   border-radius: var(--radius-sm);
-  padding: 16px 20px;
+  background: var(--color-primary-light);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+}
+
+.content-link__title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.content-link__meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 48px 0 32px;
+  background: var(--bg-primary);
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+  .footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer__grid { grid-template-columns: 1fr; }
+}
+
+.footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+
+.footer__desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.footer__col-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.footer__col-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer__col-links a {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  transition: color var(--transition);
+}
+.footer__col-links a:hover { color: var(--text-primary); }
+
+.footer__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
   gap: 12px;
 }
 
-.waste-score__callout-icon {
-  min-width: 20px;
-  color: var(--accent-orange);
-  margin-top: 1px;
+.footer__copy {
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
-.waste-score__callout-text {
-  font-size: .85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
+.footer__built {
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
-.waste-score__callout-text strong {
-  color: var(--accent-orange);
-  font-weight: 700;
+/* ============================================================
+   SCROLL ANIMATIONS
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered children animations */
+.reveal-stagger > .reveal {
+  transition-delay: calc(var(--reveal-index, 0) * 0.08s);
+}
+
+/* ============================================================
+   ACCESSIBLE FOCUS STYLES
+   ============================================================ */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Skip to content link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  z-index: 200;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: top var(--transition);
+}
+.skip-link:focus {
+  top: 16px;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  html { scroll-behavior: auto; }
 }
 </style>
 </head>
 
 <body>
 
+<!-- Skip to content for keyboard users -->
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
 <!-- ======================== NAV ======================== -->
 <nav class="nav" role="navigation" aria-label="Main navigation">
   <div class="nav__inner">
-    <a href="#" class="nav__brand">
-      <div class="nav__logo">OW</div>
-      Observability Workbench
+    <a href="#" class="nav__brand" aria-label="Observability Workbench home">
+      <div class="nav__logo" aria-hidden="true">OW</div>
+      <span>Observability Workbench</span>
     </a>
-    <button class="nav__toggle" aria-label="Toggle menu" onclick="document.querySelector('.nav__links').classList.toggle('open')">
+    <button class="nav__toggle" aria-label="Toggle navigation menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
-    <ul class="nav__links">
+    <ul class="nav__links" role="list">
       <li><a href="#problem">Problem</a></li>
-      <li><a href="#solution">Solution</a></li>
+      <li><a href="#see-it-in-action">Product</a></li>
+      <li><a href="#features">Features</a></li>
       <li><a href="#how-it-works">How It Works</a></li>
-      <li><a href="pricing.html">Pricing</a></li>
-      <li class="nav__cta"><a href="mailto:beta@observability-workbench.dev" class="btn btn-primary">Join the Beta</a></li>
+      <li><a href="#open-source">Open Source</a></li>
+      <li><a href="#early-access">Early Access</a></li>
+      <li class="nav__cta"><a href="https://github.com/tenfingerseddy/FabricWorkloads" class="btn btn-primary btn-sm" target="_blank" rel="noopener">View on GitHub</a></li>
     </ul>
   </div>
 </nav>
 
 <!-- ======================== HERO ======================== -->
-<section class="hero">
+<section class="hero" id="main-content">
+  <div class="hero__glow hero__glow--1" aria-hidden="true"></div>
+  <div class="hero__glow hero__glow--2" aria-hidden="true"></div>
+  <div class="hero__glow hero__glow--3" aria-hidden="true"></div>
+  <div class="hero__grid" aria-hidden="true"></div>
+
   <div class="hero__content">
-    <div class="hero__badge">Beta Now Open</div>
+    <a href="https://github.com/tenfingerseddy/FabricWorkloads" class="hero__badge" target="_blank" rel="noopener">
+      <span class="hero__badge-dot" aria-hidden="true"></span>
+      Open Source &middot; MIT Licensed
+    </a>
+
     <h1 class="hero__title">
-      Stop Guessing.<br><span>Start Observing.</span>
+      Stop Debugging<br>
+      <span class="gradient-text">Microsoft Fabric</span><br>
+      in the Dark
     </h1>
+
     <p class="hero__subtitle">
-      Enterprise-grade observability for Microsoft Fabric &mdash; built natively inside the platform you already use.
+      Fabric's monitoring hub gives you 30 days and 100 activities. Your platform team needs long-retention metrics, cross-item correlation, SLO dashboards, and proactive alerting. All running natively inside your Fabric tenant.
     </p>
+
     <div class="hero__actions">
-      <a href="mailto:beta@observability-workbench.dev?subject=Beta%20Request%20%E2%80%93%20Observability%20Workbench&body=Hi%2C%20I'd%20like%20to%20join%20the%20Observability%20Workbench%20beta.%0A%0AOrganization%3A%20%0AFabric%20capacities%3A%20%0A" class="btn btn-primary">
-        Join the Beta
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      <a href="https://github.com/tenfingerseddy/FabricWorkloads" class="btn btn-primary btn-lg" target="_blank" rel="noopener">
+        Get Started Free
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
-      <a href="#solution" class="btn btn-secondary">See How It Works</a>
+      <a href="#early-access" class="btn btn-secondary btn-lg">Request Early Access</a>
     </div>
-    <p class="hero__proof">
-      Purpose-built for <strong>Microsoft Fabric</strong> &middot; Zero external dependencies &middot; SOC 2 ready architecture
-    </p>
+
+    <div class="hero__stats">
+      <div class="hero__stat">
+        <div class="hero__stat-value">365 days</div>
+        <div class="hero__stat-label">Metric retention</div>
+      </div>
+      <div class="hero__stat-divider" aria-hidden="true"></div>
+      <div class="hero__stat">
+        <div class="hero__stat-value">Zero egress</div>
+        <div class="hero__stat-label">Data stays in Fabric</div>
+      </div>
+      <div class="hero__stat-divider" aria-hidden="true"></div>
+      <div class="hero__stat">
+        <div class="hero__stat-value">5 min</div>
+        <div class="hero__stat-label">Time to first insight</div>
+      </div>
+      <div class="hero__stat-divider" aria-hidden="true"></div>
+      <div class="hero__stat">
+        <div class="hero__stat-value">MIT</div>
+        <div class="hero__stat-label">Open source license</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1022,173 +1522,333 @@ img { max-width: 100%; display: block; }
 <section class="section section--alt" id="problem">
   <div class="container">
     <div class="text-center">
-      <span class="section-label">The Problem</span>
-      <h2 class="section-title">Fabric monitoring has critical blind spots</h2>
-      <p class="section-subtitle mx-auto">
-        Microsoft Fabric gives you powerful analytics, but its built-in monitoring leaves platform teams in the dark when it matters most.
+      <span class="section-label reveal">The Problem</span>
+      <h2 class="section-title reveal">Fabric monitoring has critical blind spots</h2>
+      <p class="section-subtitle mx-auto reveal">
+        Microsoft Fabric is powerful, but its built-in monitoring leaves platform teams without the visibility they need when it matters most.
       </p>
     </div>
-    <div class="problems-grid">
-      <div class="problem-card animate-in">
-        <div class="problem-card__icon">
+    <div class="problems-grid reveal-stagger">
+      <article class="problem-card reveal" style="--reveal-index: 0">
+        <div class="problem-card__icon" aria-hidden="true">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <h3 class="problem-card__title">30-Day Retention Limit</h3>
         <p class="problem-card__text">
-          Fabric's built-in monitoring data expires after 30 days. Capacity planning, trend analysis, and audit compliance require months or years of history &mdash; history you simply don't have.
+          Monitoring hub and workspace monitoring data disappears after 30 days. Quarter-over-quarter analysis, capacity planning, and audit compliance are impossible without historical data.
         </p>
-      </div>
-      <div class="problem-card animate-in">
-        <div class="problem-card__icon">
+      </article>
+      <article class="problem-card reveal" style="--reveal-index: 1">
+        <div class="problem-card__icon" aria-hidden="true">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>
         </div>
         <h3 class="problem-card__title">No Cross-Item Correlation</h3>
         <p class="problem-card__text">
-          A slow pipeline triggers a failed refresh that breaks a report. But in Fabric, these are three separate, disconnected events. Finding the root cause means hours of manual detective work.
+          A slow pipeline triggers a failed notebook that breaks a semantic model refresh. In Fabric, these are three disconnected events. Root cause analysis takes hours, not minutes.
         </p>
-      </div>
-      <div class="problem-card animate-in">
-        <div class="problem-card__icon">
+      </article>
+      <article class="problem-card reveal" style="--reveal-index: 2">
+        <div class="problem-card__icon" aria-hidden="true">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         </div>
-        <h3 class="problem-card__title">No SLO Tracking</h3>
+        <h3 class="problem-card__title">No SLO Framework</h3>
         <p class="problem-card__text">
-          You can't define or track service level objectives. When leadership asks "What's our data freshness SLA?" you're stuck exporting CSVs and building manual dashboards that are already stale.
+          There is no way to define or track service level objectives. When leadership asks about data freshness SLAs or error budgets, you are stuck building manual spreadsheets.
         </p>
-      </div>
+      </article>
+      <article class="problem-card reveal" style="--reveal-index: 3">
+        <div class="problem-card__icon" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3 class="problem-card__title">No Proactive Alerting</h3>
+        <p class="problem-card__text">
+          Fabric has no native alert rules for pipeline failures, SLO breaches, or duration regressions. Your stakeholders find out about data issues before your team does.
+        </p>
+      </article>
     </div>
   </div>
 </section>
 
-<!-- ======================== SOLUTION ======================== -->
-<section class="section" id="solution">
+<!-- ======================== SEE IT IN ACTION ======================== -->
+<section class="section" id="see-it-in-action">
   <div class="container">
     <div class="text-center">
-      <span class="section-label">The Solution</span>
-      <h2 class="section-title">Everything Fabric monitoring should have been</h2>
-      <p class="section-subtitle mx-auto">
-        Observability Workbench extends Fabric with the monitoring, alerting, and analysis capabilities that enterprise data teams need.
+      <span class="section-label reveal">See It In Action</span>
+      <h2 class="section-title reveal">From blind spots to full visibility</h2>
+      <p class="section-subtitle mx-auto reveal">
+        Four views that give your platform team complete operational awareness across every Fabric workspace.
       </p>
     </div>
-    <div class="solutions-grid">
-      <div class="solution-card animate-in">
-        <div class="solution-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    <div class="screenshots-grid reveal-stagger">
+
+      <!-- Screenshot 1: Health Dashboard -->
+      <div class="screenshot-card reveal" style="--reveal-index: 0">
+        <div class="screenshot-card__preview screenshot-card__preview--dashboard" aria-label="Health dashboard preview showing success rate, active alerts, SLO status, and CU waste panels">
+          <div class="mock-topbar">
+            <div class="mock-dot mock-dot--green"></div>
+            <div class="mock-dot mock-dot--yellow"></div>
+            <div class="mock-dot mock-dot--red"></div>
+            <div class="mock-bar"></div>
+          </div>
+          <div class="mock-panels">
+            <div class="mock-panel">
+              <span class="mock-label">Success Rate</span>
+              <span class="mock-value mock-value--green">97.3%</span>
+              <div class="mock-sparkline">
+                <div class="mock-sparkline-bar" style="height: 60%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 80%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 45%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 90%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 70%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 85%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 95%; background: var(--color-green)"></div>
+              </div>
+            </div>
+            <div class="mock-panel">
+              <span class="mock-label">Active Alerts</span>
+              <span class="mock-value mock-value--orange">3</span>
+              <div class="mock-sparkline">
+                <div class="mock-sparkline-bar" style="height: 20%; background: var(--color-orange)"></div>
+                <div class="mock-sparkline-bar" style="height: 40%; background: var(--color-orange)"></div>
+                <div class="mock-sparkline-bar" style="height: 30%; background: var(--color-orange)"></div>
+                <div class="mock-sparkline-bar" style="height: 60%; background: var(--color-red)"></div>
+                <div class="mock-sparkline-bar" style="height: 45%; background: var(--color-orange)"></div>
+                <div class="mock-sparkline-bar" style="height: 25%; background: var(--color-orange)"></div>
+                <div class="mock-sparkline-bar" style="height: 35%; background: var(--color-orange)"></div>
+              </div>
+            </div>
+            <div class="mock-panel">
+              <span class="mock-label">SLO Breaching</span>
+              <span class="mock-value mock-value--red">1</span>
+              <div class="mock-sparkline">
+                <div class="mock-sparkline-bar" style="height: 10%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 10%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 10%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 10%; background: var(--color-green)"></div>
+                <div class="mock-sparkline-bar" style="height: 30%; background: var(--color-orange)"></div>
+                <div class="mock-sparkline-bar" style="height: 50%; background: var(--color-red)"></div>
+                <div class="mock-sparkline-bar" style="height: 40%; background: var(--color-red)"></div>
+              </div>
+            </div>
+            <div class="mock-panel">
+              <span class="mock-label">CU Waste</span>
+              <span class="mock-value" style="color: var(--color-yellow)">$142</span>
+              <div class="mock-sparkline">
+                <div class="mock-sparkline-bar" style="height: 70%; background: var(--color-yellow)"></div>
+                <div class="mock-sparkline-bar" style="height: 50%; background: var(--color-yellow)"></div>
+                <div class="mock-sparkline-bar" style="height: 80%; background: var(--color-yellow)"></div>
+                <div class="mock-sparkline-bar" style="height: 40%; background: var(--color-yellow)"></div>
+                <div class="mock-sparkline-bar" style="height: 60%; background: var(--color-yellow)"></div>
+                <div class="mock-sparkline-bar" style="height: 35%; background: var(--color-yellow)"></div>
+                <div class="mock-sparkline-bar" style="height: 55%; background: var(--color-yellow)"></div>
+              </div>
+            </div>
+          </div>
         </div>
-        <h3 class="solution-card__title">Long-Retention Store</h3>
-        <p class="solution-card__text">
-          Every metric, event, and log persisted for as long as you need. Built on Fabric Lakehouse storage so costs stay predictable and data never leaves your tenant.
-        </p>
-      </div>
-      <div class="solution-card animate-in">
-        <div class="solution-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <div class="screenshot-card__info">
+          <h3 class="screenshot-card__title">Health Summary Dashboard</h3>
+          <p class="screenshot-card__desc">Single-pane view of success rate, active alerts, SLO breaches, and CU waste score across all monitored workspaces.</p>
         </div>
-        <h3 class="solution-card__title">Correlation Engine</h3>
-        <p class="solution-card__text">
-          Automatically links related events across pipelines, datasets, lakehouses, and reports. See the full causal chain, not isolated symptoms.
-        </p>
       </div>
-      <div class="solution-card animate-in">
-        <div class="solution-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
+
+      <!-- Screenshot 2: Incident Timeline -->
+      <div class="screenshot-card reveal" style="--reveal-index: 1">
+        <div class="screenshot-card__preview screenshot-card__preview--timeline" aria-label="Incident timeline preview showing correlated events across pipeline, notebook, and semantic model">
+          <div class="mock-topbar">
+            <div class="mock-dot mock-dot--green"></div>
+            <div class="mock-dot mock-dot--yellow"></div>
+            <div class="mock-dot mock-dot--red"></div>
+            <div class="mock-bar"></div>
+          </div>
+          <div style="position: relative; flex: 1; display: flex; flex-direction: column; gap: 6px; overflow: hidden;">
+            <div class="mock-timeline-line" aria-hidden="true"></div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-primary)"></div>
+              <span class="mock-timeline-label">Pipeline_ETL_Daily started</span>
+              <span class="mock-timeline-time">06:00:12</span>
+            </div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-primary)"></div>
+              <span class="mock-timeline-label">NB_Transform invoked by pipeline</span>
+              <span class="mock-timeline-time">06:01:44</span>
+            </div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-orange)"></div>
+              <span class="mock-timeline-label" style="color: var(--color-orange)">NB_Transform duration regression +340%</span>
+              <span class="mock-timeline-time">06:14:02</span>
+            </div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-red)"></div>
+              <span class="mock-timeline-label" style="color: var(--color-red)">NB_Transform failed: OutOfMemory</span>
+              <span class="mock-timeline-time">06:18:33</span>
+            </div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-red)"></div>
+              <span class="mock-timeline-label" style="color: var(--color-red)">Pipeline_ETL_Daily failed</span>
+              <span class="mock-timeline-time">06:18:35</span>
+            </div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-red)"></div>
+              <span class="mock-timeline-label" style="color: var(--color-red)">SemanticModel_Sales refresh skipped</span>
+              <span class="mock-timeline-time">06:30:00</span>
+            </div>
+            <div class="mock-timeline-row">
+              <div class="mock-timeline-dot" style="background: var(--color-orange)"></div>
+              <span class="mock-timeline-label" style="color: var(--color-orange)">SLO breach: Sales freshness > 2h</span>
+              <span class="mock-timeline-time">08:00:01</span>
+            </div>
+          </div>
         </div>
-        <h3 class="solution-card__title">SLO Tracking</h3>
-        <p class="solution-card__text">
-          Define service level objectives for freshness, availability, and performance. Track error budgets in real-time and know before your users do.
-        </p>
-      </div>
-      <div class="solution-card animate-in">
-        <div class="solution-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="screenshot-card__info">
+          <h3 class="screenshot-card__title">Incident Timeline</h3>
+          <p class="screenshot-card__desc">Follow the causal chain from upstream trigger to downstream impact. Correlated timelines cut MTTR from hours to minutes.</p>
         </div>
-        <h3 class="solution-card__title">Proactive Alerts</h3>
-        <p class="solution-card__text">
-          Threshold, anomaly, and SLO-burn-rate alerts delivered to Teams, email, or PagerDuty. Stop finding out about outages from your stakeholders.
-        </p>
       </div>
-      <div class="solution-card animate-in">
-        <div class="solution-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+
+      <!-- Screenshot 3: SLO Status Grid -->
+      <div class="screenshot-card reveal" style="--reveal-index: 2">
+        <div class="screenshot-card__preview screenshot-card__preview--slo" aria-label="SLO status grid preview showing compliance percentages and error budgets">
+          <div class="mock-slo-card">
+            <span class="mock-slo-name">Pipeline Success Rate</span>
+            <span class="mock-slo-percent" style="color: var(--color-green)">99.2%</span>
+            <div class="mock-slo-bar"><div class="mock-slo-bar-fill" style="width: 99.2%; background: var(--color-green)"></div></div>
+            <span class="mock-slo-status" style="color: var(--color-green)">Healthy</span>
+          </div>
+          <div class="mock-slo-card">
+            <span class="mock-slo-name">Sales Model Freshness</span>
+            <span class="mock-slo-percent" style="color: var(--color-red)">87.1%</span>
+            <div class="mock-slo-bar"><div class="mock-slo-bar-fill" style="width: 87.1%; background: var(--color-red)"></div></div>
+            <span class="mock-slo-status" style="color: var(--color-red)">Breaching</span>
+          </div>
+          <div class="mock-slo-card">
+            <span class="mock-slo-name">Notebook Duration P95</span>
+            <span class="mock-slo-percent" style="color: var(--color-orange)">94.6%</span>
+            <div class="mock-slo-bar"><div class="mock-slo-bar-fill" style="width: 94.6%; background: var(--color-orange)"></div></div>
+            <span class="mock-slo-status" style="color: var(--color-orange)">At Risk</span>
+          </div>
+          <div class="mock-slo-card">
+            <span class="mock-slo-name">Dataflow Completion</span>
+            <span class="mock-slo-percent" style="color: var(--color-green)">99.8%</span>
+            <div class="mock-slo-bar"><div class="mock-slo-bar-fill" style="width: 99.8%; background: var(--color-green)"></div></div>
+            <span class="mock-slo-status" style="color: var(--color-green)">Healthy</span>
+          </div>
+          <div class="mock-slo-card">
+            <span class="mock-slo-name">Lakehouse Ingestion</span>
+            <span class="mock-slo-percent" style="color: var(--color-green)">98.5%</span>
+            <div class="mock-slo-bar"><div class="mock-slo-bar-fill" style="width: 98.5%; background: var(--color-green)"></div></div>
+            <span class="mock-slo-status" style="color: var(--color-green)">Healthy</span>
+          </div>
+          <div class="mock-slo-card">
+            <span class="mock-slo-name">Report Refresh SLA</span>
+            <span class="mock-slo-percent" style="color: var(--color-green)">97.0%</span>
+            <div class="mock-slo-bar"><div class="mock-slo-bar-fill" style="width: 97%; background: var(--color-green)"></div></div>
+            <span class="mock-slo-status" style="color: var(--color-green)">Healthy</span>
+          </div>
         </div>
-        <h3 class="solution-card__title">Incident Timelines</h3>
-        <p class="solution-card__text">
-          When something breaks, get a chronological, correlated timeline of every event that contributed. Cut mean-time-to-resolution from hours to minutes.
-        </p>
-      </div>
-      <div class="solution-card animate-in">
-        <div class="solution-card__icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="screenshot-card__info">
+          <h3 class="screenshot-card__title">SLO Status Grid</h3>
+          <p class="screenshot-card__desc">Per-item success rate, error budget remaining, and freshness targets. Know at a glance which items are at risk of breaching.</p>
         </div>
-        <h3 class="solution-card__title">Full-Text Search</h3>
-        <p class="solution-card__text">
-          Search across every log message, error trace, and event payload. Find that one failed refresh from three months ago in seconds, not hours.
-        </p>
       </div>
+
+      <!-- Screenshot 4: CLI Dashboard -->
+      <div class="screenshot-card reveal" style="--reveal-index: 3">
+        <div class="screenshot-card__preview screenshot-card__preview--cli" aria-label="CLI output preview showing fabric health check command results">
+          <div class="mock-terminal">
+            <div><span class="mock-terminal-prompt">$</span> <span class="mock-terminal-cmd">npx fabric-health-check</span></div>
+            <br>
+            <div><span class="mock-terminal-header">  Observability Workbench v0.1.0</span></div>
+            <div><span class="mock-terminal-output">  Connecting to workspace FrameworkProd...</span></div>
+            <br>
+            <div><span class="mock-terminal-header">  HEALTH SUMMARY</span></div>
+            <div><span class="mock-terminal-success">  &#10003; Success rate:    97.3% (last 24h)</span></div>
+            <div><span class="mock-terminal-warn">  ! Active alerts:   3</span></div>
+            <div><span class="mock-terminal-success">  &#10003; SLOs meeting:    7/8</span></div>
+            <div><span class="mock-terminal-warn">  ! CU waste:        $142/mo (est.)</span></div>
+            <br>
+            <div><span class="mock-terminal-header">  TOP FAILURES (24h)</span></div>
+            <div><span class="mock-terminal-output">  Pipeline_ETL_Daily    3 failures</span></div>
+            <div><span class="mock-terminal-output">  NB_Transform          2 failures</span></div>
+            <div><span class="mock-terminal-output">  DF_CustomerSync       1 failure</span></div>
+            <br>
+            <div><span class="mock-terminal-comment">  Full dashboard: http://localhost:3000</span></div>
+          </div>
+        </div>
+        <div class="screenshot-card__info">
+          <h3 class="screenshot-card__title">CLI Health Check</h3>
+          <p class="screenshot-card__desc">Run a single command to get instant visibility into workspace health. No browser required -- works in CI/CD pipelines and terminal sessions.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
 
-<!-- ======================== CU WASTE SCORE ======================== -->
-<section class="section section--alt waste-score" id="waste-score">
+<!-- ======================== FEATURES ======================== -->
+<section class="section section--alt" id="features">
   <div class="container">
-    <div class="waste-score__grid">
-      <div class="waste-score__content animate-in">
-        <div class="waste-score__badge">New Feature</div>
-        <h2 class="waste-score__title">CU <span>Waste Score</span></h2>
-        <p class="waste-score__subtitle">Quantify compute waste in dollars</p>
-        <p class="waste-score__desc">
-          Know exactly how much money failed retries, duration regressions, and duplicate runs are costing you. The Waste Score (0&ndash;100) translates CU consumption into actionable FinOps insights.
+    <div class="text-center">
+      <span class="section-label reveal">Features</span>
+      <h2 class="section-title reveal">Everything Fabric monitoring should have been</h2>
+      <p class="section-subtitle mx-auto reveal">
+        Six capabilities that give your platform team complete visibility into health, performance, cost, and incidents.
+      </p>
+    </div>
+    <div class="features-grid reveal-stagger">
+      <article class="feature-card reveal" style="--reveal-index: 0">
+        <div class="feature-card__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <h3 class="feature-card__title">Long-Retention Event Store</h3>
+        <p class="feature-card__text">
+          Store monitoring hub events and workspace monitoring data for up to 365 days in a Fabric Eventhouse. Full KQL query access for historical analysis, capacity planning, and compliance auditing.
         </p>
-        <div class="waste-score__stats">
-          <div class="waste-stat animate-in">
-            <div class="waste-stat__icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-            </div>
-            <div class="waste-stat__label">Retry Waste</div>
-            <p class="waste-stat__desc">CUs burned on jobs that ultimately fail</p>
-          </div>
-          <div class="waste-stat animate-in">
-            <div class="waste-stat__icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-            </div>
-            <div class="waste-stat__label">Duration Regression</div>
-            <p class="waste-stat__desc">Jobs running 2&ndash;3x longer than baseline</p>
-          </div>
-          <div class="waste-stat animate-in">
-            <div class="waste-stat__icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            </div>
-            <div class="waste-stat__label">Duplicate Runs</div>
-            <p class="waste-stat__desc">Overlapping executions of the same item</p>
-          </div>
+      </article>
+      <article class="feature-card reveal" style="--reveal-index: 1">
+        <div class="feature-card__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>
         </div>
-      </div>
-      <div class="waste-score__code animate-in">
-        <div class="waste-score__code-block">
-          <span class="waste-score__code-label">KQL</span>
-<span class="kql-comment">// Calculate CU waste by category over the last 7 days</span>
-<span class="kql-table">FabricEvents</span>
-<span class="kql-operator">|</span> <span class="kql-keyword">where</span> Timestamp <span class="kql-operator">&gt;</span> <span class="kql-function">ago</span>(<span class="kql-number">7d</span>)
-<span class="kql-operator">|</span> <span class="kql-keyword">where</span> WasteCategory <span class="kql-operator">in</span> (<span class="kql-string">"retry"</span>, <span class="kql-string">"regression"</span>, <span class="kql-string">"duplicate"</span>)
-<span class="kql-operator">|</span> <span class="kql-keyword">summarize</span>
-    WastedCU    <span class="kql-operator">=</span> <span class="kql-function">sum</span>(CUSeconds),
-    WastedCost  <span class="kql-operator">=</span> <span class="kql-function">sum</span>(CUSeconds) <span class="kql-operator">*</span> <span class="kql-number">0.0032</span>,
-    JobCount    <span class="kql-operator">=</span> <span class="kql-function">dcount</span>(JobId)
-    <span class="kql-keyword">by</span> WasteCategory
-<span class="kql-operator">|</span> <span class="kql-keyword">extend</span> WasteScore <span class="kql-operator">=</span> <span class="kql-function">round</span>(WastedCU <span class="kql-operator">/</span> TotalCU <span class="kql-operator">*</span> <span class="kql-number">100</span>, <span class="kql-number">1</span>)
-<span class="kql-operator">|</span> <span class="kql-keyword">order by</span> WastedCost <span class="kql-keyword">desc</span>
+        <h3 class="feature-card__title">Cross-Item Correlation</h3>
+        <p class="feature-card__text">
+          Automatically link related events across pipelines, notebooks, dataflows, and semantic model refreshes. Trace failures from upstream trigger to downstream impact in a single timeline.
+        </p>
+      </article>
+      <article class="feature-card reveal" style="--reveal-index: 2">
+        <div class="feature-card__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
         </div>
-        <div class="waste-score__callout">
-          <div class="waste-score__callout-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          </div>
-          <p class="waste-score__callout-text">
-            <strong>Based on F64 pricing: $11.52/hr = $0.0032/CU-second.</strong>
-            Every wasted CU-second has a real dollar cost. The Waste Score surfaces exactly where your capacity budget is going and what you can reclaim.
-          </p>
+        <h3 class="feature-card__title">SLO Dashboards</h3>
+        <p class="feature-card__text">
+          Define service level objectives for freshness, success rate, and duration. Track compliance in real time with error budget burn-down, breach prediction, and per-item health status grids.
+        </p>
+      </article>
+      <article class="feature-card reveal" style="--reveal-index: 3">
+        <div class="feature-card__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-      </div>
+        <h3 class="feature-card__title">Proactive Alerting</h3>
+        <p class="feature-card__text">
+          Define alert rules that catch issues before your stakeholders notice. Detect SLO breaches, duration regressions, consecutive failures, and "likely to breach" conditions with configurable thresholds.
+        </p>
+      </article>
+      <article class="feature-card reveal" style="--reveal-index: 4">
+        <div class="feature-card__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <h3 class="feature-card__title">CU Waste Analysis</h3>
+        <p class="feature-card__text">
+          Per-item compute waste breakdown covering failed retries, duration regressions, and duplicate runs. Monthly projections translate CU consumption into dollar amounts you can reclaim.
+        </p>
+      </article>
+      <article class="feature-card reveal" style="--reveal-index: 5">
+        <div class="feature-card__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3 class="feature-card__title">Full-Text Event Search</h3>
+        <p class="feature-card__text">
+          Search across all historical events with filters by item type, status, workspace, and date range. Find that one failed refresh from three months ago in seconds. No 100-activity limit.
+        </p>
+      </article>
     </div>
   </div>
 </section>
@@ -1197,178 +1857,366 @@ img { max-width: 100%; display: block; }
 <section class="section" id="how-it-works">
   <div class="container">
     <div class="text-center">
-      <span class="section-label">How It Works</span>
-      <h2 class="section-title">Up and running in minutes, not weeks</h2>
-      <p class="section-subtitle mx-auto">
-        Observability Workbench installs as a native Fabric workload. No agents, no sidecars, no external infrastructure.
+      <span class="section-label reveal">How It Works</span>
+      <h2 class="section-title reveal">Up and running in three steps</h2>
+      <p class="section-subtitle mx-auto reveal">
+        No agents, no sidecars, no external infrastructure. Everything runs natively inside your Fabric tenant using scheduled notebooks and an Eventhouse.
       </p>
     </div>
     <div class="steps">
-      <div class="step animate-in">
-        <div class="step__circle">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      <div class="step reveal" style="--reveal-index: 0">
+        <div class="step__circle" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <span class="step__number">Step 1</span>
-        <h3 class="step__title">Connect</h3>
-        <p class="step__text">Install the workload in your Fabric tenant and select which workspaces and items to monitor. Takes under 5 minutes.</p>
+        <h3 class="step__title">Install</h3>
+        <p class="step__text">Clone the repo and deploy notebooks to your Fabric workspace. Create an Eventhouse and KQL database for long-retention storage. Takes under five minutes.</p>
       </div>
-      <div class="step__connector">
-        <svg width="60" height="16" viewBox="0 0 60 16" fill="none" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="8" x2="48" y2="8"/><polyline points="44 3 50 8 44 13"/></svg>
+      <div class="step__connector" aria-hidden="true">
+        <svg width="60" height="16" viewBox="0 0 60 16" fill="none" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"><line x1="0" y1="8" x2="48" y2="8"/><polyline points="44 3 50 8 44 13" stroke-dasharray="none"/></svg>
       </div>
-      <div class="step animate-in">
-        <div class="step__circle">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div class="step reveal" style="--reveal-index: 1">
+        <div class="step__circle" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </div>
         <span class="step__number">Step 2</span>
-        <h3 class="step__title">Monitor</h3>
-        <p class="step__text">Metrics, logs, and events start flowing automatically into your long-retention Lakehouse store. Dashboards populate in real-time.</p>
+        <h3 class="step__title">Configure</h3>
+        <p class="step__text">Point the ingestion notebook at your workspaces. Define SLO targets and alert thresholds. Scheduled notebooks run automatically every 5 to 15 minutes.</p>
       </div>
-      <div class="step__connector">
-        <svg width="60" height="16" viewBox="0 0 60 16" fill="none" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="8" x2="48" y2="8"/><polyline points="44 3 50 8 44 13"/></svg>
+      <div class="step__connector" aria-hidden="true">
+        <svg width="60" height="16" viewBox="0 0 60 16" fill="none" stroke="#0078D4" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"><line x1="0" y1="8" x2="48" y2="8"/><polyline points="44 3 50 8 44 13" stroke-dasharray="none"/></svg>
       </div>
-      <div class="step animate-in">
-        <div class="step__circle">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <div class="step reveal" style="--reveal-index: 2">
+        <div class="step__circle" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
         </div>
         <span class="step__number">Step 3</span>
-        <h3 class="step__title">Alert</h3>
-        <p class="step__text">Define SLOs and alert rules. Get notified in Teams, email, or PagerDuty before issues reach your stakeholders.</p>
+        <h3 class="step__title">Monitor</h3>
+        <p class="step__text">View health dashboards, SLO compliance, incident timelines, and CU waste from the workload UI. Receive alerts through email, Teams, or your preferred channel.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ======================== PRICING ======================== -->
-<section class="section section--alt" id="pricing">
+<!-- ======================== OPEN SOURCE ======================== -->
+<section class="section section--alt" id="open-source">
   <div class="container">
     <div class="text-center">
-      <span class="section-label">Pricing</span>
-      <h2 class="section-title">Plans that scale with your platform</h2>
-      <p class="section-subtitle mx-auto">
-        Start free with core monitoring. Upgrade when you need advanced correlation, SLOs, and enterprise features.
+      <span class="section-label reveal">Open Source</span>
+      <h2 class="section-title reveal">Built in the open. Free to use forever.</h2>
+      <p class="section-subtitle mx-auto reveal">
+        Observability Workbench is MIT-licensed and open source. Inspect every line, contribute features, and run it without restrictions.
       </p>
     </div>
-    <div class="pricing-grid">
-      <!-- Free -->
-      <div class="pricing-card animate-in">
-        <h3 class="pricing-card__name">Free</h3>
-        <div class="pricing-card__price">$0<span> / mo</span></div>
-        <p class="pricing-card__desc">For teams getting started with Fabric observability.</p>
-        <ul class="pricing-card__features">
-          <li>Up to 3 monitored workspaces</li>
-          <li>90-day metric retention</li>
-          <li>Basic dashboards</li>
-          <li>Email alerts (up to 50/month)</li>
-          <li>Community support</li>
-        </ul>
-        <a href="mailto:beta@observability-workbench.dev?subject=Free%20Tier%20Beta%20Request" class="btn btn-secondary">Get Started Free</a>
+    <div class="oss-grid">
+      <div class="oss-info reveal">
+        <div class="oss-badges">
+          <span class="oss-badge">
+            <span class="oss-badge__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            </span>
+            GitHub
+          </span>
+          <span class="oss-badge">
+            <span class="oss-badge__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </span>
+            205 Tests Passing
+          </span>
+          <span class="oss-badge">
+            <span class="oss-badge__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            MIT License
+          </span>
+        </div>
+        <h3 class="oss-info__title">Transparent code. No vendor lock-in. Community-driven roadmap.</h3>
+        <p class="oss-info__text">
+          Every feature is built in public. Read the source, open issues, submit pull requests. The project accepts community KQL query packs, SLO templates, and alert rule contributions. Your feedback shapes the roadmap directly.
+        </p>
+        <div class="oss-links">
+          <a href="https://github.com/tenfingerseddy/FabricWorkloads" class="btn btn-primary btn-sm" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.21.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.31 3.5 1 .11-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.02 0c2.28-1.55 3.29-1.23 3.29-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.21.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            Star on GitHub
+          </a>
+          <a href="https://github.com/tenfingerseddy/FabricWorkloads/issues" class="btn btn-secondary btn-sm" target="_blank" rel="noopener">Report an Issue</a>
+        </div>
       </div>
-      <!-- Professional -->
-      <div class="pricing-card pricing-card--featured animate-in">
-        <div class="pricing-card__badge">Most Popular</div>
-        <h3 class="pricing-card__name">Professional</h3>
-        <div class="pricing-card__price">$499<span> / mo</span></div>
-        <p class="pricing-card__desc">For data teams running production workloads on Fabric.</p>
-        <ul class="pricing-card__features">
-          <li>Unlimited workspaces</li>
-          <li>1-year metric retention</li>
-          <li>Cross-item correlation engine</li>
-          <li>SLO tracking &amp; error budgets</li>
-          <li>Incident timelines</li>
-          <li>Full-text log search</li>
-          <li>Teams &amp; email alerts (unlimited)</li>
-          <li>Priority email support</li>
-        </ul>
-        <a href="mailto:beta@observability-workbench.dev?subject=Professional%20Tier%20Beta%20Request" class="btn btn-primary">Join the Beta</a>
+      <div class="oss-stats reveal">
+        <div class="oss-stat-card">
+          <div class="oss-stat-card__value oss-stat-card__value--blue">205</div>
+          <div class="oss-stat-card__label">Tests passing</div>
+        </div>
+        <div class="oss-stat-card">
+          <div class="oss-stat-card__value oss-stat-card__value--green">100%</div>
+          <div class="oss-stat-card__label">CI build status</div>
+        </div>
+        <div class="oss-stat-card">
+          <div class="oss-stat-card__value oss-stat-card__value--orange">20+</div>
+          <div class="oss-stat-card__label">KQL query pack</div>
+        </div>
+        <div class="oss-stat-card">
+          <div class="oss-stat-card__value oss-stat-card__value--purple">v0.1.0</div>
+          <div class="oss-stat-card__label">Current release</div>
+        </div>
       </div>
-      <!-- Enterprise -->
-      <div class="pricing-card animate-in">
-        <h3 class="pricing-card__name">Enterprise</h3>
-        <div class="pricing-card__price">$1,499<span> / mo</span></div>
-        <p class="pricing-card__desc">For organizations with strict compliance and scale requirements.</p>
-        <ul class="pricing-card__features">
-          <li>Everything in Professional</li>
-          <li>Unlimited retention</li>
-          <li>PagerDuty &amp; ServiceNow integration</li>
-          <li>RBAC &amp; audit logging</li>
-          <li>Custom SLO dashboards</li>
-          <li>Multi-tenant workspace isolation</li>
-          <li>SSO / SCIM provisioning</li>
-          <li>Dedicated support engineer</li>
-          <li>99.9% uptime SLA</li>
-        </ul>
-        <a href="mailto:beta@observability-workbench.dev?subject=Enterprise%20Tier%20Inquiry" class="btn btn-orange">Contact Sales</a>
-      </div>
-    </div>
-    <div class="text-center" style="margin-top: 2rem;">
-      <a href="pricing.html" style="color: var(--accent-blue); font-size: 0.95rem;">See full feature comparison and FAQ &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- ======================== TESTIMONIALS ======================== -->
-<section class="section" id="testimonials">
+<!-- ======================== BUILT FOR FABRIC ======================== -->
+<section class="section" id="built-for-fabric">
   <div class="container">
     <div class="text-center">
-      <span class="section-label">Testimonials</span>
-      <h2 class="section-title">Trusted by data teams</h2>
+      <span class="section-label reveal">Built for Fabric</span>
+      <h2 class="section-title reveal">Native integration. Zero data egress. Full permission inheritance.</h2>
+      <p class="section-subtitle mx-auto reveal">
+        Unlike external observability tools that require data extraction, Observability Workbench runs entirely inside your Fabric tenant using Fabric-native components.
+      </p>
     </div>
-    <div class="testimonial-placeholder">
-      <div class="testimonial-placeholder__icon">&#x201C;</div>
-      <p class="testimonial-placeholder__text">
-        Coming soon &mdash; design partner testimonials
-      </p>
-      <p class="testimonial-placeholder__sub">
-        We're working closely with early design partners. Their stories will appear here soon.
-      </p>
+    <div class="fabric-grid reveal-stagger">
+      <div class="fabric-card reveal" style="--reveal-index: 0">
+        <div class="fabric-card__icon" style="background: var(--color-primary-light)" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3 class="fabric-card__title">Zero Data Egress</h3>
+        <p class="fabric-card__text">Your monitoring data never leaves your Fabric tenant. Events are collected, stored, correlated, and queried entirely within Fabric using Eventhouse and KQL. No external API calls, no data pipelines to third-party services.</p>
+      </div>
+      <div class="fabric-card reveal" style="--reveal-index: 1">
+        <div class="fabric-card__icon" style="background: var(--color-green-light)" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2ecc71" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="fabric-card__title">Permission Inherited</h3>
+        <p class="fabric-card__text">Leverages Entra ID and Fabric's existing RBAC. Users see only the workspaces and items they already have access to. No separate permission model to configure or maintain.</p>
+      </div>
+      <div class="fabric-card reveal" style="--reveal-index: 2">
+        <div class="fabric-card__icon" style="background: var(--color-orange-light)" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3 class="fabric-card__title">Monitoring Hub Native</h3>
+        <p class="fabric-card__text">All workload jobs appear in Fabric's monitoring hub alongside your existing pipelines, notebooks, and dataflows. One place to see operational status across every Fabric item type.</p>
+      </div>
+    </div>
+
+    <!-- Blog / content links -->
+    <div class="content-links reveal-stagger" style="margin-top: 56px">
+      <a href="https://dev.to" class="content-link reveal" style="--reveal-index: 0" target="_blank" rel="noopener">
+        <div class="content-link__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div>
+          <div class="content-link__title">State of Fabric Observability in 2026</div>
+          <div class="content-link__meta">Blog post -- The 11 monitoring gaps that affect every Fabric team</div>
+        </div>
+      </a>
+      <a href="https://dev.to" class="content-link reveal" style="--reveal-index: 1" target="_blank" rel="noopener">
+        <div class="content-link__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>
+        </div>
+        <div>
+          <div class="content-link__title">Cross-Item Correlation in Fabric</div>
+          <div class="content-link__meta">Technical deep-dive -- How we trace failures across pipeline, notebook, and semantic model</div>
+        </div>
+      </a>
+      <a href="https://dev.to" class="content-link reveal" style="--reveal-index: 2" target="_blank" rel="noopener">
+        <div class="content-link__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <div>
+          <div class="content-link__title">SLOs for Microsoft Fabric: A Complete Guide</div>
+          <div class="content-link__meta">Tutorial -- Defining and tracking data freshness, success rate, and duration targets</div>
+        </div>
+      </a>
+      <a href="https://dev.to" class="content-link reveal" style="--reveal-index: 3" target="_blank" rel="noopener">
+        <div class="content-link__icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078D4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="content-link__title">The Silent Failures Hiding in Your Fabric Pipelines</div>
+          <div class="content-link__meta">Blog post -- Why retry storms and duration regressions go undetected</div>
+        </div>
+      </a>
     </div>
   </div>
 </section>
 
-<!-- ======================== CTA FOOTER ======================== -->
-<section class="cta-section">
+<!-- ======================== EARLY ACCESS ======================== -->
+<section class="early-access" id="early-access">
   <div class="container">
-    <h2 class="cta-section__title">Ready to see what you've been missing?</h2>
-    <p class="cta-section__subtitle">
-      Join the beta and get full access to Observability Workbench. No credit card required.
-    </p>
-    <form class="cta-form" action="mailto:beta@observability-workbench.dev" method="GET" enctype="text/plain">
-      <input type="email" class="cta-form__input" placeholder="you@company.com" aria-label="Email address" required>
-      <button type="submit" class="btn btn-primary">Request Beta Access</button>
-    </form>
+    <div class="early-access__glow" aria-hidden="true"></div>
+
+    <div class="text-center" style="margin-bottom: 48px;">
+      <span class="section-label reveal">Early Access</span>
+      <h2 class="section-title reveal">Get started before general availability</h2>
+      <p class="section-subtitle mx-auto reveal">
+        Join the early access program for hands-on onboarding support, direct feedback channels, and full access to every feature. No credit card required.
+      </p>
+    </div>
+
+    <div class="early-access__card reveal">
+      <h3 class="early-access__title">Request Early Access</h3>
+      <p class="early-access__subtitle">
+        We will reach out within 48 hours to help you get set up in your Fabric environment.
+      </p>
+      <form class="early-access__form" action="#" method="POST" aria-label="Early access signup form">
+        <div class="form-group">
+          <label for="ea-email" class="form-label">Work email</label>
+          <input type="email" id="ea-email" name="email" class="form-input" placeholder="you@company.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="ea-company" class="form-label">Company name</label>
+          <input type="text" id="ea-company" name="company" class="form-input" placeholder="Contoso Ltd." required autocomplete="organization">
+        </div>
+        <div class="form-group form-full">
+          <label for="ea-workspaces" class="form-label">How many Fabric workspaces do you manage?</label>
+          <select id="ea-workspaces" name="workspaces" class="form-select" required>
+            <option value="" disabled selected>Select a range</option>
+            <option value="1-5">1 - 5 workspaces</option>
+            <option value="6-20">6 - 20 workspaces</option>
+            <option value="21-50">21 - 50 workspaces</option>
+            <option value="50+">50+ workspaces</option>
+          </select>
+        </div>
+        <div class="form-full">
+          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Request Early Access
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </div>
+      </form>
+      <p class="form-note">No credit card required. Free tier includes 1 workspace and 7-day retention.</p>
+    </div>
   </div>
 </section>
 
 <!-- ======================== FOOTER ======================== -->
 <footer class="footer">
   <div class="container">
-    <div class="footer__inner">
-      <p class="footer__copy">&copy; 2026 Observability Workbench. All rights reserved.</p>
-      <ul class="footer__links">
-        <li><a href="#">Privacy</a></li>
-        <li><a href="#">Terms</a></li>
-        <li><a href="https://github.com/tenfingerseddy/FabricWorkloads" target="_blank" rel="noopener">GitHub</a></li>
-      </ul>
+    <div class="footer__grid">
+      <div>
+        <div class="footer__brand">
+          <div class="nav__logo" aria-hidden="true" style="width: 28px; height: 28px; font-size: 0.65rem;">OW</div>
+          <span>Observability Workbench</span>
+        </div>
+        <p class="footer__desc">
+          Open-source observability for Microsoft Fabric. Long-retention metrics, cross-item correlation, SLO tracking, and proactive alerting.
+        </p>
+      </div>
+      <div>
+        <h4 class="footer__col-title">Product</h4>
+        <ul class="footer__col-links" role="list">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="#early-access">Early Access</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer__col-title">Resources</h4>
+        <ul class="footer__col-links" role="list">
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads" target="_blank" rel="noopener">Documentation</a></li>
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads/tree/main/kql" target="_blank" rel="noopener">KQL Query Pack</a></li>
+          <li><a href="https://dev.to" target="_blank" rel="noopener">Blog</a></li>
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer__col-title">Community</h4>
+        <ul class="footer__col-links" role="list">
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads/issues" target="_blank" rel="noopener">Issues</a></li>
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads/discussions" target="_blank" rel="noopener">Discussions</a></li>
+          <li><a href="https://github.com/tenfingerseddy/FabricWorkloads/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <p class="footer__copy">&copy; 2026 Observability Workbench. MIT License.</p>
+      <p class="footer__built">Built with the Microsoft Fabric Extensibility Toolkit</p>
     </div>
   </div>
 </footer>
 
-<!-- ======================== SCROLL ANIMATION ======================== -->
+<!-- ======================== JAVASCRIPT ======================== -->
 <script>
-(function(){
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+(function() {
+  'use strict';
+
+  // ---- Scroll-triggered reveal animations ----
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
       if (entry.isIntersecting) {
-        entry.target.style.animationPlayState = 'running';
-        observer.unobserve(entry.target);
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.15 });
-
-  document.querySelectorAll('.animate-in').forEach(el => {
-    el.style.animationPlayState = 'paused';
-    observer.observe(el);
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -40px 0px'
   });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  // ---- Nav scroll background ----
+  var nav = document.querySelector('.nav');
+  var scrollThreshold = 50;
+  var ticking = false;
+
+  function updateNav() {
+    if (window.scrollY > scrollThreshold) {
+      nav.classList.add('nav--scrolled');
+    } else {
+      nav.classList.remove('nav--scrolled');
+    }
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(updateNav);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // ---- Mobile nav toggle ----
+  var navToggle = document.querySelector('.nav__toggle');
+  var navLinks = document.querySelector('.nav__links');
+
+  if (navToggle && navLinks) {
+    navToggle.addEventListener('click', function() {
+      var isOpen = navLinks.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    // Close mobile nav when a link is clicked
+    navLinks.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        navLinks.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // ---- Smooth scroll for anchor links (fallback for older browsers) ----
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      var targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      var target = document.querySelector(targetId);
+      if (target) {
+        e.preventDefault();
+        var navHeight = nav ? nav.offsetHeight : 0;
+        var targetPosition = target.getBoundingClientRect().top + window.pageYOffset - navHeight;
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+
 })();
 </script>
 
