@@ -5,6 +5,7 @@ import {
     ItemSettingContext,
     NotificationType
 } from '@ms-fabric/workload-client';
+import { buildActionRoutes, dispatchAction } from './routes';
 
 interface ItemCreationFailureData {
     errorCode?: string;
@@ -23,8 +24,14 @@ export async function initialize(params: InitParams) {
 
     const workloadName = process.env.WORKLOAD_NAME;
 
+    // Build the backend action route table for custom operations
+    const actionRoutes = buildActionRoutes(workloadClient);
+    console.log(`Observability Workbench Worker: ${actionRoutes.size} custom action routes registered`);
+
     workloadClient.action.onAction(async function ({ action, data }): Promise<any> {
         console.log(`Observability Workbench Worker: action ${action} with data:`, data);
+
+        // ── Fabric platform lifecycle actions ──────────────────────
         switch (action) {
             case 'item.onCreationSuccess': {
                 const { item: createdItem } = data as ItemCreationSuccessData;
@@ -74,9 +81,22 @@ export async function initialize(params: InitParams) {
                     }
                 ];
             }
-
-            default:
-                throw new Error('Unknown action received');
         }
+
+        // ── Custom backend action routes (item CRUD, jobs, health) ──
+        if (actionRoutes.has(action)) {
+            return dispatchAction(actionRoutes, action, data);
+        }
+
+        // ── Unknown action fallback ────────────────────────────────
+        console.warn(`Observability Workbench Worker: unhandled action "${action}"`);
+        return {
+            success: false,
+            error: {
+                code: 'UNKNOWN_ACTION',
+                message: `No handler for action: ${action}`,
+            },
+            timestamp: new Date().toISOString(),
+        };
     });
 }
