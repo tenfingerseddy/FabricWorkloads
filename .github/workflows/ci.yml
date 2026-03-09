@@ -84,6 +84,13 @@ jobs:
       - name: Typecheck (CLI tool)
         run: npx tsc --noEmit
 
+      - name: Typecheck (Workload frontend)
+        if: matrix.node-version == '20.x'
+        working-directory: workload
+        run: |
+          npm ci
+          npx tsc --noEmit
+
       - name: Test with coverage
         run: npx vitest run --coverage --reporter=verbose
         env:
