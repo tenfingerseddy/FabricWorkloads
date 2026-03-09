@@ -218,19 +218,21 @@ print(f"New events to ingest: {len(new_events)} (skipping {skipped} duplicates)"
 # ─────────────────────────────────────────────────────────────────────────────
 
 def kusto_ingest(table, rows):
-    """Ingest rows into KQL table using inline ingestion."""
+    """Ingest rows into KQL table using pipe-delimited inline ingestion."""
     if not rows:
         return 0
 
     ingested = 0
+    columns = [
+        "EventId", "WorkspaceId", "WorkspaceName", "ItemId", "ItemName",
+        "ItemType", "JobType", "InvokeType", "Status", "FailureReason",
+        "RootActivityId", "StartTimeUtc", "EndTimeUtc", "DurationSeconds",
+        "CorrelationGroup", "IngestedAt"
+    ]
     for row in rows:
-        values = ",".join(str(row.get(k, "")) for k in [
-            "EventId", "WorkspaceId", "WorkspaceName", "ItemId", "ItemName",
-            "ItemType", "JobType", "InvokeType", "Status", "FailureReason",
-            "RootActivityId", "StartTimeUtc", "EndTimeUtc", "DurationSeconds",
-            "CorrelationGroup", "IngestedAt"
-        ])
-        csl = f".ingest inline into table {table} <| {values}"
+        # Use pipe delimiter to avoid issues with commas in names/messages
+        values = "|".join(str(row.get(k, "")).replace("|", " ") for k in columns)
+        csl = f".ingest inline into table {table} with (format=psv) <| {values}"
 
         resp = requests.post(
             f"{KUSTO_URI}/v1/rest/mgmt",
@@ -279,12 +281,13 @@ new_inventory = [r for r in inventory_rows if r["ItemId"] not in existing_invent
 print(f"New inventory items: {len(new_inventory)} (skipping {len(inventory_rows) - len(new_inventory)} known)")
 
 inv_count = 0
+inv_columns = [
+    "WorkspaceId", "WorkspaceName", "ItemId", "ItemName",
+    "ItemType", "CapacityId", "DiscoveredAt", "LastSeenAt"
+]
 for row in new_inventory:
-    values = ",".join(str(row.get(k, "")) for k in [
-        "WorkspaceId", "WorkspaceName", "ItemId", "ItemName",
-        "ItemType", "CapacityId", "DiscoveredAt", "LastSeenAt"
-    ])
-    csl = f".ingest inline into table WorkspaceInventory <| {values}"
+    values = "|".join(str(row.get(k, "")).replace("|", " ") for k in inv_columns)
+    csl = f".ingest inline into table WorkspaceInventory with (format=psv) <| {values}"
     resp = requests.post(
         f"{KUSTO_URI}/v1/rest/mgmt",
         headers={
