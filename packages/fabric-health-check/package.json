@@ -1,0 +1,44 @@
+{
+  "name": "fabric-health-check",
+  "version": "1.0.0",
+  "description": "Quick health check for your Microsoft Fabric environment",
+  "main": "./dist/cli.js",
+  "bin": {
+    "fabric-health-check": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js"
+  },
+  "keywords": [
+    "microsoft-fabric",
+    "monitoring",
+    "health-check",
+    "observability",
+    "fabric",
+    "power-bi",
+    "data-engineering",
+    "lakehouse"
+  ],
+  "author": "tenfingerseddy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tenfingerseddy/FabricWorkloads"
+  },
+  "homepage": "https://github.com/tenfingerseddy/FabricWorkloads",
+  "bugs": {
+    "url": "https://github.com/tenfingerseddy/FabricWorkloads/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  }
+}
