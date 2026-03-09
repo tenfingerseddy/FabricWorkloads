@@ -1,0 +1,788 @@
+// ==========================================================================
+//
+//   Fabric Observability Community Query Pack
+//   by Observability Workbench (https://github.com/tenfingerseddy/FabricWorkloads)
+//
+//   Version:  1.0.0
+//   Date:     2026-03-09
+//   License:  MIT — use freely, attribution appreciated
+//
+//   PREREQUISITES:
+//     1. A Fabric Eventhouse with a KQL database
+//     2. A FabricEvents table (see create-tables.kql for schema)
+//     3. Ingested job data from the Fabric monitoring hub / REST APIs
+//
+//   TABLE SCHEMA (minimum required columns):
+//     FabricEvents (
+//       EventId: guid,
+//       WorkspaceId: guid,    WorkspaceName: string,
+//       ItemId: guid,         ItemName: string,
+//       ItemType: string,     JobType: string,
+//       InvokeType: string,   Status: string,
+//       FailureReason: string,
+//       RootActivityId: guid,
+//       StartTimeUtc: datetime, EndTimeUtc: datetime,
+//       DurationSeconds: real,
+//       IngestedAt: datetime
+//     )
+//
+//   HOW TO USE:
+//     Copy any individual query block (between the horizontal rule comments)
+//     and paste it into a KQL queryset in your Fabric workspace.
+//     Each query is self-contained and copy-paste ready.
+//
+// ==========================================================================
+
+
+// ==========================================================================
+// CATEGORY 1: HEALTH OVERVIEW
+// ==========================================================================
+
+
+// --------------------------------------------------------------------------
+// Query 1: Workspace Health Scorecard
+// --------------------------------------------------------------------------
+// Shows per-workspace success rate, average duration, job volume, and a
+// letter grade (A/B/C/D/F). Gives you a single-glance view of which
+// workspaces need attention.
+//
+// Sample output:
+//   WorkspaceName  | TotalJobs | SuccessRate | AvgDurationSec | Grade
+//   Production     | 1240      | 98.5        | 142            | A
+//   Staging        | 310       | 87.1        | 204            | C
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed", "Cancelled")
+| summarize
+    TotalJobs      = count(),
+    Succeeded      = countif(Status == "Completed"),
+    Failed         = countif(Status == "Failed"),
+    Cancelled      = countif(Status == "Cancelled"),
+    AvgDurationSec = round(avg(DurationSeconds), 0),
+    UniqueItems    = dcount(ItemId)
+    by WorkspaceId, WorkspaceName
+| extend SuccessRate = round(todouble(Succeeded) / TotalJobs * 100, 1)
+| extend Grade = case(
+    SuccessRate >= 99.0, "A",
+    SuccessRate >= 95.0, "B",
+    SuccessRate >= 90.0, "C",
+    SuccessRate >= 80.0, "D",
+    "F"
+)
+| project WorkspaceName, TotalJobs, Succeeded, Failed, Cancelled, SuccessRate, AvgDurationSec, UniqueItems, Grade
+| order by SuccessRate asc
+
+
+// --------------------------------------------------------------------------
+// Query 2: Daily Job Success Trend (Last 30 Days)
+// --------------------------------------------------------------------------
+// One row per day with total, succeeded, failed counts and success rate.
+// Ideal for a time-series chart showing whether reliability is improving
+// or degrading over the past month.
+//
+// Sample output:
+//   Day        | Total | Succeeded | Failed | SuccessRate
+//   2026-03-08 | 48    | 46        | 2      | 95.8
+//   2026-03-07 | 52    | 51        | 1      | 98.1
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status in ("Completed", "Failed", "Cancelled")
+| summarize
+    Total     = count(),
+    Succeeded = countif(Status == "Completed"),
+    Failed    = countif(Status == "Failed"),
+    Cancelled = countif(Status == "Cancelled")
+    by Day = bin(StartTimeUtc, 1d)
+| extend SuccessRate = round(todouble(Succeeded) / Total * 100, 1)
+| order by Day asc
+
+
+// --------------------------------------------------------------------------
+// Query 3: Item Reliability Ranking (Best to Worst)
+// --------------------------------------------------------------------------
+// Ranks every item by success rate over the last 14 days. Items with fewer
+// than 3 runs are excluded to avoid noisy one-off items skewing the list.
+// Use this to identify your most and least reliable jobs.
+//
+// Sample output:
+//   Rank | ItemName          | ItemType     | Runs | SuccessRate | FailStreak
+//   1    | PL_DailyRefresh   | DataPipeline | 42   | 100.0       | 0
+//   15   | NB_TransformRaw   | Notebook     | 28   | 78.6        | 3
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(14d)
+| where Status in ("Completed", "Failed")
+| summarize
+    Runs        = count(),
+    Succeeded   = countif(Status == "Completed"),
+    Failed      = countif(Status == "Failed"),
+    LastStatus  = arg_max(StartTimeUtc, Status)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| where Runs >= 3
+| extend SuccessRate = round(todouble(Succeeded) / Runs * 100, 1)
+| order by SuccessRate asc, Runs desc
+| extend Rank = row_number()
+| project Rank, ItemName, ItemType, WorkspaceName, Runs, Succeeded, Failed, SuccessRate
+
+
+// ==========================================================================
+// CATEGORY 2: PERFORMANCE ANALYSIS
+// ==========================================================================
+
+
+// --------------------------------------------------------------------------
+// Query 4: Duration Percentiles by Item (P50 / P75 / P90 / P95 / P99)
+// --------------------------------------------------------------------------
+// Full percentile breakdown for every item over the last 14 days.
+// Only includes completed runs with duration > 0.
+// Use this to understand typical vs worst-case execution times.
+//
+// Sample output:
+//   ItemName        | Runs | P50  | P75  | P90  | P95  | P99
+//   PL_MasterOrch   | 84   | 120  | 145  | 190  | 230  | 310
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(14d)
+| where Status == "Completed"
+| where DurationSeconds > 0
+| summarize
+    Runs = count(),
+    P50  = round(percentile(DurationSeconds, 50), 0),
+    P75  = round(percentile(DurationSeconds, 75), 0),
+    P90  = round(percentile(DurationSeconds, 90), 0),
+    P95  = round(percentile(DurationSeconds, 95), 0),
+    P99  = round(percentile(DurationSeconds, 99), 0)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| order by P95 desc
+
+
+// --------------------------------------------------------------------------
+// Query 5: Duration Regression Detection
+// --------------------------------------------------------------------------
+// Compares this week's P95 duration against the prior 4-week baseline.
+// A DurationRatio > 1.5 means the item is running 50%+ slower than its
+// historical norm. Flag anything above 2.0 as a serious regression.
+//
+// Sample output:
+//   ItemName       | BaselineP95 | CurrentP95 | Ratio | Regression
+//   NB_HeavyETL   | 180         | 420        | 2.33  | true
+//   PL_Ingest      | 60          | 65         | 1.08  | false
+// --------------------------------------------------------------------------
+let BaselineWindow = FabricEvents
+| where StartTimeUtc between (ago(35d) .. ago(7d))
+| where Status == "Completed" and DurationSeconds > 0
+| summarize BaselineP95 = percentile(DurationSeconds, 95), BaselineRuns = count() by ItemId;
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Completed" and DurationSeconds > 0
+| summarize CurrentP95 = percentile(DurationSeconds, 95), CurrentRuns = count() by ItemId, ItemName, ItemType, WorkspaceName
+| join kind=inner BaselineWindow on ItemId
+| where BaselineRuns >= 5 and CurrentRuns >= 3
+| extend DurationRatio = round(CurrentP95 / BaselineP95, 2)
+| extend Regression = DurationRatio > 1.5
+| project ItemName, ItemType, WorkspaceName, BaselineP95 = round(BaselineP95, 0), CurrentP95 = round(CurrentP95, 0), DurationRatio, Regression, BaselineRuns, CurrentRuns
+| order by DurationRatio desc
+
+
+// --------------------------------------------------------------------------
+// Query 6: Slowest Jobs Heatmap (Hour of Day x Day of Week)
+// --------------------------------------------------------------------------
+// Average duration by hour-of-day and day-of-week. Reveals scheduling
+// hotspots where jobs compete for capacity and run slower.
+// Day 0 = Sunday, 6 = Saturday.
+//
+// Sample output:
+//   DayOfWeek | HourOfDay | AvgDuration | JobCount
+//   1         | 2         | 340         | 12
+//   1         | 3         | 280         | 8
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Completed" and DurationSeconds > 0
+| extend HourOfDay = hourofday(StartTimeUtc)
+| extend DayOfWeek = toint(dayofweek(StartTimeUtc) / 1d)
+| summarize
+    AvgDuration  = round(avg(DurationSeconds), 0),
+    P95Duration  = round(percentile(DurationSeconds, 95), 0),
+    JobCount     = count()
+    by DayOfWeek, HourOfDay
+| order by AvgDuration desc
+
+
+// --------------------------------------------------------------------------
+// Query 7: Peak Concurrency Analysis
+// --------------------------------------------------------------------------
+// Estimates the maximum number of simultaneously running jobs per hour.
+// High concurrency correlates with CU throttling on smaller capacities.
+// If you see peaks > 10 on an F64, you may be hitting throttle limits.
+//
+// Sample output:
+//   Hour               | MaxConcurrent | AvgConcurrent | TotalStarted
+//   2026-03-08 02:00   | 8             | 3.2           | 14
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed", "InProgress")
+| where isnotnull(EndTimeUtc)
+| extend HourBucket = bin(StartTimeUtc, 1h)
+| summarize
+    TotalStarted = count(),
+    AvgDuration  = avg(DurationSeconds)
+    by HourBucket
+| extend EstimatedConcurrent = round(TotalStarted * AvgDuration / 3600.0, 1)
+| extend MaxConcurrentEstimate = ceiling(EstimatedConcurrent * 1.5)
+| project Hour = HourBucket, MaxConcurrentEstimate, AvgConcurrentEstimate = EstimatedConcurrent, TotalStarted
+| order by MaxConcurrentEstimate desc
+| take 50
+
+
+// ==========================================================================
+// CATEGORY 3: FAILURE INVESTIGATION
+// ==========================================================================
+
+
+// --------------------------------------------------------------------------
+// Query 8: Top 10 Most Common Failure Reasons
+// --------------------------------------------------------------------------
+// Groups all failures by their error message and counts occurrences.
+// Tells you what to fix first for maximum reliability improvement.
+//
+// Sample output:
+//   FailureReason                          | Count | AffectedItems | ItemTypes
+//   SparkSessionTimeout                    | 34    | 3             | Notebook
+//   RefreshFailed_DataSourceError          | 12    | 2             | SemanticModel
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Failed"
+| where isnotempty(FailureReason)
+| summarize
+    Count         = count(),
+    AffectedItems = dcount(ItemId),
+    ItemTypes     = make_set(ItemType),
+    Workspaces    = make_set(WorkspaceName),
+    LastSeen      = max(StartTimeUtc)
+    by FailureReason
+| order by Count desc
+| take 10
+
+
+// --------------------------------------------------------------------------
+// Query 9: Failure Cascade Detection (10-Minute Window)
+// --------------------------------------------------------------------------
+// Finds time windows where 3 or more distinct items failed within 10
+// minutes of each other in the same workspace. This pattern indicates
+// a shared-cause outage (capacity throttle, source system down, etc.)
+// rather than independent item failures.
+//
+// Sample output:
+//   CascadeWindow      | WorkspaceName | FailedItems | ItemNames
+//   2026-03-07 02:10   | Production    | 5           | [PL_A, NB_B, ...]
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(14d)
+| where Status == "Failed"
+| summarize
+    FailedItems = dcount(ItemId),
+    ItemNames   = make_set(ItemName),
+    ItemTypes   = make_set(ItemType)
+    by CascadeWindow = bin(StartTimeUtc, 10m), WorkspaceId, WorkspaceName
+| where FailedItems >= 3
+| order by CascadeWindow desc
+
+
+// --------------------------------------------------------------------------
+// Query 10: Mean Time to Recovery (MTTR) per Item
+// --------------------------------------------------------------------------
+// For each item, finds pairs of (Failed run, next Completed run) and
+// calculates the average recovery time. Lower MTTR means faster recovery,
+// whether by retry or manual fix.
+//
+// Sample output:
+//   ItemName        | FailureCount | AvgMTTR_Minutes | MaxMTTR_Minutes
+//   NB_Transform    | 8            | 22.5            | 120.3
+//   PL_DailyLoad    | 3            | 5.1             | 8.2
+// --------------------------------------------------------------------------
+let FailedRuns = FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Failed"
+| project FailTime = StartTimeUtc, ItemId, ItemName, ItemType, WorkspaceName;
+let RecoveryRuns = FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Completed"
+| project RecoverTime = StartTimeUtc, ItemId;
+FailedRuns
+| join kind=inner RecoveryRuns on ItemId
+| where RecoverTime > FailTime
+| summarize NextRecovery = min(RecoverTime) by FailTime, ItemId, ItemName, ItemType, WorkspaceName
+| extend RecoveryMinutes = datetime_diff('minute', NextRecovery, FailTime)
+| summarize
+    FailureCount     = count(),
+    AvgMTTR_Minutes  = round(avg(RecoveryMinutes), 1),
+    MedianMTTR_Min   = round(percentile(RecoveryMinutes, 50), 1),
+    MaxMTTR_Minutes  = round(max(RecoveryMinutes), 1)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| order by AvgMTTR_Minutes desc
+
+
+// --------------------------------------------------------------------------
+// Query 11: Intermittent Failure Detection (Flapping Items)
+// --------------------------------------------------------------------------
+// Identifies items that alternate between success and failure frequently.
+// A high "flip count" relative to total runs signals instability: the item
+// works sometimes but fails unpredictably, which is harder to diagnose
+// than consistent failures.
+//
+// Sample output:
+//   ItemName      | TotalRuns | Flips | FlipRate | SuccessRate
+//   NB_Fragile    | 28        | 14    | 50.0%    | 53.6%
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(14d)
+| where Status in ("Completed", "Failed")
+| order by ItemId asc, StartTimeUtc asc
+| serialize
+| extend PrevStatus = prev(Status), PrevItemId = prev(ItemId)
+| where ItemId == PrevItemId
+| extend IsFlip = Status != PrevStatus
+| summarize
+    TotalRuns   = count() + 1,
+    Flips       = countif(IsFlip),
+    Succeeded   = countif(Status == "Completed"),
+    Failed      = countif(Status == "Failed")
+    by ItemId, ItemName, ItemType, WorkspaceName
+| where Flips >= 3
+| extend FlipRate    = strcat(tostring(round(todouble(Flips) / TotalRuns * 100, 1)), "%")
+| extend SuccessRate = round(todouble(Succeeded) / TotalRuns * 100, 1)
+| project ItemName, ItemType, WorkspaceName, TotalRuns, Flips, FlipRate, SuccessRate
+| order by Flips desc
+
+
+// ==========================================================================
+// CATEGORY 4: COST INTELLIGENCE
+// ==========================================================================
+
+
+// --------------------------------------------------------------------------
+// Query 12: CU Waste Score per Item
+// --------------------------------------------------------------------------
+// Quantifies compute waste from three sources:
+//   1. Retry waste   — CU burned on runs that ultimately failed
+//   2. Duration waste — CU burned by regression (running slower than baseline)
+//   3. Duplicate waste — runs that started within 60s of another (accidental double-triggers)
+//
+// Uses F64 pricing: $11.52/hr = $0.192/min = $0.0032/CU-second.
+//
+// Sample output:
+//   ItemName      | RetryWaste$ | DurationWaste$ | DuplicateWaste$ | Total$ | Monthly$
+//   NB_HeavyETL  | 4.20        | 12.80          | 2.10            | 19.10  | 81.86
+// --------------------------------------------------------------------------
+let CU_RATE = 0.0032;
+// Retry waste: cost of all failed runs
+let RetryWaste = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Failed" and DurationSeconds > 0
+| summarize
+    FailedRuns = count(),
+    FailedSeconds = sum(DurationSeconds)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| extend RetryWasteCost = round(FailedSeconds * CU_RATE, 2);
+// Duration waste: excess cost from regression
+let DurationWaste = (
+    let Baseline = FabricEvents
+    | where StartTimeUtc between (ago(35d) .. ago(7d))
+    | where Status == "Completed" and DurationSeconds > 0
+    | summarize BaseP95 = percentile(DurationSeconds, 95), BaseRuns = count() by ItemId;
+    FabricEvents
+    | where StartTimeUtc > ago(7d)
+    | where Status == "Completed" and DurationSeconds > 0
+    | summarize CurP95 = percentile(DurationSeconds, 95), RunCount = count(), TotalSec = sum(DurationSeconds) by ItemId, ItemName, ItemType, WorkspaceName
+    | join kind=leftouter Baseline on ItemId
+    | where isnotnull(BaseP95) and BaseP95 > 0
+    | extend Ratio = CurP95 / BaseP95
+    | extend ExcessSec = iff(Ratio > 1.5, (CurP95 - BaseP95) * RunCount, 0.0)
+    | extend DurationWasteCost = round(ExcessSec * CU_RATE, 2)
+);
+// Duplicate waste: near-simultaneous starts of same item
+let DuplicateWaste = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where DurationSeconds > 0
+| order by ItemId asc, StartTimeUtc asc
+| serialize
+| extend PrevStart = prev(StartTimeUtc), PrevItemId = prev(ItemId)
+| where ItemId == PrevItemId
+| where datetime_diff('second', StartTimeUtc, PrevStart) < 60
+| summarize
+    DuplicateRuns = count(),
+    DuplicateSeconds = sum(DurationSeconds)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| extend DuplicateWasteCost = round(DuplicateSeconds * CU_RATE, 2);
+// Combine all waste sources
+RetryWaste
+| join kind=fullouter DurationWaste on ItemId
+| join kind=fullouter DuplicateWaste on ItemId
+| extend
+    FinalName   = coalesce(RetryWaste.ItemName, DurationWaste.ItemName, DuplicateWaste.ItemName),
+    FinalType   = coalesce(RetryWaste.ItemType, DurationWaste.ItemType, DuplicateWaste.ItemType),
+    FinalWS     = coalesce(RetryWaste.WorkspaceName, DurationWaste.WorkspaceName, DuplicateWaste.WorkspaceName),
+    RetryWaste  = coalesce(RetryWasteCost, 0.0),
+    DurWaste    = coalesce(DurationWasteCost, 0.0),
+    DupWaste    = coalesce(DuplicateWasteCost, 0.0)
+| extend TotalWaste = RetryWaste + DurWaste + DupWaste
+| extend MonthlyProjected = round(TotalWaste * (30.0 / 7.0), 2)
+| project
+    ItemName = FinalName, ItemType = FinalType, WorkspaceName = FinalWS,
+    RetryWasteDollars = RetryWaste, DurationWasteDollars = DurWaste, DuplicateWasteDollars = DupWaste,
+    TotalWasteDollars = TotalWaste, MonthlyProjectedDollars = MonthlyProjected
+| where TotalWaste > 0
+| order by TotalWaste desc
+
+
+// --------------------------------------------------------------------------
+// Query 13: Estimated Monthly Cost per Item (F64 Pricing)
+// --------------------------------------------------------------------------
+// Estimates each item's monthly compute cost based on actual duration.
+// F64 = $11.52/hr = $0.192/min = $0.0032/CU-second.
+// Only counts completed runs (failed runs are waste, captured above).
+//
+// NOTE: This is an approximation. Actual CU consumption depends on
+// workload type, parallelism, and SKU. Use Fabric Capacity Metrics app
+// for precise numbers. This gives directional cost attribution.
+//
+// Sample output:
+//   ItemName        | ItemType     | MonthlyRuns | TotalSeconds | MonthlyCost$
+//   PL_BigPipeline  | DataPipeline | 62          | 18600        | 59.52
+// --------------------------------------------------------------------------
+let CU_RATE = 0.0032;
+let DaysInWindow = 14;
+FabricEvents
+| where StartTimeUtc > ago(14d)
+| where Status == "Completed" and DurationSeconds > 0
+| summarize
+    Runs          = count(),
+    TotalSeconds  = sum(DurationSeconds),
+    AvgSeconds    = round(avg(DurationSeconds), 0)
+    by ItemId, ItemName, ItemType, WorkspaceName
+| extend RunsPerMonth    = round(todouble(Runs) / DaysInWindow * 30, 0)
+| extend MonthlySeconds  = round(todouble(TotalSeconds) / DaysInWindow * 30, 0)
+| extend MonthlyCost     = round(MonthlySeconds * CU_RATE, 2)
+| project ItemName, ItemType, WorkspaceName, Runs, AvgSeconds, RunsPerMonth, MonthlySeconds, MonthlyCost
+| order by MonthlyCost desc
+
+
+// --------------------------------------------------------------------------
+// Query 14: Cost Trend (Week-over-Week)
+// --------------------------------------------------------------------------
+// Shows total estimated compute cost per week, with week-over-week change.
+// A rising trend means either more runs, longer durations, or both.
+//
+// Sample output:
+//   WeekStart  | TotalSeconds | EstCost$ | PrevWeekCost$ | WoW_Change%
+//   2026-03-03 | 42000        | 134.40   | 120.00        | +12.0%
+// --------------------------------------------------------------------------
+let CU_RATE = 0.0032;
+FabricEvents
+| where StartTimeUtc > ago(56d)
+| where DurationSeconds > 0
+| summarize TotalSeconds = sum(DurationSeconds), Runs = count() by WeekStart = startofweek(StartTimeUtc)
+| extend EstCost = round(TotalSeconds * CU_RATE, 2)
+| order by WeekStart asc
+| serialize
+| extend PrevWeekCost = prev(EstCost)
+| extend WoW_Change = iff(isnotnull(PrevWeekCost) and PrevWeekCost > 0,
+    strcat(iff(EstCost >= PrevWeekCost, "+", ""), tostring(round((EstCost - PrevWeekCost) / PrevWeekCost * 100, 1)), "%"),
+    "N/A")
+| project WeekStart, Runs, TotalSeconds, EstCostDollars = EstCost, PrevWeekCostDollars = PrevWeekCost, WoW_Change
+
+
+// --------------------------------------------------------------------------
+// Query 15: Top 5 Cost Optimization Opportunities
+// --------------------------------------------------------------------------
+// Combines multiple cost signals into a single ranked list of items
+// where optimization effort will have the highest dollar impact:
+//   - High total cost (raw spend)
+//   - Duration regression (paying more for the same work)
+//   - High failure rate (burning CUs on retries)
+//   - Low utilization (runs that could be consolidated)
+//
+// Sample output:
+//   ItemName      | Signal          | WeeklyCost$ | ActionableInsight
+//   NB_HeavyETL  | DurationRegress | 41.20       | P95 jumped 2.3x — investigate Spark config
+// --------------------------------------------------------------------------
+let CU_RATE = 0.0032;
+let Baseline = FabricEvents
+| where StartTimeUtc between (ago(35d) .. ago(7d))
+| where Status == "Completed" and DurationSeconds > 0
+| summarize BaseP95 = percentile(DurationSeconds, 95) by ItemId;
+let Current = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where DurationSeconds > 0
+| summarize
+    TotalSec    = sum(DurationSeconds),
+    Runs        = count(),
+    Succeeded   = countif(Status == "Completed"),
+    Failed      = countif(Status == "Failed"),
+    CurP95      = percentile(DurationSeconds, 95)
+    by ItemId, ItemName, ItemType, WorkspaceName;
+Current
+| join kind=leftouter Baseline on ItemId
+| extend WeeklyCost   = round(TotalSec * CU_RATE, 2)
+| extend FailRate     = round(todouble(Failed) / Runs * 100, 1)
+| extend DurRatio     = iff(isnotnull(BaseP95) and BaseP95 > 0, round(CurP95 / BaseP95, 2), 1.0)
+| extend Signal = case(
+    DurRatio > 2.0 and WeeklyCost > 1.0, "DurationRegression",
+    FailRate > 20.0, "HighFailureRate",
+    WeeklyCost > 10.0, "HighAbsoluteCost",
+    Runs > 100, "HighFrequency",
+    "Normal"
+)
+| extend ActionableInsight = case(
+    Signal == "DurationRegression", strcat("P95 jumped ", tostring(DurRatio), "x vs baseline - check Spark/query config changes"),
+    Signal == "HighFailureRate",    strcat(tostring(Failed), " failures at ", tostring(FailRate), "% rate - fix root cause to eliminate retry waste"),
+    Signal == "HighAbsoluteCost",   strcat("$", tostring(WeeklyCost), "/week - evaluate scheduling frequency or partition pruning"),
+    Signal == "HighFrequency",      strcat(tostring(Runs), " runs/week - consider consolidating into fewer, batched runs"),
+    "No immediate optimization needed"
+)
+| where Signal != "Normal"
+| project ItemName, ItemType, WorkspaceName, Signal, WeeklyCostDollars = WeeklyCost, FailRate, DurRatio, ActionableInsight
+| order by WeeklyCostDollars desc
+| take 5
+
+
+// ==========================================================================
+// CATEGORY 5: SLO FRAMEWORK
+// ==========================================================================
+
+
+// --------------------------------------------------------------------------
+// Query 16: Success Rate SLO with Error Budgets
+// --------------------------------------------------------------------------
+// Evaluates each item against a configurable SLO target (default 99.5%).
+// Shows error budget consumed as a percentage: 100% = fully consumed,
+// >100% = breaching. Items at >80% budget consumption need proactive
+// attention before they breach.
+//
+// To customize SLO targets per item, modify the SloTarget value in the
+// extend statement or join against a SloDefinitions table.
+//
+// Sample output:
+//   ItemName       | Runs | SuccessRate | SloTarget | BudgetUsed% | Status
+//   PL_DailyETL   | 90   | 98.9        | 99.5      | 220.0       | BREACHING
+//   NB_Transform   | 60   | 99.8        | 99.5      | 40.0        | OK
+// --------------------------------------------------------------------------
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed")
+| summarize
+    Runs      = count(),
+    Succeeded = countif(Status == "Completed"),
+    Failed    = countif(Status == "Failed")
+    by ItemId, ItemName, ItemType, WorkspaceName
+| where Runs >= 3
+| extend SuccessRate   = round(todouble(Succeeded) / Runs * 100, 2)
+| extend SloTarget     = 99.5
+| extend ErrorBudget   = 100.0 - SloTarget
+| extend BudgetUsedPct = round((100.0 - SuccessRate) / ErrorBudget * 100, 1)
+| extend Status = case(
+    BudgetUsedPct > 100, "BREACHING",
+    BudgetUsedPct > 80,  "AT_RISK",
+    BudgetUsedPct > 50,  "BURNING",
+    "OK"
+)
+| project ItemName, ItemType, WorkspaceName, Runs, Succeeded, Failed, SuccessRate, SloTarget, BudgetUsedPct, Status
+| order by BudgetUsedPct desc
+
+
+// --------------------------------------------------------------------------
+// Query 17: Freshness SLO (Hours Since Last Successful Run)
+// --------------------------------------------------------------------------
+// Measures data freshness: how long since each item last completed
+// successfully. Freshness targets are set by item type but you should
+// customize them per item based on your business requirements.
+//
+// A "STALE" item means downstream consumers are looking at old data.
+// This is the single most common complaint from business users.
+//
+// Sample output:
+//   ItemName          | ItemType  | LastSuccess         | HoursSince | Target | Status
+//   PL_DailyRefresh   | Pipeline  | 2026-03-08 02:15    | 26.3       | 24.0   | STALE
+//   NB_HourlyCalc     | Notebook  | 2026-03-09 08:00    | 1.2        | 6.0    | FRESH
+// --------------------------------------------------------------------------
+FabricEvents
+| where Status == "Completed"
+| summarize LastSuccess = max(EndTimeUtc) by ItemId, ItemName, ItemType, WorkspaceName
+| extend HoursSinceSuccess = round(datetime_diff('second', now(), LastSuccess) / 3600.0, 1)
+| extend FreshnessTargetHours = case(
+    ItemType == "DataPipeline",    24.0,
+    ItemType == "Notebook",        6.0,
+    ItemType == "Dataflow",        12.0,
+    ItemType == "SemanticModel",   24.0,
+    ItemType == "CopyJob",         24.0,
+    48.0
+)
+| extend FreshnessStatus = case(
+    HoursSinceSuccess > FreshnessTargetHours * 2, "CRITICAL",
+    HoursSinceSuccess > FreshnessTargetHours,     "STALE",
+    HoursSinceSuccess > FreshnessTargetHours * 0.8, "AT_RISK",
+    "FRESH"
+)
+| project ItemName, ItemType, WorkspaceName, LastSuccess, HoursSinceSuccess, FreshnessTargetHours, FreshnessStatus
+| order by case(FreshnessStatus == "CRITICAL", 0, FreshnessStatus == "STALE", 1, FreshnessStatus == "AT_RISK", 2, 3) asc, HoursSinceSuccess desc
+
+
+// --------------------------------------------------------------------------
+// Query 18: Duration SLO with Regression Multiplier
+// --------------------------------------------------------------------------
+// Sets a duration SLO based on each item's own historical P95 (self-
+// calibrating). Current P95 is compared to the 4-week baseline with a
+// configurable regression multiplier. Default threshold: 2.0x means
+// "flag if current P95 is double the baseline."
+//
+// This is more useful than a fixed-second threshold because a 300s
+// pipeline and a 5s notebook have very different "normal" durations.
+//
+// Sample output:
+//   ItemName      | BaseP95 | CurP95 | Ratio | Threshold | Status
+//   NB_SlowingDown| 45      | 110    | 2.44  | 2.0       | BREACHING
+//   PL_Stable     | 200     | 210    | 1.05  | 2.0       | OK
+// --------------------------------------------------------------------------
+let RegressionThreshold = 2.0;
+let BaselinePeriod = FabricEvents
+| where StartTimeUtc between (ago(35d) .. ago(7d))
+| where Status == "Completed" and DurationSeconds > 0
+| summarize
+    BaseP95  = percentile(DurationSeconds, 95),
+    BaseP50  = percentile(DurationSeconds, 50),
+    BaseRuns = count()
+    by ItemId;
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Completed" and DurationSeconds > 0
+| summarize
+    CurP95  = percentile(DurationSeconds, 95),
+    CurP50  = percentile(DurationSeconds, 50),
+    CurRuns = count()
+    by ItemId, ItemName, ItemType, WorkspaceName
+| join kind=inner BaselinePeriod on ItemId
+| where BaseRuns >= 5 and CurRuns >= 3
+| extend Ratio = round(CurP95 / BaseP95, 2)
+| extend DurationStatus = case(
+    Ratio > RegressionThreshold * 1.5, "CRITICAL",
+    Ratio > RegressionThreshold,        "BREACHING",
+    Ratio > RegressionThreshold * 0.75, "WARNING",
+    "OK"
+)
+| project
+    ItemName, ItemType, WorkspaceName,
+    BaselineP95 = round(BaseP95, 0), CurrentP95 = round(CurP95, 0),
+    BaselineP50 = round(BaseP50, 0), CurrentP50 = round(CurP50, 0),
+    Ratio, RegressionThreshold, DurationStatus
+| order by Ratio desc
+
+
+// --------------------------------------------------------------------------
+// Query 19: Combined SLO Summary (Single-Pane View)
+// --------------------------------------------------------------------------
+// Brings together success rate, freshness, and duration SLOs into one
+// table. Each item gets a single "worst status" so you can sort by
+// what needs attention first. This is the query to pin to your
+// operations dashboard.
+//
+// Sample output:
+//   ItemName      | SuccessStatus | FreshnessStatus | DurationStatus | OverallStatus
+//   PL_Broken     | BREACHING     | STALE           | OK             | BREACHING
+//   NB_Healthy    | OK            | FRESH           | OK             | OK
+// --------------------------------------------------------------------------
+let SuccessSLO = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed")
+| summarize Runs = count(), Succeeded = countif(Status == "Completed") by ItemId, ItemName, ItemType, WorkspaceName
+| where Runs >= 3
+| extend SuccessRate = round(todouble(Succeeded) / Runs * 100, 2)
+| extend SuccessBudgetPct = round((100.0 - SuccessRate) / 0.5 * 100, 1)
+| extend SuccessStatus = case(SuccessBudgetPct > 100, "BREACHING", SuccessBudgetPct > 80, "AT_RISK", "OK");
+let FreshnessSLO = FabricEvents
+| where Status == "Completed"
+| summarize LastSuccess = max(EndTimeUtc) by ItemId
+| extend HoursSince = datetime_diff('second', now(), LastSuccess) / 3600.0
+| extend FreshnessStatus = case(HoursSince > 48, "CRITICAL", HoursSince > 24, "STALE", "FRESH");
+let DurationSLO = (
+    let Base = FabricEvents
+    | where StartTimeUtc between (ago(35d) .. ago(7d))
+    | where Status == "Completed" and DurationSeconds > 0
+    | summarize BaseP95 = percentile(DurationSeconds, 95) by ItemId
+    | where BaseP95 > 0;
+    FabricEvents
+    | where StartTimeUtc > ago(7d)
+    | where Status == "Completed" and DurationSeconds > 0
+    | summarize CurP95 = percentile(DurationSeconds, 95) by ItemId
+    | join kind=inner Base on ItemId
+    | extend DurRatio = CurP95 / BaseP95
+    | extend DurationStatus = case(DurRatio > 3.0, "CRITICAL", DurRatio > 2.0, "BREACHING", "OK")
+);
+SuccessSLO
+| join kind=leftouter FreshnessSLO on ItemId
+| join kind=leftouter DurationSLO on ItemId
+| extend
+    FinalFreshness = coalesce(FreshnessStatus, "UNKNOWN"),
+    FinalDuration  = coalesce(DurationStatus, "OK")
+| extend OverallStatus = case(
+    SuccessStatus == "BREACHING" or FinalFreshness == "CRITICAL" or FinalDuration == "CRITICAL", "CRITICAL",
+    SuccessStatus == "AT_RISK" or FinalFreshness == "STALE" or FinalDuration == "BREACHING", "AT_RISK",
+    "OK"
+)
+| project ItemName, ItemType, WorkspaceName, SuccessRate, SuccessStatus, FinalFreshness, FinalDuration, OverallStatus
+| order by case(OverallStatus == "CRITICAL", 0, OverallStatus == "AT_RISK", 1, 2) asc, SuccessRate asc
+
+
+// --------------------------------------------------------------------------
+// Query 20: Error Budget Burn Rate Forecast
+// --------------------------------------------------------------------------
+// Projects when each item's error budget will be exhausted based on the
+// current burn rate. Items with "ExhaustedIn" < 24 hours need immediate
+// attention. This is the "likely to breach" early warning signal.
+//
+// Sample output:
+//   ItemName      | BudgetUsed% | BurnRate%/Day | ExhaustedInHours | Urgency
+//   PL_Fragile    | 72.0        | 18.0          | 37.3             | HIGH
+//   NB_Shaky      | 45.0        | 6.4           | 206.3            | LOW
+// --------------------------------------------------------------------------
+let EvalDays = 7;
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed")
+| summarize Runs = count(), Failed = countif(Status == "Failed") by ItemId, ItemName, ItemType, WorkspaceName
+| where Runs >= 5
+| extend FailureRate     = todouble(Failed) / Runs * 100
+| extend ErrorBudget     = 0.5   // 99.5% SLO target
+| extend BudgetUsedPct   = round(FailureRate / ErrorBudget * 100, 1)
+| extend BurnRatePerDay  = round(BudgetUsedPct / EvalDays, 1)
+| extend RemainingBudget = 100.0 - BudgetUsedPct
+| extend ExhaustedInHours = iff(BurnRatePerDay > 0, round(RemainingBudget / BurnRatePerDay * 24, 1), 99999.0)
+| extend Urgency = case(
+    BudgetUsedPct >= 100, "EXHAUSTED",
+    ExhaustedInHours < 24, "CRITICAL",
+    ExhaustedInHours < 72, "HIGH",
+    ExhaustedInHours < 168, "MEDIUM",
+    "LOW"
+)
+| where BudgetUsedPct > 0
+| project ItemName, ItemType, WorkspaceName, Runs, Failed, BudgetUsedPct, BurnRatePerDay, ExhaustedInHours, Urgency
+| order by ExhaustedInHours asc
+
+
+// ==========================================================================
+// END OF COMMUNITY QUERY PACK
+//
+// Want more? The Observability Workbench provides:
+//   - Automated ingestion from Fabric monitoring hub APIs
+//   - 90-day / 365-day retention (vs native 30-day limit)
+//   - Cross-item correlation engine with dependency graphs
+//   - Proactive alerting with Teams/email/webhook delivery
+//   - SLO dashboards with historical trend tracking
+//
+// GitHub:  https://github.com/tenfingerseddy/FabricWorkloads
+// License: MIT
+// ==========================================================================

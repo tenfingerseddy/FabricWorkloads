@@ -11,7 +11,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { IncidentRow, AlertSeverity } from "../types/observability";
+import { IncidentRow } from "../types/observability";
 
 // ---------------------------------------------------------------------------
 // Data interfaces

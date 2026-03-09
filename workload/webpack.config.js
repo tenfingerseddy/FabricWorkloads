@@ -3,6 +3,8 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const Webpack = require("webpack");
 const path = require("path");
+const fs = require("fs").promises;
+
 
 console.log('*******************     Workload Configuration    *******************');
 console.log('process.env.WORKLOAD_NAME: ' + process.env.WORKLOAD_NAME);
@@ -10,6 +12,7 @@ console.log('process.env.ITEM_NAMES: ' + process.env.ITEM_NAMES);
 console.log('process.env.WORKLOAD_VERSION: ' + process.env.WORKLOAD_VERSION);
 console.log('process.env.LOG_LEVEL: ' + process.env.LOG_LEVEL);
 console.log('*********************************************************************');
+
 
 module.exports = {
     mode: "production",
@@ -26,6 +29,7 @@ module.exports = {
             "process.env.ITEM_NAMES": JSON.stringify(process.env.ITEM_NAMES),
             "process.env.WORKLOAD_VERSION": JSON.stringify(process.env.WORKLOAD_VERSION),
             "process.env.LOG_LEVEL": JSON.stringify(process.env.LOG_LEVEL),
+            "process.env.ENABLE_PLAYGROUND": JSON.stringify(process.env.ENABLE_PLAYGROUND || 'false'),
         }),
         new Webpack.ProvidePlugin({
             process: 'process/browser.js',
@@ -40,6 +44,10 @@ module.exports = {
                     from: '**/*',
                     to: './assets',
                     noErrorOnMissing: true,
+                },
+                {
+                    from: './app/web.config',
+                    to: './web.config',
                 },
             ]
         }),

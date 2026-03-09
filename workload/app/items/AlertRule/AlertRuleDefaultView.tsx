@@ -4,10 +4,7 @@ import { WorkloadClientAPI } from "@ms-fabric/workload-client";
 import { ItemWithDefinition } from "../../controller/ItemCRUDController";
 import { ItemEditorDefaultView } from "../../components/ItemEditor";
 import { AlertRuleDefinition } from "./AlertRuleDefinition";
-import {
-  useAlertData,
-  AlertRuleStatus,
-} from "../../hooks/useAlertData";
+import { useAlertData } from "../../hooks/useAlertData";
 import {
   Badge,
   Button,

@@ -4,23 +4,38 @@ import { WorkloadClientAPI } from "@ms-fabric/workload-client";
 import { ItemWithDefinition } from "../../controller/ItemCRUDController";
 import { ItemEditorDefaultView } from "../../components/ItemEditor";
 import { SLODefinitionDefinition } from "./SLODefinitionDefinition";
+import { useSloData } from "../../hooks/useSloData";
 import {
   Badge,
+  Button,
   Dropdown,
   Input,
   Label,
+  MessageBar,
+  MessageBarBody,
   Option,
   ProgressBar,
   SpinButton,
-  Text
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableCellLayout,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+  Text,
+  Tooltip
 } from "@fluentui/react-components";
 import {
+  ArrowSync20Regular,
   CheckmarkCircle20Filled,
-  Warning20Filled,
-  ErrorCircle20Filled,
+  Clock20Regular,
   DataUsage24Regular,
+  ErrorCircle20Filled,
   TargetArrow24Regular,
-  Timer24Regular
+  Timer24Regular,
+  Warning20Filled
 } from "@fluentui/react-icons";
 import "./SLODefinition.scss";
 
@@ -57,30 +72,47 @@ const EVALUATION_WINDOW_OPTIONS = [
   { value: "calendar_month", label: "Calendar month" }
 ];
 
-/** Compute a simulated current value and error budget for display */
-function getSimulatedStatus(def: SLODefinitionDefinition) {
-  const target = def.targetValue ?? 99.5;
-  const warning = def.warningThreshold ?? 99.0;
-  // Simulated current value
-  const currentValue = 98.7;
-  const errorBudgetUsed = target > 0 ? ((target - currentValue) / (100 - target)) * 100 : 0;
-  const errorBudgetRemaining = Math.max(0, Math.min(100, 100 - errorBudgetUsed));
+/** Format a Date as "HH:MM:SS" for the last-updated indicator. */
+function formatTime(date: Date): string {
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
+}
 
-  let status: "healthy" | "warning" | "critical";
-  if (currentValue >= target) {
-    status = "healthy";
-  } else if (currentValue >= warning) {
-    status = "warning";
-  } else {
-    status = "critical";
+function StatusIcon({ status }: { status: "healthy" | "warning" | "critical" }) {
+  switch (status) {
+    case "healthy":
+      return <CheckmarkCircle20Filled style={{ color: "#107c10" }} />;
+    case "warning":
+      return <Warning20Filled style={{ color: "#e8712a" }} />;
+    case "critical":
+      return <ErrorCircle20Filled style={{ color: "#d13438" }} />;
   }
+}
 
-  return { currentValue, errorBudgetRemaining, status };
+function TrendIcon({ direction }: { direction: "improving" | "stable" | "degrading" }) {
+  const color =
+    direction === "improving"
+      ? "#107c10"
+      : direction === "degrading"
+      ? "#d13438"
+      : "var(--colorNeutralForeground3)";
+  return (
+    <Text size={200} weight="semibold" style={{ color }}>
+      {direction === "improving" && "Improving"}
+      {direction === "stable" && "Stable"}
+      {direction === "degrading" && "Degrading"}
+    </Text>
+  );
 }
 
 /**
- * SLODefinitionDefaultView - SLO configuration form with current status
- * indicator and error budget bar.
+ * SLODefinitionDefaultView - SLO configuration form with live current
+ * status indicator, error budget visualization, and compliance data.
+ *
+ * Sprint 03 B4: Wired to useSloData hook for live KQL data.
  */
 export function SLODefinitionDefaultView({
   workloadClient,
@@ -92,6 +124,16 @@ export function SLODefinitionDefaultView({
 
   const def = definition || {};
 
+  // --- Live data hook ---
+  const {
+    data: sloData,
+    isLoading,
+    error: fetchError,
+    lastUpdated,
+    isLive,
+    refresh
+  } = useSloData(def.evaluationWindow || "7d", def.itemId);
+
   const updateField = <K extends keyof SLODefinitionDefinition>(
     key: K,
     value: SLODefinitionDefinition[K]
@@ -99,129 +141,364 @@ export function SLODefinitionDefaultView({
     onDefinitionChange?.({ ...def, [key]: value });
   };
 
-  const { currentValue, errorBudgetRemaining, status } =
-    getSimulatedStatus(def);
-
   const isPercentMetric =
     def.metricType === "success_rate" || def.metricType === "availability";
 
+  // Find the SLO status that matches the current definition's item, or use the first one
+  const matchedSlo = sloData.sloStatuses.find(
+    (s) => s.itemName === def.itemId || s.sloId === def.itemId
+  ) || sloData.sloStatuses[0];
+
+  const currentValue = matchedSlo?.currentValue ?? 0;
+  const errorBudgetRemaining = matchedSlo?.errorBudgetRemaining ?? 100;
+  const status = matchedSlo?.status ?? "healthy";
+
+  // --- Status Panel (left sidebar with live data) ---
   const StatusPanel = () => (
     <div className="slo-definition-view">
-      <h3 className="slo-definition-title">
-        {t("SLODefinition_StatusPanel_Title", "Current Status")}
-      </h3>
-
-      {/* Status Header */}
-      <div className="slo-definition-status-header">
-        <div className="slo-definition-status-indicator">
-          {status === "healthy" && (
-            <CheckmarkCircle20Filled
-              style={{ color: "#107c10", fontSize: 32 }}
+      <div className="slo-definition-status-panel-header">
+        <h3 className="slo-definition-title" style={{ fontSize: 20 }}>
+          {t("SLODefinition_StatusPanel_Title", "Current Status")}
+        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {lastUpdated && (
+            <Text
+              size={200}
+              style={{ color: "var(--colorNeutralForeground3)" }}
+            >
+              {formatTime(lastUpdated)}
+            </Text>
+          )}
+          <Tooltip content="Refresh SLO data" relationship="label">
+            <Button
+              appearance="subtle"
+              size="small"
+              icon={
+                isLoading ? (
+                  <Spinner size="tiny" />
+                ) : (
+                  <ArrowSync20Regular />
+                )
+              }
+              onClick={refresh}
+              disabled={isLoading}
+              aria-label="Refresh"
             />
-          )}
-          {status === "warning" && (
-            <Warning20Filled style={{ color: "#e8712a", fontSize: 32 }} />
-          )}
-          {status === "critical" && (
-            <ErrorCircle20Filled style={{ color: "#d13438", fontSize: 32 }} />
-          )}
-          <span
-            className={`slo-definition-status-value slo-definition-status-value--${status}`}
-          >
-            {currentValue}
-            {isPercentMetric ? "%" : "m"}
-          </span>
-          <span className="slo-definition-status-label">Current Value</span>
+          </Tooltip>
         </div>
+      </div>
 
-        <div className="slo-definition-status-divider" />
+      {/* Data source indicator */}
+      <Badge
+        appearance="outline"
+        color={isLive ? "success" : "informative"}
+        style={{ alignSelf: "flex-start" }}
+      >
+        {isLive ? "Live KQL" : "Sample Data"}
+      </Badge>
 
-        <div className="slo-definition-status-indicator">
-          <Text size={500} weight="semibold" style={{ color: "#0078D4" }}>
-            {def.targetValue ?? 99.5}
-            {isPercentMetric ? "%" : "m"}
-          </Text>
-          <span className="slo-definition-status-label">Target</span>
+      {/* Error banner */}
+      {fetchError && (
+        <MessageBar intent="error" style={{ width: "100%" }}>
+          <MessageBarBody>{fetchError}</MessageBarBody>
+        </MessageBar>
+      )}
+
+      {/* Loading state for initial load */}
+      {isLoading && !lastUpdated && (
+        <div style={{ display: "flex", justifyContent: "center", padding: 24, width: "100%" }}>
+          <Spinner size="medium" label="Loading SLO data..." />
         </div>
+      )}
 
-        <div className="slo-definition-status-divider" />
+      {lastUpdated && (
+        <>
+          {/* Status Header */}
+          <div className="slo-definition-status-header">
+            <div className="slo-definition-status-indicator">
+              {status === "healthy" && (
+                <CheckmarkCircle20Filled style={{ color: "#107c10", fontSize: 32 }} />
+              )}
+              {status === "warning" && (
+                <Warning20Filled style={{ color: "#e8712a", fontSize: 32 }} />
+              )}
+              {status === "critical" && (
+                <ErrorCircle20Filled style={{ color: "#d13438", fontSize: 32 }} />
+              )}
+              <span
+                className={`slo-definition-status-value slo-definition-status-value--${status}`}
+              >
+                {currentValue}
+                {isPercentMetric ? "%" : "m"}
+              </span>
+              <span className="slo-definition-status-label">Current Value</span>
+            </div>
 
-        <div className="slo-definition-status-indicator">
-          <Text size={500} weight="semibold" style={{ color: "#e8712a" }}>
-            {def.warningThreshold ?? 99.0}
-            {isPercentMetric ? "%" : "m"}
-          </Text>
-          <span className="slo-definition-status-label">Warning</span>
-        </div>
+            <div className="slo-definition-status-divider" />
 
-        <div className="slo-definition-status-divider" />
+            <div className="slo-definition-status-indicator">
+              <Text size={500} weight="semibold" style={{ color: "#0078D4" }}>
+                {def.targetValue ?? 99.5}
+                {isPercentMetric ? "%" : "m"}
+              </Text>
+              <span className="slo-definition-status-label">Target</span>
+            </div>
 
-        {/* Error Budget */}
-        <div className="slo-definition-error-budget">
-          <div className="slo-definition-error-budget-header">
-            <span className="slo-definition-error-budget-label">
-              Error Budget
-            </span>
-            <span className="slo-definition-error-budget-value">
-              {errorBudgetRemaining.toFixed(1)}% remaining
-            </span>
+            <div className="slo-definition-status-divider" />
+
+            <div className="slo-definition-status-indicator">
+              <Text size={500} weight="semibold" style={{ color: "#e8712a" }}>
+                {def.warningThreshold ?? 99.0}
+                {isPercentMetric ? "%" : "m"}
+              </Text>
+              <span className="slo-definition-status-label">Warning</span>
+            </div>
           </div>
-          <ProgressBar
-            value={errorBudgetRemaining / 100}
-            color={
-              errorBudgetRemaining > 50
-                ? "success"
-                : errorBudgetRemaining > 20
-                ? "warning"
-                : "error"
-            }
-            thickness="large"
-          />
-        </div>
-      </div>
 
-      {/* Target Preview */}
-      <div className="slo-definition-target-preview">
-        <div className="slo-definition-target-preview-item">
-          <span className="slo-definition-target-preview-label">SLO</span>
-          <span className="slo-definition-target-preview-value">
-            {METRIC_TYPE_OPTIONS.find((o) => o.value === def.metricType)
-              ?.label || "Success Rate (%)"}
-          </span>
-        </div>
-        <div className="slo-definition-target-preview-item">
-          <span className="slo-definition-target-preview-label">Window</span>
-          <span className="slo-definition-target-preview-value">
-            {EVALUATION_WINDOW_OPTIONS.find(
-              (o) => o.value === def.evaluationWindow
-            )?.label || "7 days (rolling)"}
-          </span>
-        </div>
-        <div className="slo-definition-target-preview-item">
-          <span className="slo-definition-target-preview-label">Status</span>
-          <Badge
-            appearance="filled"
-            color={
-              status === "healthy"
-                ? "success"
-                : status === "warning"
-                ? "warning"
-                : "danger"
-            }
-            style={{ textTransform: "capitalize" }}
-          >
-            {status}
-          </Badge>
-        </div>
-      </div>
+          {/* Error Budget */}
+          <div className="slo-definition-error-budget" style={{ width: "100%" }}>
+            <div className="slo-definition-error-budget-header">
+              <span className="slo-definition-error-budget-label">
+                Error Budget
+              </span>
+              <span className="slo-definition-error-budget-value">
+                {errorBudgetRemaining.toFixed(1)}% remaining
+              </span>
+            </div>
+            <ProgressBar
+              value={errorBudgetRemaining / 100}
+              color={
+                errorBudgetRemaining > 50
+                  ? "success"
+                  : errorBudgetRemaining > 20
+                  ? "warning"
+                  : "error"
+              }
+              thickness="large"
+            />
+            {sloData.errorBudgetSummary.projectedExhaustionDays !== null && (
+              <Text
+                size={200}
+                style={{
+                  color:
+                    sloData.errorBudgetSummary.projectedExhaustionDays < 7
+                      ? "#d13438"
+                      : "var(--colorNeutralForeground3)"
+                }}
+              >
+                {sloData.errorBudgetSummary.projectedExhaustionDays < 7
+                  ? `Budget exhaustion projected in ${sloData.errorBudgetSummary.projectedExhaustionDays} days`
+                  : `~${sloData.errorBudgetSummary.projectedExhaustionDays} days until exhaustion`}
+              </Text>
+            )}
+          </div>
+
+          {/* SLO Health Counters */}
+          <div className="slo-definition-health-counters">
+            <div className="slo-definition-health-counter">
+              <CheckmarkCircle20Filled style={{ color: "#107c10" }} />
+              <Text size={600} weight="bold" style={{ color: "#107c10" }}>
+                {sloData.healthySloCount}
+              </Text>
+              <Text size={200}>Healthy</Text>
+            </div>
+            <div className="slo-definition-health-counter">
+              <Warning20Filled style={{ color: "#e8712a" }} />
+              <Text size={600} weight="bold" style={{ color: "#e8712a" }}>
+                {sloData.warningSloCount}
+              </Text>
+              <Text size={200}>Warning</Text>
+            </div>
+            <div className="slo-definition-health-counter">
+              <ErrorCircle20Filled style={{ color: "#d13438" }} />
+              <Text size={600} weight="bold" style={{ color: "#d13438" }}>
+                {sloData.criticalSloCount}
+              </Text>
+              <Text size={200}>Critical</Text>
+            </div>
+          </div>
+
+          {/* All SLOs Quick View */}
+          <div className="slo-definition-all-slos">
+            <Text size={300} weight="semibold">
+              All SLOs ({sloData.sloStatuses.length})
+            </Text>
+            {sloData.sloStatuses.map((slo) => (
+              <div key={slo.sloId} className="slo-definition-slo-mini-card">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <StatusIcon status={slo.status} />
+                    <Text size={300} weight="semibold">{slo.itemName}</Text>
+                  </div>
+                  <Text
+                    size={300}
+                    weight="bold"
+                    style={{
+                      color:
+                        slo.status === "healthy"
+                          ? "#107c10"
+                          : slo.status === "warning"
+                          ? "#e8712a"
+                          : "#d13438"
+                    }}
+                  >
+                    {slo.currentValue}%
+                  </Text>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Badge
+                    appearance="outline"
+                    color="informative"
+                    size="small"
+                  >
+                    {slo.itemType}
+                  </Badge>
+                  <TrendIcon direction={slo.trendDirection} />
+                </div>
+                <ProgressBar
+                  value={slo.errorBudgetRemaining / 100}
+                  color={
+                    slo.errorBudgetRemaining > 50
+                      ? "success"
+                      : slo.errorBudgetRemaining > 20
+                      ? "warning"
+                      : "error"
+                  }
+                  thickness="medium"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Target Preview */}
+          <div className="slo-definition-target-preview">
+            <div className="slo-definition-target-preview-item">
+              <span className="slo-definition-target-preview-label">SLO</span>
+              <span className="slo-definition-target-preview-value">
+                {METRIC_TYPE_OPTIONS.find((o) => o.value === def.metricType)
+                  ?.label || "Success Rate (%)"}
+              </span>
+            </div>
+            <div className="slo-definition-target-preview-item">
+              <span className="slo-definition-target-preview-label">Window</span>
+              <span className="slo-definition-target-preview-value">
+                {EVALUATION_WINDOW_OPTIONS.find(
+                  (o) => o.value === def.evaluationWindow
+                )?.label || "7 days (rolling)"}
+              </span>
+            </div>
+            <div className="slo-definition-target-preview-item">
+              <span className="slo-definition-target-preview-label">Status</span>
+              <Badge
+                appearance="filled"
+                color={
+                  status === "healthy"
+                    ? "success"
+                    : status === "warning"
+                    ? "warning"
+                    : "danger"
+                }
+                style={{ textTransform: "capitalize" }}
+              >
+                {status}
+              </Badge>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 
+  // --- Form Content (center panel) ---
   const FormContent = () => (
     <div className="slo-definition-view">
       <h2 className="slo-definition-title">
         {t("SLODefinition_Title", "SLO Configuration")}
       </h2>
+
+      {/* Compliance History Table */}
+      {lastUpdated && sloData.complianceHistory.length > 0 && (
+        <div className="slo-definition-section">
+          <div className="slo-definition-section-header">
+            <Clock20Regular className="slo-definition-section-icon" />
+            <h3 className="slo-definition-section-title">
+              {t("SLODefinition_ComplianceHistory", "Compliance History")}
+            </h3>
+          </div>
+          <div className="slo-definition-table-container">
+            <Table aria-label="SLO compliance history" size="small">
+              <TableHeader>
+                <TableRow>
+                  <TableHeaderCell style={{ width: 180 }}>SLO</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 120 }}>Compliance</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 120 }}>Evaluations</TableHeaderCell>
+                  <TableHeaderCell style={{ width: 100 }}>Breaches</TableHeaderCell>
+                  <TableHeaderCell>Trend (7d)</TableHeaderCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sloData.complianceHistory.map((ch) => (
+                  <TableRow key={ch.sloId}>
+                    <TableCell>
+                      <Text weight="semibold">{ch.itemName}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        appearance="filled"
+                        color={
+                          ch.compliancePercent >= 99
+                            ? "success"
+                            : ch.compliancePercent >= 95
+                            ? "warning"
+                            : "danger"
+                        }
+                        size="small"
+                      >
+                        {ch.compliancePercent}%
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Text size={200}>{ch.totalEvaluations}</Text>
+                    </TableCell>
+                    <TableCell>
+                      <Text
+                        size={200}
+                        style={{
+                          color: ch.breachCount > 0 ? "#d13438" : "inherit"
+                        }}
+                        weight={ch.breachCount > 0 ? "semibold" : "regular"}
+                      >
+                        {ch.breachCount}
+                      </Text>
+                    </TableCell>
+                    <TableCell>
+                      <div className="slo-definition-sparkline">
+                        {ch.snapshots.map((snap, idx) => (
+                          <div
+                            key={idx}
+                            className={`slo-definition-sparkline-bar ${
+                              snap.isBreaching
+                                ? "slo-definition-sparkline-bar--breach"
+                                : "slo-definition-sparkline-bar--ok"
+                            }`}
+                            title={`${snap.timestamp}: ${snap.value}%`}
+                            style={{
+                              height: `${Math.max(
+                                20,
+                                ((snap.value - 90) / 10) * 100
+                              )}%`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
       <div className="slo-definition-form">
         {/* Target Item Section */}

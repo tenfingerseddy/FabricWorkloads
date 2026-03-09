@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npm run start:devServer",
     "start:devServer": "set NODE_OPTIONS=--max-old-space-size=8192 && env-cmd -f .env.dev webpack serve --open --config ./devServer/webpack.dev.js",
+    "start:devGateway": "node ./devServer/start-devGateway.js",
     "start:codespace": "node --max-old-space-size=8192 ./node_modules/.bin/env-cmd -f .env.dev webpack serve --open --config ./devServer/webpack.dev.js --no-hot",
     "build:test": "env-cmd -f .env.test webpack --config ./webpack.config.js --output-path ../build/Frontend --progress",
     "build:prod": "env-cmd -f .env.prod webpack --config ./webpack.config.js --output-path ../build/Frontend --mode production --progress",
@@ -43,7 +44,9 @@
     "css-loader": "^6.5.1",
     "dotenv": "^16.4.5",
     "env-cmd": "^10.1.0",
+    "express-rate-limit": "^8.2.1",
     "html-webpack-plugin": "^5.5.0",
+    "nuget-bin": "^4.0.0",
     "sass": "^1.79.3",
     "sass-loader": "^16.0.2",
     "style-loader": "^3.3.1",

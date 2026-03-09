@@ -270,6 +270,95 @@
 }
 
 // ============================================================================
+// Status Panel Header (live data)
+// ============================================================================
+
+.slo-definition-status-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+// ============================================================================
+// Health Counters (live data)
+// ============================================================================
+
+.slo-definition-health-counters {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: var(--spacingVerticalM) 0;
+}
+
+.slo-definition-health-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+// ============================================================================
+// All SLOs Quick View (live data)
+// ============================================================================
+
+.slo-definition-all-slos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  width: 100%;
+}
+
+.slo-definition-slo-mini-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+
+  &:hover {
+    background: var(--colorNeutralBackground1Hover);
+  }
+}
+
+// ============================================================================
+// Compliance History Table (live data)
+// ============================================================================
+
+.slo-definition-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+// ============================================================================
+// Sparkline (compliance trend visualization)
+// ============================================================================
+
+.slo-definition-sparkline {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 32px;
+}
+
+.slo-definition-sparkline-bar {
+  width: 12px;
+  min-height: 4px;
+  border-radius: 2px;
+  transition: height 0.2s ease;
+
+  &--ok {
+    background: #107c10;
+  }
+
+  &--breach {
+    background: #d13438;
+  }
+}
+
+// ============================================================================
 // Responsive
 // ============================================================================
 
@@ -287,5 +376,11 @@
   .slo-definition-target-preview {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .slo-definition-health-counters {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacingVerticalM);
   }
 }
