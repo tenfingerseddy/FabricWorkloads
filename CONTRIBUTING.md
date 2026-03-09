@@ -50,8 +50,10 @@ landing-page/  # Marketing site
 
 1. Create a feature branch from `main`
 2. Make your changes
-3. Ensure `npx tsc --noEmit` passes
-4. Submit a PR with a clear description
+3. Run `npm test` (187 tests must pass)
+4. Run `npx tsc --noEmit` (no type errors)
+5. Run `npm run validate:notebooks` if you modified notebooks
+6. Submit a PR with a clear description
 
 ## Code Style
 

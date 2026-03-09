@@ -8,9 +8,9 @@
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/actions"><img src="https://img.shields.io/github/actions/workflow/status/tenfingerseddy/FabricWorkloads/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
   <a href="https://github.com/tenfingerseddy/FabricWorkloads/stargazers"><img src="https://img.shields.io/github/stars/tenfingerseddy/FabricWorkloads?style=flat-square" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/tests-269%20passed-brightgreen?style=flat-square" alt="Tests">
-  <img src="https://img.shields.io/badge/events%20tracked-110%2B-brightgreen?style=flat-square" alt="Events Tracked">
-  <img src="https://img.shields.io/badge/SLOs%20tracked-36-blue?style=flat-square" alt="SLOs Tracked">
+  <img src="https://img.shields.io/badge/tests-187%20passed-brightgreen?style=flat-square" alt="Tests">
+  <img src="https://img.shields.io/badge/events%20tracked-137%2B-brightgreen?style=flat-square" alt="Events Tracked">
+  <img src="https://img.shields.io/badge/SLOs%20tracked-88-blue?style=flat-square" alt="SLOs Tracked">
   <img src="https://img.shields.io/badge/free%20tier-available-purple?style=flat-square" alt="Free Tier">
 </p>
 
@@ -31,11 +31,36 @@ Running against real Fabric infrastructure right now:
 
 | Metric | Value |
 |--------|-------|
-| Job events ingested | 110+ |
-| SLO snapshots tracked | 36 |
-| Cross-item correlations | 7 |
-| Alerts triggered | 27 |
+| Job events ingested | 137+ |
+| SLO snapshots tracked | 88 |
+| Cross-item correlations | 8 |
+| Alerts triggered | 52 |
 | Fabric notebooks on schedule | 3 |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Fabric["Microsoft Fabric"]
+        MH[Monitoring Hub] --> NB1[NB_ObsIngestion]
+        API[REST APIs] --> NB1
+        NB1 --> EH[(Eventhouse\nEH_Observability)]
+        EH --> NB2[NB_ObsCorrelation]
+        NB2 --> EH
+        EH --> NB3[NB_ObsAlerts]
+        NB3 --> EH
+        EH --> WL[Workload UI]
+    end
+    subgraph CLI["CLI Tool"]
+        COL[Collector] --> SLO[SLO Engine]
+        COL --> WS[Waste Scorer]
+        SLO --> DASH[Dashboard]
+        WS --> DASH
+        COL --> KQL[KQL Client]
+        KQL --> EH
+    end
+    API --> COL
+```
 
 ## The Solution
 
@@ -46,7 +71,7 @@ This repo provides four things:
 | **CLI Tool** (`src/`) | Collect job data, compute SLOs, score CU waste, detect alerts, render dashboards |
 | **CU Waste Score** (`src/waste-score.ts`) | Quantify compute waste in dollars — retry, duration regression, and duplicate run waste per item |
 | **Fabric Workload** (`workload/`) | Native Fabric item types for dashboards, alerts, and SLOs |
-| **KQL Query Pack** (`kql/`) | 30+ ready-to-use analytical queries for Eventhouse |
+| **KQL Query Pack** (`kql/`) | 45+ ready-to-use analytical queries for Eventhouse |
 
 Plus: Fabric notebooks for in-platform execution, a standalone health check tool, notebook validation scripts, and a landing page.
 
@@ -194,11 +219,12 @@ The open-source CLI and KQL queries are free forever. Paid tiers add managed inf
 - [Blog: The State of Fabric Observability in 2026](https://dev.to/observability-workbench/the-state-of-fabric-observability-in-2026) — the problem space and our approach
 - [Blog: Cross-Item Correlation in Microsoft Fabric](https://dev.to/observability-workbench/cross-item-correlation-in-microsoft-fabric) — technical deep-dive on the correlation engine
 - [KQL Query: CU Waste Score](kql/slo-queries.kql) — calculate compute waste per item in your Eventhouse
+- [KQL Community Query Pack](kql/community-query-pack.kql) — 20 production-ready queries for Fabric observability
 
 ## Testing
 
 ```bash
-npm test           # Run all 269 tests
+npm test           # Run all 187 tests
 npm run test:watch # Watch mode
 ```
 

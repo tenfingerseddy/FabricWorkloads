@@ -14,6 +14,7 @@ import https from 'https';
 // ── Configuration ──────────────────────────────────────────────────────────────
 
 function getEnvVar(name) {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error(`Invalid env var name: ${name}`);
   // Try process.env first (might be set in current shell)
   if (process.env[name]) return process.env[name];
   // Fall back to reading from Windows User environment via PowerShell

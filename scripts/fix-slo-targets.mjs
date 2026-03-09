@@ -5,6 +5,7 @@ import https from 'https';
 import { execSync } from 'child_process';
 
 function getEnvVar(name) {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) throw new Error(`Invalid env var name: ${name}`);
   if (process.env[name]) return process.env[name];
   try {
     const val = execSync(
