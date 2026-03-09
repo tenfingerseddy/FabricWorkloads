@@ -1,0 +1,30 @@
+{
+  "name": "@kane-ai/observability-workbench",
+  "version": "0.1.0",
+  "description": "Fabric Observability Workbench - Monitoring data collection and analysis tool",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node --import tsx src/index.ts",
+    "collect": "node --import tsx src/index.ts --mode collect",
+    "monitor": "node --import tsx src/index.ts --mode monitor",
+    "dashboard": "node --import tsx src/index.ts --mode dashboard",
+    "dev": "tsx watch src/index.ts"
+  },
+  "keywords": ["fabric", "observability", "monitoring", "microsoft-fabric"],
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "cli-table3": "^0.6.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10"
+  }
+}
