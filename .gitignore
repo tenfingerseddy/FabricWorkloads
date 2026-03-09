@@ -1,8 +1,15 @@
 node_modules/
 dist/
+build/
 data/
+coverage/
 *.log
 .env
 .env.*
 !.env.*.example
+.fabric-deploy.*.env
+!.fabric-deploy.*.env.example
+.deploy-checksums.*
 workload/dist/
+*.tgz
+*.nupkg
