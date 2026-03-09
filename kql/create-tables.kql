@@ -1,0 +1,89 @@
+// Observability Workbench — Table Creation Script
+// Run this in your EH_Observability KQL database
+
+// Core event storage — all job instances from monitored workspaces
+.create-merge table FabricEvents (
+    EventId: string,
+    WorkspaceId: string,
+    WorkspaceName: string,
+    ItemId: string,
+    ItemName: string,
+    ItemType: string,
+    JobType: string,
+    InvokeType: string,
+    Status: string,
+    FailureReason: string,
+    RootActivityId: string,
+    StartTimeUtc: datetime,
+    EndTimeUtc: datetime,
+    DurationSeconds: real,
+    CorrelationGroup: string,
+    IngestedAt: datetime
+)
+
+// Cross-item correlation links
+.create-merge table EventCorrelations (
+    CorrelationId: string,
+    ParentEventId: string,
+    ChildEventId: string,
+    CorrelationType: string,
+    Confidence: real,
+    CreatedAt: datetime
+)
+
+// SLO target definitions
+.create-merge table SloDefinitions (
+    SloId: string,
+    ItemId: string,
+    ItemName: string,
+    ItemType: string,
+    MetricType: string,
+    TargetValue: real,
+    WarningThreshold: real,
+    EvaluationWindow: string,
+    CreatedAt: datetime,
+    UpdatedAt: datetime
+)
+
+// Point-in-time SLO measurements
+.create-merge table SloSnapshots (
+    SnapshotId: string,
+    SloId: string,
+    ItemId: string,
+    MetricType: string,
+    CurrentValue: real,
+    TargetValue: real,
+    IsBreached: bool,
+    ErrorBudgetRemaining: real,
+    MeasuredAt: datetime
+)
+
+// Alert rule definitions
+.create-merge table AlertRules (
+    RuleId: string,
+    SloId: string,
+    Condition: string,
+    Threshold: real,
+    NotificationType: string,
+    Target: string,
+    Cooldown: int,
+    Enabled: bool,
+    CreatedAt: datetime
+)
+
+// Workspace and item inventory
+.create-merge table WorkspaceInventory (
+    WorkspaceId: string,
+    WorkspaceName: string,
+    ItemId: string,
+    ItemName: string,
+    ItemType: string,
+    CapacityId: string,
+    DiscoveredAt: datetime,
+    LastSeenAt: datetime
+)
+
+// Set retention policies
+.alter table FabricEvents policy retention "{'SoftDeletePeriod': '90.00:00:00', 'Recoverability': 'Enabled'}"
+.alter table WorkspaceInventory policy retention "{'SoftDeletePeriod': '365.00:00:00', 'Recoverability': 'Enabled'}"
+.alter table SloSnapshots policy retention "{'SoftDeletePeriod': '365.00:00:00', 'Recoverability': 'Enabled'}"

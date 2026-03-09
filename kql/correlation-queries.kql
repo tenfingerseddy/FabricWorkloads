@@ -1,0 +1,114 @@
+// ═══════════════════════════════════════════════════════════════
+// Correlation Queries — Cross-item dependency analysis
+// ═══════════════════════════════════════════════════════════════
+
+// ── Find children of a specific pipeline run ─────────────────
+// Replace PIPELINE_EVENT_ID with the actual EventId
+let PipelineRun = FabricEvents
+| where EventId == "PIPELINE_EVENT_ID"
+| project StartTimeUtc, EndTimeUtc, WorkspaceId;
+FabricEvents
+| where WorkspaceId in (toscalar(PipelineRun | project WorkspaceId))
+| where ItemType in ("Notebook", "Dataflow", "CopyJob")
+| where StartTimeUtc between (
+    toscalar(PipelineRun | project StartTimeUtc) - 30s ..
+    toscalar(PipelineRun | project EndTimeUtc) + 30s
+)
+| project StartTimeUtc, ItemName, ItemType, Status, DurationSeconds
+
+// ── Correlation chains: pipeline → downstream items ─────────
+// Uses time-window overlap to find items triggered by pipelines
+let Pipelines = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where ItemType == "DataPipeline"
+| where Status in ("Completed", "Failed");
+let Downstream = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where ItemType in ("Notebook", "Dataflow", "CopyJob", "Lakehouse");
+Pipelines
+| join kind=inner (Downstream) on WorkspaceId
+| where StartTimeUtc1 between (StartTimeUtc - 30s .. EndTimeUtc + 30s)
+| project
+    PipelineName = ItemName,
+    PipelineStatus = Status,
+    PipelineStart = StartTimeUtc,
+    ChildName = ItemName1,
+    ChildType = ItemType1,
+    ChildStatus = Status1,
+    ChildStart = StartTimeUtc1,
+    ChildDuration = DurationSeconds1
+
+// ── Mixed success/failure chains (partial failures) ─────────
+let Pipelines = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where ItemType == "DataPipeline";
+let Downstream = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where ItemType in ("Notebook", "Dataflow", "CopyJob");
+Pipelines
+| join kind=inner (Downstream) on WorkspaceId
+| where StartTimeUtc1 between (StartTimeUtc - 30s .. EndTimeUtc + 30s)
+| summarize
+    ChildCount = count(),
+    SucceededChildren = countif(Status1 == "Completed"),
+    FailedChildren = countif(Status1 == "Failed")
+    by EventId, ItemName, Status, WorkspaceName
+| where FailedChildren > 0 and SucceededChildren > 0  // Mixed outcomes
+| project
+    PipelineName = ItemName,
+    PipelineStatus = Status,
+    WorkspaceName,
+    ChildCount,
+    SucceededChildren,
+    FailedChildren
+
+// ── End-to-end chain duration (pipeline + all children) ─────
+let Pipelines = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where ItemType == "DataPipeline"
+| where Status == "Completed";
+let Downstream = FabricEvents
+| where StartTimeUtc > ago(7d)
+| where ItemType in ("Notebook", "Dataflow", "CopyJob");
+Pipelines
+| join kind=leftouter (Downstream) on WorkspaceId
+| where isnull(StartTimeUtc1) or StartTimeUtc1 between (StartTimeUtc - 30s .. EndTimeUtc + 30s)
+| summarize
+    ChainStart = min(StartTimeUtc),
+    ChainEnd = max(coalesce(EndTimeUtc1, EndTimeUtc)),
+    ChildCount = dcountif(EventId1, isnotnull(EventId1))
+    by EventId, ItemName, WorkspaceName
+| extend ChainDurationSeconds = datetime_diff('second', ChainEnd, ChainStart)
+| extend ChainDurationMinutes = round(ChainDurationSeconds / 60.0, 1)
+| order by ChainDurationSeconds desc
+
+// ── Blast radius: which pipelines affect the most items? ────
+let Pipelines = FabricEvents
+| where StartTimeUtc > ago(30d)
+| where ItemType == "DataPipeline";
+let Downstream = FabricEvents
+| where StartTimeUtc > ago(30d)
+| where ItemType in ("Notebook", "Dataflow", "CopyJob", "Lakehouse", "SemanticModel");
+Pipelines
+| join kind=inner (Downstream) on WorkspaceId
+| where StartTimeUtc1 between (StartTimeUtc - 30s .. EndTimeUtc + 30s)
+| summarize
+    UniqueChildren = dcount(ItemId1),
+    TotalChildRuns = count(),
+    FailedChildRuns = countif(Status1 == "Failed")
+    by ItemName, WorkspaceName
+| order by UniqueChildren desc
+| take 20
+
+// ── rootActivityId correlation ───────────────────────────────
+// Jobs sharing the same rootActivityId are part of the same execution chain
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where RootActivityId != ""
+| summarize
+    ItemCount = dcount(ItemId),
+    Items = make_set(strcat(ItemType, ": ", ItemName)),
+    Statuses = make_set(Status)
+    by RootActivityId
+| where ItemCount > 1  // Only chains with multiple items
+| order by ItemCount desc

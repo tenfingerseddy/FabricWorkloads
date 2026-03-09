@@ -1,0 +1,92 @@
+// ═══════════════════════════════════════════════════════════════
+// Troubleshooting Queries — Incident investigation
+// ═══════════════════════════════════════════════════════════════
+
+// ── What failed in the last hour? ────────────────────────────
+FabricEvents
+| where StartTimeUtc > ago(1h)
+| where Status == "Failed"
+| project StartTimeUtc, WorkspaceName, ItemName, ItemType, FailureReason
+| order by StartTimeUtc desc
+
+// ── Timeline view: all events for a specific item ────────────
+// Replace ITEM_NAME with the actual item name
+FabricEvents
+| where ItemName == "ITEM_NAME"
+| where StartTimeUtc > ago(7d)
+| project StartTimeUtc, EndTimeUtc, Status, DurationSeconds, JobType, InvokeType, FailureReason
+| order by StartTimeUtc desc
+
+// ── Failure reason analysis (top error messages) ─────────────
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Failed"
+| where FailureReason != ""
+| summarize Count = count() by FailureReason, ItemType
+| order by Count desc
+| take 20
+
+// ── Is this a new failure pattern? ──────────────────────────
+// Compare failure rate: this week vs last week
+let ThisWeek = FabricEvents
+| where StartTimeUtc > ago(7d)
+| summarize ThisWeekFails = countif(Status == "Failed"), ThisWeekTotal = count() by ItemId, ItemName;
+let LastWeek = FabricEvents
+| where StartTimeUtc between (ago(14d) .. ago(7d))
+| summarize LastWeekFails = countif(Status == "Failed"), LastWeekTotal = count() by ItemId;
+ThisWeek
+| join kind=leftouter LastWeek on ItemId
+| extend ThisWeekRate = round(todouble(ThisWeekFails) / ThisWeekTotal * 100, 1)
+| extend LastWeekRate = round(todouble(coalesce(LastWeekFails, 0)) / coalesce(LastWeekTotal, 1) * 100, 1)
+| extend RateChange = ThisWeekRate - LastWeekRate
+| where RateChange > 5  // Failure rate increased by >5%
+| order by RateChange desc
+
+// ── Scheduled vs manual runs comparison ─────────────────────
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| summarize
+    Count = count(),
+    SuccessRate = round(countif(Status == "Completed") * 100.0 / count(), 1),
+    AvgDuration = round(avg(DurationSeconds), 0)
+    by InvokeType, ItemType
+| order by ItemType asc, InvokeType asc
+
+// ── Items that haven't run at all (never seen a job) ────────
+let ItemsWithJobs = FabricEvents | distinct ItemId;
+WorkspaceInventory
+| where ItemType in ("DataPipeline", "Notebook", "Dataflow", "CopyJob")
+| where ItemId !in (ItemsWithJobs)
+| project WorkspaceName, ItemName, ItemType, DiscoveredAt
+
+// ── Duration anomaly detection (runs >3x their P50) ─────────
+let Baselines = FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Completed"
+| where DurationSeconds > 0
+| summarize P50 = percentile(DurationSeconds, 50) by ItemId;
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Completed"
+| where DurationSeconds > 0
+| join kind=inner Baselines on ItemId
+| where DurationSeconds > P50 * 3
+| project
+    StartTimeUtc,
+    ItemName,
+    ItemType,
+    WorkspaceName,
+    DurationSeconds,
+    BaselineP50 = round(P50, 0),
+    Multiplier = round(DurationSeconds / P50, 1)
+| order by Multiplier desc
+
+// ── Data ingestion lag check ─────────────────────────────────
+// How fresh is our observability data?
+FabricEvents
+| summarize
+    LatestEvent = max(StartTimeUtc),
+    LatestIngestion = max(IngestedAt),
+    EventCount = count()
+| extend IngestionLagMinutes = datetime_diff('minute', LatestIngestion, LatestEvent)
+| extend DataAgeMinutes = datetime_diff('minute', now(), LatestIngestion)

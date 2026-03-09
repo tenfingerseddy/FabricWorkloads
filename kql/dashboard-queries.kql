@@ -1,0 +1,80 @@
+// ═══════════════════════════════════════════════════════════════
+// Dashboard Queries — Main observability dashboard
+// ═══════════════════════════════════════════════════════════════
+
+// ── Overview: Job success rate by workspace (last 24h) ──────
+FabricEvents
+| where StartTimeUtc > ago(24h)
+| where Status != ""
+| summarize
+    TotalJobs = count(),
+    Succeeded = countif(Status == "Completed"),
+    Failed = countif(Status == "Failed"),
+    InProgress = countif(Status == "InProgress"),
+    Cancelled = countif(Status == "Cancelled")
+    by WorkspaceName
+| extend SuccessRate = round(todouble(Succeeded) / TotalJobs * 100, 1)
+| order by TotalJobs desc
+
+// ── Failed jobs with reasons (last 7 days) ──────────────────
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Failed"
+| project
+    StartTimeUtc,
+    WorkspaceName,
+    ItemName,
+    ItemType,
+    JobType,
+    FailureReason,
+    DurationSeconds
+| order by StartTimeUtc desc
+
+// ── Job duration trends (last 30 days, daily P50/P95) ───────
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status == "Completed"
+| where DurationSeconds > 0
+| summarize
+    P50 = percentile(DurationSeconds, 50),
+    P95 = percentile(DurationSeconds, 95),
+    Avg = avg(DurationSeconds),
+    Count = count()
+    by bin(StartTimeUtc, 1d), ItemName
+| order by StartTimeUtc asc, ItemName
+
+// ── Item type distribution across workspaces ─────────────────
+WorkspaceInventory
+| summarize ItemCount = dcount(ItemId) by WorkspaceName, ItemType
+| order by WorkspaceName asc, ItemCount desc
+
+// ── Job volume heatmap (hour of day × day of week) ──────────
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| extend HourOfDay = hourofday(StartTimeUtc)
+| extend DayOfWeek = dayofweek(StartTimeUtc) / 1d
+| summarize JobCount = count() by HourOfDay, DayOfWeek
+| order by DayOfWeek asc, HourOfDay asc
+
+// ── Items with no recent activity (stale items) ─────────────
+let RecentJobs = FabricEvents
+| where StartTimeUtc > ago(7d)
+| distinct ItemId;
+WorkspaceInventory
+| where ItemType in ("DataPipeline", "Notebook", "Dataflow")
+| where ItemId !in (RecentJobs)
+| project WorkspaceName, ItemName, ItemType, LastSeenAt
+
+// ── Top 10 longest running jobs (last 7 days) ───────────────
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Completed"
+| where DurationSeconds > 0
+| top 10 by DurationSeconds desc
+| project
+    StartTimeUtc,
+    WorkspaceName,
+    ItemName,
+    ItemType,
+    DurationSeconds,
+    round(DurationSeconds / 60.0, 1) as DurationMinutes

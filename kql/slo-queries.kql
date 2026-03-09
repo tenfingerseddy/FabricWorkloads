@@ -1,0 +1,73 @@
+// ═══════════════════════════════════════════════════════════════
+// SLO Queries — Service Level Objective tracking
+// ═══════════════════════════════════════════════════════════════
+
+// ── Success rate SLO per item (last 7 days) ─────────────────
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status in ("Completed", "Failed")
+| summarize
+    TotalRuns = count(),
+    SuccessfulRuns = countif(Status == "Completed"),
+    FailedRuns = countif(Status == "Failed")
+    by ItemId, ItemName, ItemType, WorkspaceName
+| extend SuccessRate = round(todouble(SuccessfulRuns) / TotalRuns * 100, 2)
+| extend SloTarget = 99.5  // Adjust per item
+| extend IsBreached = SuccessRate < SloTarget
+| extend ErrorBudgetUsed = round((100.0 - SuccessRate) / (100.0 - SloTarget) * 100, 1)
+| order by IsBreached desc, SuccessRate asc
+
+// ── Duration SLO: P95 duration vs baseline ──────────────────
+let Baseline = FabricEvents
+| where StartTimeUtc between (ago(30d) .. ago(7d))
+| where Status == "Completed"
+| where DurationSeconds > 0
+| summarize BaselineP95 = percentile(DurationSeconds, 95) by ItemId;
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| where Status == "Completed"
+| where DurationSeconds > 0
+| summarize CurrentP95 = percentile(DurationSeconds, 95) by ItemId, ItemName
+| join kind=inner Baseline on ItemId
+| extend DurationRatio = round(CurrentP95 / BaselineP95, 2)
+| extend IsRegression = DurationRatio > 2.0  // P95 doubled = regression
+| order by DurationRatio desc
+
+// ── Freshness SLO: hours since last successful run ──────────
+FabricEvents
+| where Status == "Completed"
+| summarize LastSuccess = max(EndTimeUtc) by ItemId, ItemName, ItemType, WorkspaceName
+| extend HoursSinceSuccess = round(datetime_diff('second', now(), LastSuccess) / 3600.0, 1)
+| extend FreshnessTarget = case(
+    ItemType == "DataPipeline", 24.0,  // Daily pipelines
+    ItemType == "Notebook", 6.0,       // Frequent notebooks
+    ItemType == "Dataflow", 12.0,      // Semi-daily dataflows
+    48.0                               // Default
+)
+| extend IsStale = HoursSinceSuccess > FreshnessTarget
+| order by IsStale desc, HoursSinceSuccess desc
+
+// ── Error budget burn rate (rolling 7-day windows) ──────────
+FabricEvents
+| where StartTimeUtc > ago(30d)
+| where Status in ("Completed", "Failed")
+| summarize
+    TotalRuns = count(),
+    FailedRuns = countif(Status == "Failed")
+    by ItemId, ItemName, bin(StartTimeUtc, 7d)
+| extend FailureRate = round(todouble(FailedRuns) / TotalRuns * 100, 2)
+| extend ErrorBudget = 0.5  // 99.5% SLO → 0.5% error budget
+| extend BudgetConsumed = round(FailureRate / ErrorBudget * 100, 1)
+| order by StartTimeUtc desc, BudgetConsumed desc
+
+// ── Consecutive failures (detect sustained outages) ─────────
+FabricEvents
+| where StartTimeUtc > ago(7d)
+| order by ItemId asc, StartTimeUtc asc
+| serialize
+| extend PrevStatus = prev(Status), PrevItemId = prev(ItemId)
+| where ItemId == PrevItemId
+| where Status == "Failed" and PrevStatus == "Failed"
+| summarize ConsecutiveFailures = count() + 1 by ItemId, ItemName, WorkspaceName
+| where ConsecutiveFailures >= 3
+| order by ConsecutiveFailures desc
