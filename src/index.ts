@@ -21,6 +21,7 @@ import { Dashboard, renderTrendAnalysis } from "./dashboard.ts";
 import { AlertEngine } from "./alerts.ts";
 import { Scheduler } from "./scheduler.ts";
 import { KqlClient } from "./kql-client.ts";
+import { WasteScoreCalculator } from "./waste-score.ts";
 
 // ── Parse CLI args ─────────────────────────────────────────────────
 
@@ -60,6 +61,7 @@ async function runCollectionCycle(
   store: ObservabilityStore,
   dashboard: Dashboard,
   alertEngine: AlertEngine,
+  wasteCalculator: WasteScoreCalculator,
   renderDashboard: boolean,
   kqlClient?: KqlClient
 ): Promise<CollectionResult> {
@@ -89,9 +91,15 @@ async function runCollectionCycle(
   // Write alerts to file
   await alertEngine.writeAlerts(alerts, store.getDataDir());
 
+  // Calculate CU waste score
+  const wasteReport = wasteCalculator.calculate(result);
+  console.log(
+    `[waste-score] Computed waste score: ${wasteReport.aggregateScore}/100 for ${wasteReport.items.length} item(s)`
+  );
+
   // Render dashboard
   if (renderDashboard) {
-    dashboard.render(result, alerts);
+    dashboard.render(result, alerts, wasteReport);
 
     // Trend analysis if we have history
     if (history.length >= 2) {
@@ -121,6 +129,7 @@ async function main(): Promise<void> {
   const store = new ObservabilityStore(config.dataDir);
   const dashboard = new Dashboard(config);
   const alertEngine = new AlertEngine(config);
+  const wasteCalculator = new WasteScoreCalculator();
 
   // Initialize KQL client if enabled
   let kqlClient: KqlClient | undefined;
@@ -161,6 +170,7 @@ async function main(): Promise<void> {
         store,
         dashboard,
         alertEngine,
+        wasteCalculator,
         false,
         kqlClient
       );
@@ -186,7 +196,8 @@ async function main(): Promise<void> {
       const baseline =
         history.length >= 2 ? history[history.length - 2].sloMetrics : undefined;
       const alerts = alertEngine.evaluate(latest, baseline);
-      dashboard.render(latest, alerts);
+      const wasteReport = wasteCalculator.calculate(latest);
+      dashboard.render(latest, alerts, wasteReport);
       if (history.length >= 2) {
         renderTrendAnalysis(history);
       }
@@ -200,6 +211,7 @@ async function main(): Promise<void> {
           store,
           dashboard,
           alertEngine,
+          wasteCalculator,
           true,
           kqlClient
         );
@@ -215,6 +227,7 @@ async function main(): Promise<void> {
         store,
         dashboard,
         alertEngine,
+        wasteCalculator,
         true,
         kqlClient
       );
@@ -235,3 +248,8 @@ main().catch((err) => {
   }
   process.exit(1);
 });
+
+// ── Package exports ─────────────────────────────────────────────────
+
+export { WasteScoreCalculator, CU_COST } from "./waste-score.ts";
+export type { WasteMetrics, WasteReport } from "./waste-score.ts";

@@ -2,7 +2,7 @@
  * Observability Workbench - CLI Dashboard
  *
  * Renders collection results as a rich, color-coded CLI dashboard.
- * Sections: Inventory, Job History, Correlations, SLOs, Failures, Trends.
+ * Sections: Inventory, Job History, Correlations, SLOs, Waste Score, Failures, Trends.
  */
 
 import chalk from "chalk";
@@ -11,6 +11,7 @@ import type { CollectionResult, CorrelationChain, SLOMetricSet, WorkspaceSnapsho
 import type { EnrichedJob } from "./fabric-client.ts";
 import type { Alert } from "./alerts.ts";
 import type { AppConfig } from "./config.ts";
+import type { WasteReport, WasteMetrics } from "./waste-score.ts";
 
 // ── Formatting helpers ─────────────────────────────────────────────
 
@@ -55,6 +56,21 @@ function freshnessColor(hours: number | null, maxHours: number): string {
   return chalk.red(`${hours.toFixed(1)}h`);
 }
 
+function wasteScoreColor(score: number): string {
+  const label = `${score}/100`;
+  if (score >= 90) return chalk.green(label);
+  if (score >= 70) return chalk.yellow(label);
+  if (score >= 50) return chalk.hex("#FF8800")(label); // orange
+  return chalk.red(label);
+}
+
+function fmtCUMs(cuMs: number): string {
+  if (cuMs <= 0) return chalk.gray("--");
+  if (cuMs < 60_000) return chalk.white(`${(cuMs / 1000).toFixed(0)}s`);
+  if (cuMs < 3_600_000) return chalk.white(`${(cuMs / 60_000).toFixed(1)}m`);
+  return chalk.white(`${(cuMs / 3_600_000).toFixed(1)}h`);
+}
+
 function sectionHeader(title: string): void {
   const line = "═".repeat(76);
   console.log();
@@ -68,7 +84,7 @@ function sectionHeader(title: string): void {
 export class Dashboard {
   constructor(private readonly config: AppConfig) {}
 
-  render(result: CollectionResult, alerts: Alert[]): void {
+  render(result: CollectionResult, alerts: Alert[], wasteReport?: WasteReport): void {
     console.log();
     console.log(
       chalk.bold.white(
@@ -80,6 +96,9 @@ export class Dashboard {
     this.renderJobHistory(result.jobs);
     this.renderCorrelations(result.correlations);
     this.renderSLOStatus(result.sloMetrics);
+    if (wasteReport) {
+      this.renderWasteScore(wasteReport);
+    }
     this.renderFailures(result.jobs);
     this.renderAlerts(alerts);
   }
@@ -311,6 +330,89 @@ export class Dashboard {
     const totalFailed = jobs.filter((j) => j.status === "Failed").length;
     if (totalFailed > 10) {
       console.log(chalk.gray(`  ... and ${totalFailed - 10} more failures`));
+    }
+  }
+
+  // ── CU Waste Score ───────────────────────────────────────────────
+
+  private renderWasteScore(report: WasteReport): void {
+    sectionHeader("CU WASTE SCORE");
+
+    if (report.items.length === 0) {
+      console.log(chalk.gray("  No job data available for waste analysis."));
+      return;
+    }
+
+    // Aggregate summary
+    const scoreLabel = wasteScoreColor(report.aggregateScore);
+    const costLabel = report.estimatedMonthlyCost > 0
+      ? chalk.yellow(`$${report.estimatedMonthlyCost.toFixed(2)}/mo`)
+      : chalk.green("$0.00/mo");
+
+    console.log();
+    console.log(
+      `  Overall Efficiency Score: ${scoreLabel}  |  Est. Monthly Waste: ${costLabel}`
+    );
+    console.log(chalk.gray(`  Evaluation window: ${report.evaluationWindow}`));
+    console.log();
+
+    // Top 5 wasteful items
+    const top5 = report.items
+      .filter((i) => i.totalWasteCUMs > 0)
+      .slice(0, 5);
+
+    if (top5.length === 0) {
+      console.log(chalk.green("  No compute waste detected. All items running efficiently."));
+      return;
+    }
+
+    console.log(chalk.bold.white("  Top Wasteful Items:"));
+    console.log();
+
+    const table = new Table({
+      head: [
+        chalk.white("Item"),
+        chalk.white("Type"),
+        chalk.white("Score"),
+        chalk.white("Retry"),
+        chalk.white("Duration"),
+        chalk.white("Overlap"),
+        chalk.white("$/mo"),
+      ],
+      colWidths: [22, 14, 8, 10, 10, 10, 10],
+    });
+
+    for (const item of top5) {
+      table.push([
+        chalk.white(truncate(item.itemName, 20)),
+        chalk.gray(item.itemType),
+        wasteScoreColor(item.wasteScore),
+        fmtCUMs(item.retryWasteCUMs),
+        fmtCUMs(item.durationWasteCUMs),
+        fmtCUMs(item.duplicateWasteCUMs),
+        item.monthlyEstimatedCost > 0
+          ? chalk.yellow(`$${item.monthlyEstimatedCost.toFixed(2)}`)
+          : chalk.green("$0"),
+      ]);
+    }
+
+    console.log(table.toString());
+
+    // Waste breakdown summary
+    const totalRetry = report.items.reduce((s, i) => s + i.retryWasteCUMs, 0);
+    const totalDuration = report.items.reduce((s, i) => s + i.durationWasteCUMs, 0);
+    const totalDuplicate = report.items.reduce((s, i) => s + i.duplicateWasteCUMs, 0);
+
+    if (report.aggregateWasteCUMs > 0) {
+      const retryPct = ((totalRetry / report.aggregateWasteCUMs) * 100).toFixed(0);
+      const durationPct = ((totalDuration / report.aggregateWasteCUMs) * 100).toFixed(0);
+      const duplicatePct = ((totalDuplicate / report.aggregateWasteCUMs) * 100).toFixed(0);
+
+      console.log(
+        chalk.gray(
+          `  Waste breakdown: Retry ${retryPct}% | Duration regression ${durationPct}% | Overlapping runs ${duplicatePct}%`
+        )
+      );
     }
   }
 
