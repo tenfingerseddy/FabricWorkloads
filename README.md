@@ -1,133 +1,156 @@
 <p align="center">
-  <img src="docs/logo-placeholder.png" alt="Observability Workbench" width="120">
-  <br><br>
-  <strong>Observability Workbench CLI</strong>
+  <strong>Observability Workbench for Microsoft Fabric</strong>
   <br>
-  Monitoring data collection and analysis for Microsoft Fabric
+  Open-source monitoring, SLO tracking, and cross-item correlation
 </p>
 
 <p align="center">
-  <a href="#"><img src="https://img.shields.io/github/actions/workflow/status/kane-ai/observability-workbench/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
-  <a href="https://www.npmjs.com/package/@kane-ai/observability-workbench"><img src="https://img.shields.io/npm/v/@kane-ai/observability-workbench?style=flat-square" alt="npm version"></a>
+  <a href="https://github.com/tenfingerseddy/FabricWorkloads/actions"><img src="https://img.shields.io/github/actions/workflow/status/tenfingerseddy/FabricWorkloads/ci.yml?branch=main&style=flat-square" alt="Build Status"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License"></a>
+  <a href="https://github.com/tenfingerseddy/FabricWorkloads/stargazers"><img src="https://img.shields.io/github/stars/tenfingerseddy/FabricWorkloads?style=flat-square" alt="Stars"></a>
 </p>
 
 ---
 
-## What is this?
+## The Problem
 
-**Observability Workbench CLI** is an open-source command-line tool that collects, stores, and analyzes monitoring data from Microsoft Fabric workspaces. It bridges the gap between Fabric's built-in 30-day monitoring and the long-term observability that production data teams require.
+Microsoft Fabric's built-in monitoring has gaps:
+- **30-day retention** — no long-term trending
+- **No cross-item correlation** — can't trace pipeline → notebook → semantic model chains
+- **No SLO framework** — no way to define and track service level objectives
+- **Fragmented tools** — Monitoring Hub, Capacity Metrics, Spark UI are all separate
 
-> **Note:** This is the open-source CLI tool. The commercial Observability Workbench product (a native Fabric workload with SLO tracking, correlation engine, proactive alerts, and a managed UI) is developed and licensed separately.
+## The Solution
 
-## Features
+This repo provides three things:
 
-- **Metric Collection** -- Automatically collects refresh histories, pipeline runs, capacity metrics, and operational events from your Fabric tenant
-- **Long-Retention Storage** -- Persists monitoring data to local JSON/SQLite or a Fabric Lakehouse for retention beyond 30 days
-- **Terminal Dashboard** -- Real-time CLI dashboard showing workspace health, recent failures, and key metrics
-- **Threshold Alerts** -- Configurable alerting on refresh failures, duration anomalies, and capacity utilization
-- **Scheduling** -- Built-in cron-style scheduler for continuous, unattended data collection
-- **Extensible** -- TypeScript codebase designed for custom collectors, exporters, and alert channels
+| Component | Description |
+|-----------|-------------|
+| **CLI Tool** (`src/`) | Collect job data, compute SLOs, detect alerts, render dashboards |
+| **Fabric Workload** (`workload/`) | Native Fabric item types for dashboards, alerts, and SLOs |
+| **KQL Query Pack** (`kql/`) | 30+ ready-to-use analytical queries for Eventhouse |
+
+Plus: Fabric notebooks, a standalone health check tool, and a landing page.
 
 ## Quick Start
 
-### Prerequisites
-
-- Node.js 20 or later
-- A Microsoft Fabric tenant with at least one workspace
-- An Azure AD app registration with Fabric read permissions ([setup guide](docs/auth-setup.md))
-
-### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/kane-ai/observability-workbench.git
-cd observability-workbench
-
-# Install dependencies
+git clone https://github.com/tenfingerseddy/FabricWorkloads.git
+cd FabricWorkloads
 npm install
-
-# Copy and edit the configuration
-cp .env.example .env
-# Edit .env with your Azure AD credentials and Fabric workspace IDs
 ```
 
-### Usage
+Set your environment variables:
 
 ```bash
-# Collect monitoring data (one-shot)
+export FABRIC_TENANT_ID="your-tenant-id"
+export FABRIC_CLIENT_ID="your-client-id"
+export FABRIC_CLIENT_SECRET="your-client-secret"
+```
+
+Run:
+
+```bash
+# Full collection + dashboard + alerts
+npm start
+
+# Collect only
 npm run collect
 
-# Start the live terminal dashboard
+# Dashboard only
 npm run dashboard
 
-# Run in continuous monitoring mode (collects on a schedule)
+# Continuous monitoring (every 5 min)
 npm run monitor
-
-# Development mode with hot reload
-npm run dev
 ```
+
+### Quick Health Check (no install needed)
+
+```bash
+npx fabric-health-check
+```
+
+## What It Does
+
+1. **Discovers** all workspaces and items via the Fabric REST API
+2. **Collects** job instances for pipelines, notebooks, dataflows, copy jobs, etc.
+3. **Correlates** related items (pipeline triggers notebook → links them)
+4. **Computes** SLO metrics: success rate, P50/P95 duration, freshness
+5. **Ingests** into Fabric Eventhouse (KQL database) for long-term storage
+6. **Alerts** on SLO breaches, duration regressions, consecutive failures
+7. **Renders** a CLI dashboard with workspace inventory, job history, and SLO status
 
 ## Configuration
 
-Configuration is managed via environment variables or a `.env` file:
-
 | Variable | Description | Required |
-|---|---|---|
-| `AZURE_TENANT_ID` | Azure AD tenant ID | Yes |
-| `AZURE_CLIENT_ID` | App registration client ID | Yes |
-| `AZURE_CLIENT_SECRET` | App registration client secret | Yes |
-| `FABRIC_WORKSPACE_IDS` | Comma-separated workspace IDs to monitor | Yes |
-| `COLLECT_INTERVAL_MINUTES` | Collection interval for monitor mode (default: `15`) | No |
-| `DATA_DIR` | Directory for local data storage (default: `./data`) | No |
-| `ALERT_EMAIL` | Email address for alert notifications | No |
-| `LOG_LEVEL` | Logging verbosity: `debug`, `info`, `warn`, `error` (default: `info`) | No |
+|----------|-------------|----------|
+| `FABRIC_TENANT_ID` | Azure AD tenant ID | Yes |
+| `FABRIC_CLIENT_ID` | Service principal client ID | Yes |
+| `FABRIC_CLIENT_SECRET` | Service principal secret | Yes |
+| `KQL_ENABLED` | Enable Eventhouse ingestion (`true`/`false`) | No |
+| `KQL_QUERY_ENDPOINT` | Eventhouse query URI | When KQL enabled |
+| `KQL_DATABASE` | KQL database name | When KQL enabled |
 
 ## Project Structure
 
 ```
-observability-workbench/
-  src/
-    index.ts          # CLI entry point and argument parsing
-    collector.ts      # Fabric API data collection logic
-    store.ts          # Data persistence layer
-    dashboard.ts      # Terminal dashboard renderer
-    alerts.ts         # Alert evaluation and dispatch
-    scheduler.ts      # Cron-style collection scheduler
-    fabric-client.ts  # Microsoft Fabric REST API client
-    auth.ts           # Azure AD authentication
-    config.ts         # Configuration loader
-  data/               # Local data storage (git-ignored)
-  docs/               # Documentation
-  scripts/            # Utility scripts
-  specs/              # Specifications and design docs
+src/                    # CLI tool (TypeScript)
+  auth.ts               #   OAuth2 client credentials
+  fabric-client.ts      #   Fabric REST API client (pagination, retry, rate limiting)
+  collector.ts          #   Workspace discovery, job collection, correlation, SLOs
+  kql-client.ts         #   Eventhouse KQL ingestion
+  dashboard.ts          #   Terminal dashboard renderer
+  alerts.ts             #   Alert engine (SLO breach, regression, freshness)
+  scheduler.ts          #   Polling scheduler for continuous mode
+  __tests__/            #   53 unit tests (vitest)
+workload/               # Fabric Extensibility Toolkit workload
+  app/items/            #   3 item types: WorkbenchDashboard, AlertRule, SLODefinition
+  Manifest/             #   Fabric manifests and item definitions
+kql/                    # Ready-to-use KQL queries
+  create-tables.kql     #   Table creation with retention policies
+  dashboard-queries.kql #   Success rates, duration trends, heatmaps
+  slo-queries.kql       #   SLO tracking, error budgets
+  correlation-queries.kql # Cross-item correlation analysis
+  troubleshooting.kql   #   Incident investigation queries
+notebooks/              # Fabric PySpark notebooks
+  NB_ObsIngestion.py    #   Scheduled job data collection
+  NB_ObsCorrelation.py  #   Cross-item correlation engine
+  NB_ObsAlerts.py       #   Alert evaluation and notification
+packages/               # Standalone tools
+  fabric-health-check/  #   npx fabric-health-check (zero dependencies)
+landing-page/           # Marketing site
 ```
 
-## Roadmap
+## Fabric Item Types (Workload)
 
-- [ ] **v0.2** -- SQLite storage backend for efficient querying
-- [ ] **v0.3** -- Webhook and Microsoft Teams alert channels
-- [ ] **v0.4** -- Historical trend analysis and anomaly detection
-- [ ] **v0.5** -- Export to Fabric Lakehouse (direct Lakehouse write-back)
-- [ ] **v0.6** -- Multi-tenant support (monitor multiple tenants)
-- [ ] **v1.0** -- Stable CLI release with full documentation
+The workload adds 3 native item types to Fabric:
+
+- **WorkbenchDashboard** — SLO status grid, incident timeline, failed jobs view
+- **AlertRule** — Condition builder, notification targets, test alerts
+- **SLODefinition** — Metric configuration, error budget visualization
+
+## KQL Eventhouse Tables
+
+| Table | Purpose |
+|-------|---------|
+| `FabricEvents` | All job instances (90-day retention) |
+| `WorkspaceInventory` | Item catalog across workspaces |
+| `EventCorrelations` | Cross-item dependency links |
+| `SloDefinitions` | SLO target configurations |
+| `SloSnapshots` | Point-in-time SLO measurements |
+| `AlertRules` | Alert rule definitions |
+
+## Testing
+
+```bash
+npm test          # Run all 53 tests
+npm run test:watch  # Watch mode
+```
 
 ## Contributing
 
-Contributions are welcome. Please open an issue first to discuss what you'd like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/my-feature`)
-3. Commit your changes (`git commit -m 'Add my feature'`)
-4. Push to the branch (`git push origin feature/my-feature`)
-5. Open a pull request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and guidelines.
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  Built by <a href="https://github.com/kane-ai">Kane AI</a>
-</p>
+MIT — see [LICENSE](LICENSE).
