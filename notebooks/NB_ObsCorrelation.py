@@ -236,9 +236,9 @@ ingested_corr = 0
 
 for row in correlations:
     # Build pipe-delimited values matching EventCorrelations schema:
-    # CorrelationId, ParentEventId, ChildEventId, CorrelationType, Confidence, CreatedAt
+    # UpstreamEventId (guid), DownstreamEventId (guid), RelationshipType (string),
+    # ConfidenceScore (real), DetectedAt (datetime)
     values = "|".join([
-        row["CorrelationId"],
         row["ParentEventId"],
         row["ChildEventId"],
         row["CorrelationType"],
