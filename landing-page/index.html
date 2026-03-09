@@ -776,6 +776,200 @@ img { max-width: 100%; display: block; }
 .animate-in:nth-child(4) { animation-delay: .3s; }
 .animate-in:nth-child(5) { animation-delay: .4s; }
 .animate-in:nth-child(6) { animation-delay: .5s; }
+
+/* ============================================================
+   CU WASTE SCORE FEATURE
+   ============================================================ */
+.waste-score {
+  position: relative;
+  overflow: hidden;
+}
+
+.waste-score::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(232,113,42,.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.waste-score__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+  .waste-score__grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
+.waste-score__content { position: relative; z-index: 1; }
+
+.waste-score__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 100px;
+  border: 1px solid rgba(232,113,42,.3);
+  background: rgba(232,113,42,.08);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--accent-orange);
+  margin-bottom: 16px;
+}
+
+.waste-score__title {
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.waste-score__title span {
+  background: linear-gradient(135deg, var(--accent-orange) 20%, #f5c542 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.waste-score__subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--accent-orange);
+  margin-bottom: 16px;
+}
+
+.waste-score__desc {
+  font-size: .95rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+  margin-bottom: 32px;
+}
+
+.waste-score__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .waste-score__stats { grid-template-columns: 1fr; }
+}
+
+.waste-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 24px 20px;
+  text-align: center;
+  transition: all var(--transition);
+}
+.waste-stat:hover {
+  border-color: var(--accent-orange);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+
+.waste-stat__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: rgba(232,113,42,.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.waste-stat__label {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.waste-stat__desc {
+  font-size: .78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.waste-score__code {
+  position: relative;
+  z-index: 1;
+}
+
+.waste-score__code-block {
+  background: #0f0f1e;
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 28px 24px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: .82rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  overflow-x: auto;
+  position: relative;
+}
+
+.waste-score__code-label {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: rgba(42,42,68,.8);
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+
+.waste-score__code-block .kql-keyword { color: #569cd6; }
+.waste-score__code-block .kql-function { color: #dcdcaa; }
+.waste-score__code-block .kql-string { color: #ce9178; }
+.waste-score__code-block .kql-number { color: #b5cea8; }
+.waste-score__code-block .kql-comment { color: #6a9955; font-style: italic; }
+.waste-score__code-block .kql-operator { color: #d4d4d4; }
+.waste-score__code-block .kql-table { color: #4ec9b0; }
+
+.waste-score__callout {
+  margin-top: 20px;
+  background: rgba(232,113,42,.06);
+  border: 1px solid rgba(232,113,42,.2);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.waste-score__callout-icon {
+  min-width: 20px;
+  color: var(--accent-orange);
+  margin-top: 1px;
+}
+
+.waste-score__callout-text {
+  font-size: .85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.waste-score__callout-text strong {
+  color: var(--accent-orange);
+  font-weight: 700;
+}
 </style>
 </head>
 
@@ -935,8 +1129,72 @@ img { max-width: 100%; display: block; }
   </div>
 </section>
 
+<!-- ======================== CU WASTE SCORE ======================== -->
+<section class="section section--alt waste-score" id="waste-score">
+  <div class="container">
+    <div class="waste-score__grid">
+      <div class="waste-score__content animate-in">
+        <div class="waste-score__badge">New Feature</div>
+        <h2 class="waste-score__title">CU <span>Waste Score</span></h2>
+        <p class="waste-score__subtitle">Quantify compute waste in dollars</p>
+        <p class="waste-score__desc">
+          Know exactly how much money failed retries, duration regressions, and duplicate runs are costing you. The Waste Score (0&ndash;100) translates CU consumption into actionable FinOps insights.
+        </p>
+        <div class="waste-score__stats">
+          <div class="waste-stat animate-in">
+            <div class="waste-stat__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            </div>
+            <div class="waste-stat__label">Retry Waste</div>
+            <p class="waste-stat__desc">CUs burned on jobs that ultimately fail</p>
+          </div>
+          <div class="waste-stat animate-in">
+            <div class="waste-stat__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            </div>
+            <div class="waste-stat__label">Duration Regression</div>
+            <p class="waste-stat__desc">Jobs running 2&ndash;3x longer than baseline</p>
+          </div>
+          <div class="waste-stat animate-in">
+            <div class="waste-stat__icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8712a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <div class="waste-stat__label">Duplicate Runs</div>
+            <p class="waste-stat__desc">Overlapping executions of the same item</p>
+          </div>
+        </div>
+      </div>
+      <div class="waste-score__code animate-in">
+        <div class="waste-score__code-block">
+          <span class="waste-score__code-label">KQL</span>
+<span class="kql-comment">// Calculate CU waste by category over the last 7 days</span>
+<span class="kql-table">FabricEvents</span>
+<span class="kql-operator">|</span> <span class="kql-keyword">where</span> Timestamp <span class="kql-operator">&gt;</span> <span class="kql-function">ago</span>(<span class="kql-number">7d</span>)
+<span class="kql-operator">|</span> <span class="kql-keyword">where</span> WasteCategory <span class="kql-operator">in</span> (<span class="kql-string">"retry"</span>, <span class="kql-string">"regression"</span>, <span class="kql-string">"duplicate"</span>)
+<span class="kql-operator">|</span> <span class="kql-keyword">summarize</span>
+    WastedCU    <span class="kql-operator">=</span> <span class="kql-function">sum</span>(CUSeconds),
+    WastedCost  <span class="kql-operator">=</span> <span class="kql-function">sum</span>(CUSeconds) <span class="kql-operator">*</span> <span class="kql-number">0.0032</span>,
+    JobCount    <span class="kql-operator">=</span> <span class="kql-function">dcount</span>(JobId)
+    <span class="kql-keyword">by</span> WasteCategory
+<span class="kql-operator">|</span> <span class="kql-keyword">extend</span> WasteScore <span class="kql-operator">=</span> <span class="kql-function">round</span>(WastedCU <span class="kql-operator">/</span> TotalCU <span class="kql-operator">*</span> <span class="kql-number">100</span>, <span class="kql-number">1</span>)
+<span class="kql-operator">|</span> <span class="kql-keyword">order by</span> WastedCost <span class="kql-keyword">desc</span>
+        </div>
+        <div class="waste-score__callout">
+          <div class="waste-score__callout-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </div>
+          <p class="waste-score__callout-text">
+            <strong>Based on F64 pricing: $11.52/hr = $0.0032/CU-second.</strong>
+            Every wasted CU-second has a real dollar cost. The Waste Score surfaces exactly where your capacity budget is going and what you can reclaim.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ======================== HOW IT WORKS ======================== -->
-<section class="section section--alt" id="how-it-works">
+<section class="section" id="how-it-works">
   <div class="container">
     <div class="text-center">
       <span class="section-label">How It Works</span>
@@ -981,7 +1239,7 @@ img { max-width: 100%; display: block; }
 </section>
 
 <!-- ======================== PRICING ======================== -->
-<section class="section" id="pricing">
+<section class="section section--alt" id="pricing">
   <div class="container">
     <div class="text-center">
       <span class="section-label">Pricing</span>
@@ -1046,7 +1304,7 @@ img { max-width: 100%; display: block; }
 </section>
 
 <!-- ======================== TESTIMONIALS ======================== -->
-<section class="section section--alt" id="testimonials">
+<section class="section" id="testimonials">
   <div class="container">
     <div class="text-center">
       <span class="section-label">Testimonials</span>

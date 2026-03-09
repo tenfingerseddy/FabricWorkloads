@@ -22,13 +22,13 @@
 )
 
 // Cross-item correlation links
+// Note: UpstreamEventId/DownstreamEventId are guid type in Eventhouse
 .create-merge table EventCorrelations (
-    CorrelationId: string,
-    ParentEventId: string,
-    ChildEventId: string,
-    CorrelationType: string,
-    Confidence: real,
-    CreatedAt: datetime
+    UpstreamEventId: guid,
+    DownstreamEventId: guid,
+    RelationshipType: string,
+    ConfidenceScore: real,
+    DetectedAt: datetime
 )
 
 // SLO target definitions
@@ -83,7 +83,32 @@
     LastSeenAt: datetime
 )
 
+// Alert history log
+.create-merge table AlertLog (
+    AlertId: string,
+    Kind: string,
+    Severity: string,
+    WorkspaceId: string,
+    WorkspaceName: string,
+    ItemId: string,
+    ItemName: string,
+    Message: string,
+    Value: real,
+    Threshold: real,
+    NotificationSent: bool,
+    Timestamp: datetime
+)
+
 // Set retention policies
 .alter table FabricEvents policy retention "{'SoftDeletePeriod': '90.00:00:00', 'Recoverability': 'Enabled'}"
 .alter table WorkspaceInventory policy retention "{'SoftDeletePeriod': '365.00:00:00', 'Recoverability': 'Enabled'}"
 .alter table SloSnapshots policy retention "{'SoftDeletePeriod': '365.00:00:00', 'Recoverability': 'Enabled'}"
+.alter table AlertLog policy retention "{'SoftDeletePeriod': '365.00:00:00', 'Recoverability': 'Enabled'}"
+
+// Materialized view for read-time deduplication
+// The ingestion notebook prevents most duplicates at write time, but this
+// view provides a safety net for any that slip through.
+.create-or-alter materialized-view FabricEventsDeduped on table FabricEvents {
+    FabricEvents
+    | summarize arg_max(IngestedAt, *) by EventId
+}
