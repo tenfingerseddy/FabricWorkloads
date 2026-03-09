@@ -6,8 +6,12 @@
  * Observability Workbench color scheme:
  *   Primary: #0078D4 (Microsoft Fabric blue)
  *   Accent:  #e8712a (Orange)
+ *   Healthy: #107c10 (Green)
+ *   Warning: #e8712a (Amber/Orange)
+ *   Critical: #d13438 (Red)
  *
  * Uses Fabric UX design tokens for consistency with Fluent UI v9.
+ * CSS Grid based responsive dashboard layout.
  */
 
 // ============================================================================
@@ -42,12 +46,12 @@
   font-size: var(--fontSizeBase300);
   font-weight: var(--fontWeightRegular);
   color: var(--colorNeutralForeground2);
-  margin: 0;
+  margin: 4px 0 0 0;
   font-family: var(--fontFamilyBase);
 }
 
 // ============================================================================
-// Toolbar Row (workspace selector + time range)
+// Toolbar Row (workspace selector + time range + refresh)
 // ============================================================================
 
 .workbench-dashboard-toolbar {
@@ -71,6 +75,283 @@
   }
 }
 
+.workbench-dashboard-toolbar-spacer {
+  flex: 1;
+}
+
+// ============================================================================
+// Health Summary Cards (top row)
+// ============================================================================
+
+.workbench-dashboard-health-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacingHorizontalL);
+  width: 100%;
+}
+
+.workbench-dashboard-health-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXS);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  transition: box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: var(--shadow4);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  &--healthy::before {
+    background: #107c10;
+  }
+
+  &--warning::before {
+    background: #e8712a;
+  }
+
+  &--critical::before {
+    background: #d13438;
+  }
+
+  &--neutral::before {
+    background: #0078D4;
+  }
+}
+
+.workbench-dashboard-health-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.workbench-dashboard-health-card-label {
+  font-size: var(--fontSizeBase200);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.workbench-dashboard-health-card-value {
+  font-size: 32px;
+  font-weight: var(--fontWeightBold);
+  font-family: var(--fontFamilyBase);
+  line-height: 1.2;
+
+  &--healthy {
+    color: #107c10;
+  }
+
+  &--warning {
+    color: #e8712a;
+  }
+
+  &--critical {
+    color: #d13438;
+  }
+
+  &--neutral {
+    color: var(--colorNeutralForeground1);
+  }
+}
+
+.workbench-dashboard-health-card-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+}
+
+// ============================================================================
+// Dashboard Grid (two-column layout for main panels)
+// ============================================================================
+
+.workbench-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacingHorizontalL);
+  width: 100%;
+}
+
+.workbench-dashboard-grid--full {
+  grid-column: 1 / -1;
+}
+
+// ============================================================================
+// Section (panel) container
+// ============================================================================
+
+.workbench-dashboard-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalM);
+}
+
+.workbench-dashboard-section-title {
+  font-size: 20px;
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+  padding-bottom: var(--spacingVerticalS);
+  border-bottom: 2px solid #0078D4;
+}
+
+.workbench-dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+// ============================================================================
+// Panel Card (wraps each dashboard panel)
+// ============================================================================
+
+.workbench-dashboard-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalM);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  min-height: 200px;
+}
+
+.workbench-dashboard-panel-title {
+  font-size: var(--fontSizeBase500);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+}
+
+.workbench-dashboard-panel-title-icon {
+  color: #0078D4;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.workbench-dashboard-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--spacingVerticalS);
+  border-bottom: 1px solid var(--colorNeutralStroke2);
+}
+
+// ============================================================================
+// Failure Timeline Chart (bar chart)
+// ============================================================================
+
+.workbench-dashboard-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  width: 100%;
+}
+
+.workbench-dashboard-timeline-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  width: 100%;
+  padding: var(--spacingVerticalS) 0;
+}
+
+.workbench-dashboard-timeline-bar {
+  flex: 1;
+  min-width: 0;
+  border-radius: 2px 2px 0 0;
+  transition: height 0.3s ease, opacity 0.2s ease;
+  cursor: default;
+  position: relative;
+
+  &--failures {
+    background: #d13438;
+  }
+
+  &--successes {
+    background: #107c10;
+    opacity: 0.3;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.workbench-dashboard-timeline-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 2px;
+}
+
+.workbench-dashboard-timeline-label {
+  font-size: 10px;
+  color: var(--colorNeutralForeground3);
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workbench-dashboard-timeline-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalL);
+  justify-content: flex-end;
+}
+
+.workbench-dashboard-timeline-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalXS);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+}
+
+.workbench-dashboard-timeline-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+
+  &--failures {
+    background: #d13438;
+  }
+
+  &--successes {
+    background: #107c10;
+    opacity: 0.3;
+  }
+}
+
 // ============================================================================
 // SLO Cards Grid
 // ============================================================================
@@ -91,9 +372,23 @@
   background: var(--colorNeutralBackground1);
   padding: var(--spacingVerticalL) var(--spacingHorizontalL);
   transition: box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
 
   &:hover {
     box-shadow: var(--shadow4);
+  }
+
+  &--healthy {
+    border-left: 3px solid #107c10;
+  }
+
+  &--warning {
+    border-left: 3px solid #e8712a;
+  }
+
+  &--critical {
+    border-left: 3px solid #d13438;
   }
 }
 
@@ -120,24 +415,258 @@
 .workbench-dashboard-slo-metric-label {
   font-size: var(--fontSizeBase200);
   color: var(--colorNeutralForeground2);
+  display: flex;
+  align-items: center;
 }
 
 .workbench-dashboard-slo-metric-value {
   font-size: var(--fontSizeBase400);
   font-weight: var(--fontWeightSemibold);
   color: var(--colorNeutralForeground1);
+
+  &--healthy {
+    color: #107c10;
+  }
+
+  &--warning {
+    color: #e8712a;
+  }
+
+  &--critical {
+    color: #d13438;
+  }
 }
 
-.workbench-dashboard-slo-metric-value--success {
-  color: #107c10;
+// ============================================================================
+// SLO Trend Indicator
+// ============================================================================
+
+.workbench-dashboard-slo-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fontSizeBase200);
+  margin-top: 2px;
+
+  &--improving {
+    color: #107c10;
+  }
+
+  &--stable {
+    color: var(--colorNeutralForeground3);
+  }
+
+  &--degrading {
+    color: #d13438;
+  }
 }
 
-.workbench-dashboard-slo-metric-value--warning {
-  color: #e8712a;
+// ============================================================================
+// Active Alerts Panel
+// ============================================================================
+
+.workbench-dashboard-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.workbench-dashboard-slo-metric-value--danger {
-  color: #d13438;
+.workbench-dashboard-alert-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  transition: background 0.15s ease;
+  cursor: default;
+
+  &:hover {
+    background: var(--colorNeutralBackground1Hover);
+  }
+
+  &--critical {
+    border-left: 3px solid #d13438;
+  }
+
+  &--warning {
+    border-left: 3px solid #e8712a;
+  }
+}
+
+.workbench-dashboard-alert-row-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.workbench-dashboard-alert-row-title {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workbench-dashboard-alert-row-detail {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workbench-dashboard-alert-row-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  flex-shrink: 0;
+}
+
+.workbench-dashboard-alert-row-time {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+  white-space: nowrap;
+}
+
+// ============================================================================
+// Recent Failures Panel
+// ============================================================================
+
+.workbench-dashboard-failures-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.workbench-dashboard-failure-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXS);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--colorNeutralBackground1Hover);
+  }
+}
+
+.workbench-dashboard-failure-row-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacingHorizontalM);
+}
+
+.workbench-dashboard-failure-row-name {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  flex: 1;
+  min-width: 0;
+}
+
+.workbench-dashboard-failure-row-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  flex-shrink: 0;
+}
+
+.workbench-dashboard-failure-reason {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorStatusDangerForeground1);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalM);
+  background: var(--colorNeutralBackground2);
+  border-radius: var(--borderRadiusSmall);
+  font-family: var(--fontFamilyMonospace);
+  word-break: break-word;
+}
+
+.workbench-dashboard-failure-expand-icon {
+  transition: transform 0.2s ease;
+  color: var(--colorNeutralForeground3);
+
+  &--expanded {
+    transform: rotate(90deg);
+  }
+}
+
+// ============================================================================
+// Cross-Item Correlation Panel
+// ============================================================================
+
+.workbench-dashboard-correlation-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalM);
+  width: 100%;
+}
+
+.workbench-dashboard-correlation-chain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXS);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalM);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+}
+
+.workbench-dashboard-correlation-chain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacingHorizontalM);
+}
+
+.workbench-dashboard-correlation-chain-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+}
+
+.workbench-dashboard-correlation-chain-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+}
+
+.workbench-dashboard-correlation-chain-bar {
+  display: flex;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--colorNeutralBackground3);
+  margin-top: var(--spacingVerticalXS);
+}
+
+.workbench-dashboard-correlation-chain-bar-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+
+  &--success {
+    background: #107c10;
+  }
+
+  &--failure {
+    background: #d13438;
+  }
 }
 
 // ============================================================================
@@ -188,28 +717,7 @@
 }
 
 // ============================================================================
-// Incident Timeline
-// ============================================================================
-
-.workbench-dashboard-section {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacingVerticalM);
-}
-
-.workbench-dashboard-section-title {
-  font-size: 20px;
-  font-weight: var(--fontWeightSemibold);
-  color: var(--colorNeutralForeground1);
-  margin: 0;
-  font-family: var(--fontFamilyBase);
-  padding-bottom: var(--spacingVerticalS);
-  border-bottom: 2px solid #0078D4;
-}
-
-// ============================================================================
-// Failed Jobs Table
+// Table Container
 // ============================================================================
 
 .workbench-dashboard-table-container {
@@ -220,7 +728,95 @@
 }
 
 // ============================================================================
-// Empty State
+// Loading Skeletons
+// ============================================================================
+
+.workbench-dashboard-skeleton {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXL);
+  padding: var(--spacingVerticalL) 0;
+}
+
+.workbench-dashboard-skeleton-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacingHorizontalL);
+  width: 100%;
+}
+
+.workbench-dashboard-skeleton-card {
+  height: 100px;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
+  animation: workbench-shimmer 1.5s ease-in-out infinite;
+}
+
+.workbench-dashboard-skeleton-panel {
+  height: 200px;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
+  animation: workbench-shimmer 1.5s ease-in-out infinite;
+}
+
+.workbench-dashboard-skeleton-panel-tall {
+  height: 300px;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
+  animation: workbench-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes workbench-shimmer {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+// ============================================================================
+// Error State
+// ============================================================================
+
+.workbench-dashboard-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingVerticalL);
+  padding: 48px;
+  width: 100%;
+  text-align: center;
+}
+
+.workbench-dashboard-error-icon {
+  font-size: 48px;
+  color: #d13438;
+}
+
+// ============================================================================
+// Empty Panel State
+// ============================================================================
+
+.workbench-dashboard-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingVerticalS);
+  padding: var(--spacingVerticalXXL);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase300);
+  text-align: center;
+}
+
+// ============================================================================
+// Empty State (full page)
 // ============================================================================
 
 .workbench-dashboard-empty {
@@ -263,7 +859,7 @@
 }
 
 // ============================================================================
-// Status Badge
+// Status Badge / Dot
 // ============================================================================
 
 .workbench-dashboard-status-dot {
@@ -287,8 +883,47 @@
 }
 
 // ============================================================================
-// Responsive
+// Auto-refresh indicator
 // ============================================================================
+
+.workbench-dashboard-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+}
+
+.workbench-dashboard-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #107c10;
+  animation: workbench-pulse 2s ease-in-out infinite;
+}
+
+@keyframes workbench-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+// ============================================================================
+// Responsive: 768px breakpoint
+// ============================================================================
+
+@media (max-width: 1200px) {
+  .workbench-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-dashboard-health-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
 
 @media (max-width: 900px) {
   .workbench-dashboard-slo-grid {
@@ -298,5 +933,43 @@
   .workbench-dashboard-toolbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .workbench-dashboard-waste-summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workbench-dashboard-waste-stats {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .workbench-dashboard-health-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-dashboard-view {
+    padding: var(--spacingHorizontalL);
+  }
+
+  .workbench-dashboard-skeleton-row {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-dashboard-correlation-chain-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workbench-dashboard-alert-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .workbench-dashboard-alert-row-meta {
+    width: 100%;
+    justify-content: space-between;
   }
 }
