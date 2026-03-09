@@ -404,8 +404,8 @@ FabricEvents
 //   ItemName      | RetryWaste$ | DurationWaste$ | DuplicateWaste$ | Total$ | Monthly$
 //   NB_HeavyETL  | 4.20        | 12.80          | 2.10            | 19.10  | 81.86
 // --------------------------------------------------------------------------
-let CU_RATE = 0.0032;
-// Retry waste: cost of all failed runs
+let CU_RATE = 0.0032;  // F64 rate: $0.0032 per CU-second. Change for your SKU.
+// --- Part 1: Retry waste = cost of all failed runs (CUs burned with no output) ---
 let RetryWaste = FabricEvents
 | where StartTimeUtc > ago(7d)
 | where Status == "Failed" and DurationSeconds > 0
@@ -414,7 +414,7 @@ let RetryWaste = FabricEvents
     FailedSeconds = sum(DurationSeconds)
     by ItemId, ItemName, ItemType, WorkspaceName
 | extend RetryWasteCost = round(FailedSeconds * CU_RATE, 2);
-// Duration waste: excess cost from regression
+// --- Part 2: Duration waste = excess cost when items run slower than baseline ---
 let DurationWaste = (
     let Baseline = FabricEvents
     | where StartTimeUtc between (ago(35d) .. ago(7d))
@@ -430,7 +430,7 @@ let DurationWaste = (
     | extend ExcessSec = iff(Ratio > 1.5, (CurP95 - BaseP95) * RunCount, 0.0)
     | extend DurationWasteCost = round(ExcessSec * CU_RATE, 2)
 );
-// Duplicate waste: near-simultaneous starts of same item
+// --- Part 3: Duplicate waste = runs accidentally triggered twice within 60s ---
 let DuplicateWaste = FabricEvents
 | where StartTimeUtc > ago(7d)
 | where DurationSeconds > 0
@@ -444,7 +444,7 @@ let DuplicateWaste = FabricEvents
     DuplicateSeconds = sum(DurationSeconds)
     by ItemId, ItemName, ItemType, WorkspaceName
 | extend DuplicateWasteCost = round(DuplicateSeconds * CU_RATE, 2);
-// Combine all waste sources
+// --- Part 4: Combine all three waste sources into a single ranked view ---
 RetryWaste
 | join kind=fullouter DurationWaste on ItemId
 | join kind=fullouter DuplicateWaste on ItemId
@@ -1008,15 +1008,27 @@ FabricEvents
 
 
 // ==========================================================================
-// END OF COMMUNITY QUERY PACK
+// END OF COMMUNITY QUERY PACK (25 queries)
 //
-// Want more? The Observability Workbench provides:
-//   - Automated ingestion from Fabric monitoring hub APIs
-//   - 90-day / 365-day retention (vs native 30-day limit)
-//   - Cross-item correlation engine with dependency graphs
-//   - Proactive alerting with Teams/email/webhook delivery
-//   - SLO dashboards with historical trend tracking
+// Found these useful? You can:
 //
-// GitHub:  https://github.com/tenfingerseddy/FabricWorkloads
-// License: MIT
+//   1. Star the repo so others can find it:
+//      https://github.com/tenfingerseddy/FabricWorkloads
+//
+//   2. Contribute a query — PRs welcome! See CONTRIBUTING guidelines
+//      in the README.
+//
+//   3. Try the full Observability Workbench for automated, continuous
+//      monitoring with:
+//      - Automated ingestion every 5 minutes (no manual data collection)
+//      - 90-day / 365-day retention (vs native 30-day limit)
+//      - Cross-item correlation engine with dependency graphs
+//      - Proactive alerting with Teams/email/webhook delivery
+//      - SLO dashboards with historical trend tracking
+//      - Free tier: 1 workspace, 7-day retention, 5 SLOs
+//
+//      npm install @kane-ai/observability-workbench
+//
+// Full documentation: https://github.com/tenfingerseddy/FabricWorkloads/tree/main/kql
+// License: MIT — use freely, attribution appreciated
 // ==========================================================================
