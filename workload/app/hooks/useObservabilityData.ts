@@ -282,9 +282,8 @@ export function useObservabilityData(
       setData(result);
       setLastUpdated(new Date());
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load dashboard data";
-      setError(message);
+      console.error("[useObservabilityData] Load failed:", err instanceof Error ? err.message : err);
+      setError("Failed to load dashboard data. Please try again.");
     } finally {
       setIsLoading(false);
     }

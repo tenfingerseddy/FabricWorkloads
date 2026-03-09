@@ -231,9 +231,8 @@ export function useAlertData(
       setIsLive(result.isLive);
       setLastUpdated(new Date());
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load alert data";
-      setError(message);
+      console.error("[useAlertData] Load failed:", err instanceof Error ? err.message : err);
+      setError("Failed to load alert data. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -44,6 +44,11 @@ import { AlertRuleDefinition } from "../items/AlertRule/AlertRuleDefinition";
 import { SLODefinitionDefinition } from "../items/SLODefinition/SLODefinitionDefinition";
 import { AuditEntry, AUDIT_ACTIONS, IAuditLogger } from "../types/audit";
 import { createAuditEntry } from "./auditService";
+import {
+  generateRequestId,
+  logServerError,
+  getSafeErrorMessage,
+} from "../utils/errors";
 
 // ════════════════════════════════════════════════════════════════
 // Item Service
@@ -165,11 +170,14 @@ export class ItemService {
 
       return this.successResponse(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("ItemService.createItem", error, requestId, { workspaceId, itemType, shortName });
       this.emitAudit(AUDIT_ACTIONS.ITEM_CREATE, shortName, undefined, workspaceId, "Failure", Date.now() - startMs, {
-        error: message,
+        error: internalMessage,
+        requestId,
       });
-      return this.errorResponse("CREATE_FAILED", `Failed to create ${shortName}: ${message}`);
+      return this.errorResponse("CREATE_FAILED", getSafeErrorMessage(error, "CREATE_FAILED"), requestId);
     }
   }
 
@@ -203,11 +211,14 @@ export class ItemService {
 
       return this.successResponse(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("ItemService.getItem", error, requestId, { itemId });
       this.emitAudit(AUDIT_ACTIONS.ITEM_READ, "unknown", itemId, undefined, "Failure", Date.now() - startMs, {
-        error: message,
+        error: internalMessage,
+        requestId,
       });
-      return this.errorResponse("READ_FAILED", `Failed to read item ${itemId}: ${message}`);
+      return this.errorResponse("READ_FAILED", getSafeErrorMessage(error, "READ_FAILED"), requestId);
     }
   }
 
@@ -242,11 +253,14 @@ export class ItemService {
         totalCount: items.length,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("ItemService.listItems", error, requestId, { workspaceId, itemType });
       this.emitAudit(AUDIT_ACTIONS.ITEM_LIST, shortName, undefined, workspaceId, "Failure", Date.now() - startMs, {
-        error: message,
+        error: internalMessage,
+        requestId,
       });
-      return this.errorResponse("LIST_FAILED", `Failed to list ${shortName} items: ${message}`);
+      return this.errorResponse("LIST_FAILED", getSafeErrorMessage(error, "LIST_FAILED"), requestId);
     }
   }
 
@@ -300,11 +314,14 @@ export class ItemService {
 
       return this.successResponse(result);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("ItemService.updateItem", error, requestId, { workspaceId, itemId });
       this.emitAudit(AUDIT_ACTIONS.ITEM_UPDATE, "unknown", itemId, workspaceId, "Failure", Date.now() - startMs, {
-        error: message,
+        error: internalMessage,
+        requestId,
       });
-      return this.errorResponse("UPDATE_FAILED", `Failed to update item ${itemId}: ${message}`);
+      return this.errorResponse("UPDATE_FAILED", getSafeErrorMessage(error, "UPDATE_FAILED"), requestId);
     }
   }
 
@@ -325,11 +342,14 @@ export class ItemService {
 
       return this.successResponse(undefined);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("ItemService.deleteItem", error, requestId, { workspaceId, itemId });
       this.emitAudit(AUDIT_ACTIONS.ITEM_DELETE, "item", itemId, workspaceId, "Failure", Date.now() - startMs, {
-        error: message,
+        error: internalMessage,
+        requestId,
       });
-      return this.errorResponse("DELETE_FAILED", `Failed to delete item ${itemId}: ${message}`);
+      return this.errorResponse("DELETE_FAILED", getSafeErrorMessage(error, "DELETE_FAILED"), requestId);
     }
   }
 
@@ -445,10 +465,10 @@ export class ItemService {
   /**
    * Build an error response envelope.
    */
-  private errorResponse(code: string, message: string): ApiResponse<any> {
+  private errorResponse(code: string, message: string, requestId?: string): ApiResponse<any> {
     return {
       success: false,
-      error: { code, message },
+      error: { code, message, requestId },
       timestamp: new Date().toISOString(),
     };
   }

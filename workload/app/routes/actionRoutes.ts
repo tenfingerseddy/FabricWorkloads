@@ -21,6 +21,11 @@ import { getItemController } from "../controllers/itemController";
 import { getJobController } from "../controllers/jobController";
 import { getHealthController } from "../controllers/healthController";
 import { ApiResponse } from "../types/workloadItems";
+import {
+  toSafeErrorResponse,
+  logServerError,
+  generateRequestId,
+} from "../utils/errors";
 
 // ════════════════════════════════════════════════════════════════
 // Action Handler Type
@@ -248,36 +253,34 @@ export async function dispatchAction(
   action: string,
   data: any
 ): Promise<ApiResponse<any>> {
+  const requestId = generateRequestId();
   const route = routes.get(action);
 
   if (!route) {
-    console.warn(`[ActionRoutes] Unknown action: ${action}`);
+    // Log the full details server-side (including available actions for debugging)
+    console.warn(
+      `[ActionRoutes] Unknown action: ${action} (${requestId}). Available: ${Array.from(routes.keys()).join(", ")}`
+    );
     return {
       success: false,
       error: {
         code: "UNKNOWN_ACTION",
-        message: `No handler registered for action: ${action}`,
-        details: `Available actions: ${Array.from(routes.keys()).join(", ")}`,
+        message: "The requested action is not recognized.",
+        requestId,
       },
       timestamp: new Date().toISOString(),
     };
   }
 
   try {
-    console.log(`[ActionRoutes] Dispatching: ${action}`);
+    console.log(`[ActionRoutes] Dispatching: ${action} (${requestId})`);
     const result = await route.handler(data);
     return result;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`[ActionRoutes] Error in ${action}:`, error);
+    // Log full error details (including stack trace) server-side only
+    logServerError("ActionRoutes", error, requestId, { action });
 
-    return {
-      success: false,
-      error: {
-        code: "ACTION_ERROR",
-        message: `Action ${action} failed: ${message}`,
-      },
-      timestamp: new Date().toISOString(),
-    };
+    // Return a sanitized response to the client
+    return toSafeErrorResponse(error, "ACTION_ERROR", requestId);
   }
 }

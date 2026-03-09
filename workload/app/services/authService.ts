@@ -17,6 +17,7 @@ import { WorkloadClientAPI, AccessToken } from "@ms-fabric/workload-client";
 import { FabricAuthenticationService } from "../clients/FabricAuthenticationService";
 import { SCOPES, FABRIC_BASE_SCOPES } from "../clients/FabricPlatformScopes";
 import { AUDIT_ACTIONS, IAuditLogger } from "../types/audit";
+import { redactSensitive } from "../utils/errors";
 
 // ════════════════════════════════════════════════════════════════
 // Scope Definitions for Observability Workbench Operations
@@ -140,13 +141,20 @@ export class AuthService {
       const durationMs = Date.now() - startMs;
       const errorMessage = error instanceof Error ? error.message : String(error);
 
+      // Log the full error server-side (redacting any embedded secrets)
+      console.error(
+        `[AuthService] Token acquisition failed for scopes [${this.redactScopes(scopes)}]:`,
+        redactSensitive(errorMessage)
+      );
+
       this.emitAudit(AUDIT_ACTIONS.AUTH_TOKEN_FAILED, "Failure", durationMs, {
         scopes: this.redactScopes(scopes),
-        error: errorMessage,
+        error: redactSensitive(errorMessage),
       });
 
+      // Throw with a safe message -- no raw error details in the message
       throw new AuthServiceError(
-        `Token acquisition failed for scopes [${this.redactScopes(scopes)}]: ${errorMessage}`,
+        `Token acquisition failed for scopes [${this.redactScopes(scopes)}]`,
         "AUTH_TOKEN_ACQUISITION_FAILED",
         error instanceof Error ? error : undefined
       );

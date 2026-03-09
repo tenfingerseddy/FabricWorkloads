@@ -254,9 +254,8 @@ export function useSloData(
       setIsLive(result.isLive);
       setLastUpdated(new Date());
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load SLO data";
-      setError(message);
+      console.error("[useSloData] Load failed:", err instanceof Error ? err.message : err);
+      setError("Failed to load SLO data. Please try again.");
     } finally {
       setIsLoading(false);
     }

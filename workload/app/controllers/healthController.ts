@@ -19,6 +19,7 @@ import { getKqlQueryService } from "../services/kqlQueryService";
 import { getAuthService } from "../services/authService";
 import { getAuditService } from "../services/auditService";
 import { ApiResponse } from "../types/workloadItems";
+import { sanitizeHealthMessage } from "../utils/errors";
 
 // ════════════════════════════════════════════════════════════════
 // Health Status Types
@@ -176,10 +177,14 @@ export class HealthController {
         lastCheckedAt: now,
       };
     } catch (error) {
+      // Log full error server-side for diagnostics
+      console.error("[HealthController] KQL health check failed:", error instanceof Error ? error.message : error);
       return {
         name: "eventhouse",
         status: "unhealthy",
-        message: `Health check failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: sanitizeHealthMessage(
+          `Health check failed: ${error instanceof Error ? error.message : "unknown error"}`
+        ),
         lastCheckedAt: now,
       };
     }
@@ -202,10 +207,11 @@ export class HealthController {
         lastCheckedAt: now,
       };
     } catch (error) {
+      console.error("[HealthController] Auth health check failed:", error instanceof Error ? error.message : error);
       return {
         name: "auth",
         status: "degraded",
-        message: `Auth check failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: "Auth service health check failed",
         lastCheckedAt: now,
       };
     }
@@ -227,10 +233,11 @@ export class HealthController {
         lastCheckedAt: now,
       };
     } catch (error) {
+      console.error("[HealthController] Audit health check failed:", error instanceof Error ? error.message : error);
       return {
         name: "audit",
         status: "degraded",
-        message: `Audit check failed: ${error instanceof Error ? error.message : String(error)}`,
+        message: "Audit service health check failed",
         lastCheckedAt: now,
       };
     }
@@ -264,10 +271,12 @@ export class HealthController {
   // ──────────────────────────────────────────────────────────────
 
   private failedComponent(name: string, error: unknown): ComponentHealth {
+    // Log the full error server-side for debugging
+    console.error(`[HealthController] Component ${name} check threw:`, error instanceof Error ? error.message : error);
     return {
       name,
       status: "unhealthy",
-      message: `Check threw: ${error instanceof Error ? error.message : String(error)}`,
+      message: `${name} health check failed`,
       lastCheckedAt: new Date().toISOString(),
     };
   }

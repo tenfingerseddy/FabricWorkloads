@@ -37,6 +37,11 @@ import {
 import { ApiResponse } from "../types/workloadItems";
 import { AUDIT_ACTIONS, IAuditLogger } from "../types/audit";
 import { createAuditEntry } from "./auditService";
+import {
+  generateRequestId,
+  logServerError,
+  getSafeErrorMessage,
+} from "../utils/errors";
 
 // ════════════════════════════════════════════════════════════════
 // Job Service
@@ -142,7 +147,9 @@ export class JobService {
 
       return this.successResponse(jobInstance);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("JobService.submitJob", error, requestId, { workspaceId, itemId, jobType: request.jobType });
 
       this.emitAudit(
         AUDIT_ACTIONS.JOB_SUBMIT,
@@ -151,10 +158,10 @@ export class JobService {
         workspaceId,
         "Failure",
         Date.now() - startMs,
-        { error: message, itemId }
+        { error: internalMessage, itemId, requestId }
       );
 
-      return this.errorResponse("JOB_SUBMIT_FAILED", `Failed to submit ${request.jobType} job: ${message}`);
+      return this.errorResponse("JOB_SUBMIT_FAILED", getSafeErrorMessage(error, "JOB_SUBMIT_FAILED"), requestId);
     }
   }
 
@@ -217,7 +224,9 @@ export class JobService {
 
       return this.successResponse(jobInstance);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("JobService.getJobStatus", error, requestId, { workspaceId, itemId, jobInstanceId });
 
       this.emitAudit(
         AUDIT_ACTIONS.JOB_STATUS,
@@ -226,10 +235,10 @@ export class JobService {
         workspaceId,
         "Failure",
         Date.now() - startMs,
-        { error: message }
+        { error: internalMessage, requestId }
       );
 
-      return this.errorResponse("JOB_STATUS_FAILED", `Failed to get job status: ${message}`);
+      return this.errorResponse("JOB_STATUS_FAILED", getSafeErrorMessage(error, "JOB_STATUS_FAILED"), requestId);
     }
   }
 
@@ -274,7 +283,9 @@ export class JobService {
 
       return this.successResponse(undefined);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const requestId = generateRequestId();
+      const internalMessage = error instanceof Error ? error.message : String(error);
+      logServerError("JobService.cancelJob", error, requestId, { workspaceId, itemId, jobInstanceId: request.jobInstanceId });
 
       this.emitAudit(
         AUDIT_ACTIONS.JOB_CANCEL,
@@ -283,10 +294,10 @@ export class JobService {
         workspaceId,
         "Failure",
         Date.now() - startMs,
-        { error: message }
+        { error: internalMessage, requestId }
       );
 
-      return this.errorResponse("JOB_CANCEL_FAILED", `Failed to cancel job: ${message}`);
+      return this.errorResponse("JOB_CANCEL_FAILED", getSafeErrorMessage(error, "JOB_CANCEL_FAILED"), requestId);
     }
   }
 
@@ -328,8 +339,9 @@ export class JobService {
 
       return this.successResponse(jobs);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return this.errorResponse("JOB_LIST_FAILED", `Failed to list jobs: ${message}`);
+      const requestId = generateRequestId();
+      logServerError("JobService.listJobs", error, requestId, { workspaceId, itemId });
+      return this.errorResponse("JOB_LIST_FAILED", getSafeErrorMessage(error, "JOB_LIST_FAILED"), requestId);
     }
   }
 
@@ -373,8 +385,9 @@ export class JobService {
         lastRunAt: lastRun?.startTimeUtc,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return this.errorResponse("JOB_SUMMARY_FAILED", `Failed to get job summary: ${message}`);
+      const requestId = generateRequestId();
+      logServerError("JobService.getJobSummary", error, requestId, { workspaceId, itemId });
+      return this.errorResponse("JOB_SUMMARY_FAILED", getSafeErrorMessage(error, "JOB_SUMMARY_FAILED"), requestId);
     }
   }
 
@@ -408,8 +421,9 @@ export class JobService {
 
       return this.successResponse({ scheduleId: schedule.id });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return this.errorResponse("SCHEDULE_CREATE_FAILED", `Failed to create schedule: ${message}`);
+      const requestId = generateRequestId();
+      logServerError("JobService.createSchedule", error, requestId, { workspaceId, itemId, jobType: config.jobType });
+      return this.errorResponse("SCHEDULE_CREATE_FAILED", getSafeErrorMessage(error, "SCHEDULE_CREATE_FAILED"), requestId);
     }
   }
 
@@ -432,8 +446,9 @@ export class JobService {
         schedules: schedules.map((s) => ({ id: s.id, enabled: s.enabled })),
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      return this.errorResponse("SCHEDULE_LIST_FAILED", `Failed to list schedules: ${message}`);
+      const requestId = generateRequestId();
+      logServerError("JobService.listSchedules", error, requestId, { workspaceId, itemId, jobType });
+      return this.errorResponse("SCHEDULE_LIST_FAILED", getSafeErrorMessage(error, "SCHEDULE_LIST_FAILED"), requestId);
     }
   }
 
@@ -480,10 +495,10 @@ export class JobService {
     };
   }
 
-  private errorResponse(code: string, message: string): ApiResponse<any> {
+  private errorResponse(code: string, message: string, requestId?: string): ApiResponse<any> {
     return {
       success: false,
-      error: { code, message },
+      error: { code, message, requestId },
       timestamp: new Date().toISOString(),
     };
   }
