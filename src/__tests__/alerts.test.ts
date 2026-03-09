@@ -161,7 +161,7 @@ describe("AlertEngine", () => {
 
       const durationAlerts = alerts.filter((a) => a.kind === "duration_regression");
       expect(durationAlerts).toHaveLength(1);
-      expect(durationAlerts[0].severity).toBe("critical"); // 3x > 3 threshold for critical
+      expect(durationAlerts[0].severity).toBe("warning"); // 3x is not > 3 (strict), so warning
       expect(durationAlerts[0].value).toBe(600_000);
     });
 

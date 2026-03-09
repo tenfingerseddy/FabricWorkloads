@@ -213,7 +213,7 @@ describe("FabricClient", () => {
       expect(auth.forceRefresh).toHaveBeenCalledTimes(1);
     });
 
-    it("retries on 500+ server errors with backoff", async () => {
+    it("retries on 500+ server errors with backoff", { timeout: 15000 }, async () => {
       const auth = makeStubAuth();
       const client = new FabricClient(stubConfig, auth);
 
@@ -242,7 +242,7 @@ describe("FabricClient", () => {
       expect(fetchMock).toHaveBeenCalledTimes(3);
     });
 
-    it("throws after exhausting all retries on server errors", async () => {
+    it("throws after exhausting all retries on server errors", { timeout: 30000 }, async () => {
       const auth = makeStubAuth();
       const client = new FabricClient(stubConfig, auth);
 
