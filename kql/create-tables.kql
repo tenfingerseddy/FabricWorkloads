@@ -1,19 +1,24 @@
 // Observability Workbench — Table Creation Script
 // Run this in your EH_Observability KQL database
+//
+// NOTE: This file documents the ACTUAL live Eventhouse schemas.
+// The live tables use guid types for ID columns (auto-typed by Eventhouse).
+// .create-merge won't change existing column types, so these commands are
+// safe to re-run — they only add missing columns.
 
 // Core event storage — all job instances from monitored workspaces
 .create-merge table FabricEvents (
-    EventId: string,
-    WorkspaceId: string,
+    EventId: guid,
+    WorkspaceId: guid,
     WorkspaceName: string,
-    ItemId: string,
+    ItemId: guid,
     ItemName: string,
     ItemType: string,
     JobType: string,
     InvokeType: string,
     Status: string,
     FailureReason: string,
-    RootActivityId: string,
+    RootActivityId: guid,
     StartTimeUtc: datetime,
     EndTimeUtc: datetime,
     DurationSeconds: real,
@@ -22,7 +27,6 @@
 )
 
 // Cross-item correlation links
-// Note: UpstreamEventId/DownstreamEventId are guid type in Eventhouse
 .create-merge table EventCorrelations (
     UpstreamEventId: guid,
     DownstreamEventId: guid,
@@ -33,29 +37,29 @@
 
 // SLO target definitions
 .create-merge table SloDefinitions (
-    SloId: string,
-    ItemId: string,
+    SloId: guid,
+    WorkspaceId: guid,
+    ItemId: guid,
     ItemName: string,
-    ItemType: string,
     MetricType: string,
     TargetValue: real,
     WarningThreshold: real,
     EvaluationWindow: string,
     CreatedAt: datetime,
-    UpdatedAt: datetime
+    IsActive: bool
 )
 
 // Point-in-time SLO measurements
 .create-merge table SloSnapshots (
-    SnapshotId: string,
-    SloId: string,
-    ItemId: string,
+    SnapshotId: guid,
+    SloId: guid,
+    ItemId: guid,
     MetricType: string,
     CurrentValue: real,
     TargetValue: real,
-    IsBreached: bool,
+    IsBreaching: bool,
     ErrorBudgetRemaining: real,
-    MeasuredAt: datetime
+    ComputedAt: datetime
 )
 
 // Alert rule definitions

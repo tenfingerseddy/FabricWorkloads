@@ -383,12 +383,10 @@ print(f"\nSLO snapshots collected: {len(slo_snapshots)}")
 # ─────────────────────────────────────────────────────────────────────────────
 # Record point-in-time SLO metric values for trend tracking and dashboards.
 
-# SloSnapshots table already exists in Eventhouse (created by create-tables.kql):
-# SnapshotId: string, SloId: string, ItemId: string, MetricType: string,
-# CurrentValue: real, TargetValue: real, IsBreached: bool,
-# ErrorBudgetRemaining: real, MeasuredAt: datetime
-# Note: old .create-merge may have added extra columns (ItemName, SloType, etc.)
-# — inline ingestion maps by position, so first 9 columns are correct.
+# SloSnapshots table schema (verified from live Eventhouse):
+# SnapshotId: guid, SloId: guid, ItemId: guid, MetricType: string,
+# CurrentValue: real, TargetValue: real, IsBreaching: bool,
+# ErrorBudgetRemaining: real, ComputedAt: datetime
 
 import uuid
 
