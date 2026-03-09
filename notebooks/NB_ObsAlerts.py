@@ -165,8 +165,8 @@ print(f"Found {len(consec_failures)} items with consecutive failures")
 
 slo_definitions_query = """
 SloDefinitions
-| project SloId, ItemId, ItemName, SloType, TargetValue, WarningThreshold, WindowDays, Severity, Enabled
-| where Enabled == true
+| where IsActive == true
+| project SloId, ItemId, ItemName, MetricType, TargetValue, WarningThreshold, EvaluationWindow
 """
 try:
     slo_definitions = kql_query(slo_definitions_query)
@@ -175,11 +175,11 @@ except Exception as e:
     print(f"Warning: Could not load SloDefinitions table ({e}). Using defaults only.")
     slo_definitions = []
 
-# Build per-item threshold lookups keyed by (ItemId, SloType)
-# Each entry stores the SLO definition so we can reference SloId, Severity, etc.
+# Build per-item threshold lookups keyed by (ItemId, MetricType)
+# Each entry stores the SLO definition so we can reference SloId, etc.
 slo_lookup = {}
 for slo in slo_definitions:
-    key = (slo["ItemId"], slo["SloType"])
+    key = (slo["ItemId"], slo["MetricType"])
     slo_lookup[key] = slo
 
 def get_slo(item_id, slo_type, default_target, default_warning=None):
@@ -225,11 +225,11 @@ for m in success_metrics:
         "SloId": slo_id or f"default_success_rate_{item_id}",
         "ItemId": item_id,
         "ItemName": m["ItemName"],
-        "SloType": "success_rate",
+        "MetricType": "success_rate",
         "CurrentValue": round(rate, 6),
         "TargetValue": target,
-        "IsBreached": is_breached,
-        "ErrorBudgetUsed": round(error_budget_used, 4),
+        "IsBreaching": 1 if is_breached else 0,
+        "ErrorBudgetRemaining": round(1.0 - error_budget_used, 4),
     })
 
     if is_breached:
@@ -271,11 +271,11 @@ for m in duration_metrics:
         "SloId": slo_id or f"default_duration_p95_{item_id}",
         "ItemId": item_id,
         "ItemName": m["ItemName"],
-        "SloType": "duration_p95",
+        "MetricType": "duration_p95",
         "CurrentValue": round(current, 1),
         "TargetValue": round(baseline * target_multiplier, 1),
-        "IsBreached": is_breached,
-        "ErrorBudgetUsed": round(error_budget_used, 4),
+        "IsBreaching": 1 if is_breached else 0,
+        "ErrorBudgetRemaining": round(1.0 - error_budget_used, 4),
     })
 
     if is_breached:
@@ -311,11 +311,11 @@ for m in freshness_metrics:
         "SloId": slo_id or f"default_freshness_{item_id}",
         "ItemId": item_id,
         "ItemName": m["ItemName"],
-        "SloType": "freshness",
+        "MetricType": "freshness",
         "CurrentValue": round(hours, 1),
         "TargetValue": target_hours,
-        "IsBreached": is_breached,
-        "ErrorBudgetUsed": round(error_budget_used, 4),
+        "IsBreaching": 1 if is_breached else 0,
+        "ErrorBudgetRemaining": round(1.0 - error_budget_used, 4),
     })
 
     if is_breached:
@@ -350,11 +350,11 @@ for m in consec_failures:
         "SloId": slo_id or f"default_consec_failures_{item_id}",
         "ItemId": item_id,
         "ItemName": m["ItemName"],
-        "SloType": "consecutive_failures",
+        "MetricType": "consecutive_failures",
         "CurrentValue": float(count),
         "TargetValue": float(target_max),
-        "IsBreached": is_breached,
-        "ErrorBudgetUsed": round(error_budget_used, 4),
+        "IsBreaching": 1 if is_breached else 0,
+        "ErrorBudgetRemaining": round(1.0 - error_budget_used, 4),
     })
 
     if is_breached:
@@ -383,50 +383,45 @@ print(f"\nSLO snapshots collected: {len(slo_snapshots)}")
 # ─────────────────────────────────────────────────────────────────────────────
 # Record point-in-time SLO metric values for trend tracking and dashboards.
 
-# Ensure SloSnapshots table exists with the schema we need
-create_snapshots_table = """.create-merge table SloSnapshots (
-    SnapshotId: string,
-    SloId: string,
-    ItemId: string,
-    ItemName: string,
-    SloType: string,
-    CurrentValue: real,
-    TargetValue: real,
-    IsBreached: bool,
-    ErrorBudgetUsed: real,
-    SnapshotTime: datetime
-)"""
-kql_mgmt(create_snapshots_table)
+# SloSnapshots table already exists in Eventhouse (created by create-tables.kql):
+# SnapshotId: string, SloId: string, ItemId: string, MetricType: string,
+# CurrentValue: real, TargetValue: real, IsBreached: bool,
+# ErrorBudgetRemaining: real, MeasuredAt: datetime
+# Note: old .create-merge may have added extra columns (ItemName, SloType, etc.)
+# — inline ingestion maps by position, so first 9 columns are correct.
 
 import uuid
 
 snapshot_ingested = 0
 for snap in slo_snapshots:
     snapshot_id = str(uuid.uuid4())
-    # Escape commas and special chars in ItemName for inline ingestion
-    item_name_safe = snap["ItemName"].replace(",", ";").replace('"', "'") if snap["ItemName"] else ""
-    slo_type_safe = snap["SloType"].replace(",", ";") if snap["SloType"] else ""
+    slo_id = snap["SloId"]
+    # SloId may not be a valid guid if it's a default — generate one
+    if not slo_id or slo_id.startswith("default_"):
+        slo_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, snap["SloId"]))
 
-    values = ",".join([
+    # Column order matches actual table: SnapshotId, SloId, ItemId, MetricType,
+    # CurrentValue, TargetValue, IsBreaching, ErrorBudgetRemaining, ComputedAt
+    # Use pipe delimiter to avoid issues with commas in values
+    values = "|".join([
         snapshot_id,
-        snap["SloId"],
+        slo_id,
         snap["ItemId"],
-        item_name_safe,
-        slo_type_safe,
+        snap["MetricType"],
         str(snap["CurrentValue"]),
         str(snap["TargetValue"]),
-        str(snap["IsBreached"]).lower(),
-        str(snap["ErrorBudgetUsed"]),
+        str(snap["IsBreaching"]),
+        str(snap["ErrorBudgetRemaining"]),
         now_iso,
     ])
-    csl = f".ingest inline into table SloSnapshots <| {values}"
+    csl = f".ingest inline into table SloSnapshots with (format=psv) <| {values}"
 
     try:
         resp = kql_mgmt(csl)
         if resp.status_code == 200:
             snapshot_ingested += 1
     except Exception as e:
-        print(f"  Warning: Failed to ingest snapshot for {snap['ItemName']}/{snap['SloType']}: {e}")
+        print(f"  Warning: Failed to ingest snapshot for {snap.get('ItemName', '?')}/{snap['MetricType']}: {e}")
 
 print(f"Ingested {snapshot_ingested}/{len(slo_snapshots)} SLO snapshots to SloSnapshots table")
 
@@ -527,7 +522,7 @@ print(f"Logged {ingested}/{len(alerts)} alerts to AlertLog table")
 
 critical_count = len([a for a in alerts if a["Severity"] == "critical"])
 warning_count = len([a for a in alerts if a["Severity"] == "warning"])
-breached_count = len([s for s in slo_snapshots if s["IsBreached"]])
+breached_count = len([s for s in slo_snapshots if s["IsBreaching"]])
 healthy_count = len(slo_snapshots) - breached_count
 
 print(f"\n{'='*60}")
