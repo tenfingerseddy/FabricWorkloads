@@ -143,6 +143,20 @@ for ws_id, ws_data in workspace_items.items():
                 except:
                     pass
 
+            # Ensure failed jobs still get valid timestamps for SLO evaluation.
+            # Fabric API may return empty timestamps for fast-failing jobs.
+            effective_start = start or now
+            effective_end = end or now
+
+            # Parse failureReason — API returns dict or string
+            failure_raw = job.get("failureReason", "")
+            if isinstance(failure_raw, dict):
+                failure_reason = failure_raw.get("message", str(failure_raw))
+            elif failure_raw:
+                failure_reason = str(failure_raw)
+            else:
+                failure_reason = ""
+
             all_events.append({
                 "EventId": job["id"],
                 "WorkspaceId": ws_id,
@@ -153,10 +167,10 @@ for ws_id, ws_data in workspace_items.items():
                 "JobType": job.get("jobType", ""),
                 "InvokeType": job.get("invokeType", ""),
                 "Status": job.get("status", ""),
-                "FailureReason": job.get("failureReason", "") or "",
+                "FailureReason": failure_reason.replace(",", ";"),
                 "RootActivityId": job.get("rootActivityId", ""),
-                "StartTimeUtc": start,
-                "EndTimeUtc": end or "",
+                "StartTimeUtc": effective_start,
+                "EndTimeUtc": effective_end,
                 "DurationSeconds": duration,
                 "CorrelationGroup": "",
                 "IngestedAt": now,

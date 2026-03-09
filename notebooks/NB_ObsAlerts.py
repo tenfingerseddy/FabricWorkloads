@@ -89,7 +89,7 @@ def kql_query(query):
 # Get success rate per item (last 7 days)
 success_rate_query = """
 FabricEvents
-| where StartTimeUtc > ago(7d)
+| where coalesce(StartTimeUtc, IngestedAt) > ago(7d)
 | where Status in ("Completed", "Failed")
 | summarize
     TotalRuns = count(),
