@@ -1,0 +1,255 @@
+/**
+ * ============================================================================
+ * WorkbenchDashboard Item - Specific Styles
+ * ============================================================================
+ *
+ * Observability Workbench color scheme:
+ *   Primary: #0078D4 (Microsoft Fabric blue)
+ *   Accent:  #e8712a (Orange)
+ *
+ * Uses Fabric UX design tokens for consistency with Fluent UI v9.
+ */
+
+// ============================================================================
+// Dashboard Layout
+// ============================================================================
+
+.workbench-dashboard-view {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: var(--spacingVerticalXL);
+  border-radius: 0;
+  flex-shrink: 0;
+  padding: var(--spacingHorizontalXXL);
+  box-sizing: border-box;
+}
+
+.workbench-dashboard-title {
+  font-size: 28px;
+  font-weight: var(--fontWeightSemibold);
+  line-height: 36px;
+  color: var(--colorNeutralForegroundStatic);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+}
+
+.workbench-dashboard-subtitle {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightRegular);
+  color: var(--colorNeutralForeground2);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+}
+
+// ============================================================================
+// Toolbar Row (workspace selector + time range)
+// ============================================================================
+
+.workbench-dashboard-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalL);
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.workbench-dashboard-toolbar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+
+  label {
+    font-size: var(--fontSizeBase200);
+    font-weight: var(--fontWeightSemibold);
+    color: var(--colorNeutralForeground2);
+    white-space: nowrap;
+  }
+}
+
+// ============================================================================
+// SLO Cards Grid
+// ============================================================================
+
+.workbench-dashboard-slo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacingHorizontalL);
+  width: 100%;
+}
+
+.workbench-dashboard-slo-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow4);
+  }
+}
+
+.workbench-dashboard-slo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workbench-dashboard-slo-card-name {
+  font-size: var(--fontSizeBase400);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+}
+
+.workbench-dashboard-slo-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--spacingVerticalXS) 0;
+}
+
+.workbench-dashboard-slo-metric-label {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground2);
+}
+
+.workbench-dashboard-slo-metric-value {
+  font-size: var(--fontSizeBase400);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+}
+
+.workbench-dashboard-slo-metric-value--success {
+  color: #107c10;
+}
+
+.workbench-dashboard-slo-metric-value--warning {
+  color: #e8712a;
+}
+
+.workbench-dashboard-slo-metric-value--danger {
+  color: #d13438;
+}
+
+// ============================================================================
+// Incident Timeline
+// ============================================================================
+
+.workbench-dashboard-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalM);
+}
+
+.workbench-dashboard-section-title {
+  font-size: 20px;
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+  padding-bottom: var(--spacingVerticalS);
+  border-bottom: 2px solid #0078D4;
+}
+
+// ============================================================================
+// Failed Jobs Table
+// ============================================================================
+
+.workbench-dashboard-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+}
+
+// ============================================================================
+// Empty State
+// ============================================================================
+
+.workbench-dashboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingVerticalXL);
+  padding: 80px var(--spacingHorizontalXXL);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.workbench-dashboard-empty-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0078D4 0%, #e8712a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 48px;
+}
+
+.workbench-dashboard-empty-title {
+  font-size: 24px;
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+}
+
+.workbench-dashboard-empty-description {
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground2);
+  max-width: 480px;
+  line-height: var(--lineHeightBase400);
+  margin: 0;
+}
+
+// ============================================================================
+// Status Badge
+// ============================================================================
+
+.workbench-dashboard-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: var(--spacingHorizontalXS);
+
+  &--healthy {
+    background-color: #107c10;
+  }
+
+  &--warning {
+    background-color: #e8712a;
+  }
+
+  &--critical {
+    background-color: #d13438;
+  }
+}
+
+// ============================================================================
+// Responsive
+// ============================================================================
+
+@media (max-width: 900px) {
+  .workbench-dashboard-slo-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench-dashboard-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

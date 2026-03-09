@@ -1,0 +1,34 @@
+{
+    "name": "AlertRule",
+    "version": "1.100",
+    "displayName": "AlertRule_DisplayName",
+    "displayNamePlural": "AlertRule_DisplayName_Plural",
+    "editor": {
+      "path": "/AlertRule-editor"
+    },
+    "icon": {
+      "name": "assets/images/AlertRule_Icon.png"
+    },
+    "activeIcon": {
+      "name": "assets/images/AlertRule_Icon.png"
+    },
+    "contextMenuItems": [
+    ],
+    "quickActionItems": [
+    ],
+    "supportedInMonitoringHub": true,
+    "supportedInDatahubL1": true,
+    "itemJobActionConfig": {
+    },
+    "editorTab": {
+      "onDeactivate": "item.tab.onDeactivate",
+      "canDeactivate": "item.tab.canDeactivate",
+      "canDestroy": "item.tab.canDestroy",
+      "onDestroy": "item.tab.onDestroy",
+      "onDelete": "item.tab.onDelete"
+    },
+    "createItemDialogConfig": {
+      "onCreationFailure": { "action": "item.onCreationFailure" },
+      "onCreationSuccess": { "action": "item.onCreationSuccess" }
+    }
+  }

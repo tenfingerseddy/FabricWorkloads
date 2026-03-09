@@ -1,0 +1,291 @@
+/**
+ * ============================================================================
+ * SLODefinition Item - Specific Styles
+ * ============================================================================
+ *
+ * Observability Workbench color scheme:
+ *   Primary: #0078D4 (Microsoft Fabric blue)
+ *   Accent:  #e8712a (Orange)
+ */
+
+// ============================================================================
+// SLO Definition Layout
+// ============================================================================
+
+.slo-definition-view {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: var(--spacingVerticalXL);
+  border-radius: 0;
+  flex-shrink: 0;
+  padding: var(--spacingHorizontalXXL);
+  box-sizing: border-box;
+}
+
+.slo-definition-title {
+  font-size: 28px;
+  font-weight: var(--fontWeightSemibold);
+  line-height: 36px;
+  color: var(--colorNeutralForegroundStatic);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+}
+
+// ============================================================================
+// Status Header
+// ============================================================================
+
+.slo-definition-status-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalXL);
+  width: 100%;
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  box-sizing: border-box;
+  flex-wrap: wrap;
+}
+
+.slo-definition-status-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacingVerticalXS);
+  min-width: 100px;
+}
+
+.slo-definition-status-value {
+  font-size: 32px;
+  font-weight: var(--fontWeightBold);
+  font-family: var(--fontFamilyBase);
+
+  &--healthy {
+    color: #107c10;
+  }
+
+  &--warning {
+    color: #e8712a;
+  }
+
+  &--critical {
+    color: #d13438;
+  }
+}
+
+.slo-definition-status-label {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground2);
+  font-family: var(--fontFamilyBase);
+}
+
+.slo-definition-status-divider {
+  width: 1px;
+  height: 48px;
+  background: var(--colorNeutralStroke2);
+}
+
+// ============================================================================
+// Error Budget Bar
+// ============================================================================
+
+.slo-definition-error-budget {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  flex: 1;
+  min-width: 200px;
+}
+
+.slo-definition-error-budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.slo-definition-error-budget-label {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+}
+
+.slo-definition-error-budget-value {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightBold);
+  color: var(--colorNeutralForeground1);
+}
+
+// ============================================================================
+// Form Sections
+// ============================================================================
+
+.slo-definition-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXXL);
+  width: 100%;
+  max-width: 720px;
+}
+
+.slo-definition-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalM);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+}
+
+.slo-definition-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  padding-bottom: var(--spacingVerticalS);
+  border-bottom: 2px solid #0078D4;
+}
+
+.slo-definition-section-icon {
+  color: #0078D4;
+  font-size: 20px;
+}
+
+.slo-definition-section-title {
+  font-size: var(--fontSizeBase500);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+}
+
+// ============================================================================
+// Form Fields
+// ============================================================================
+
+.slo-definition-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXS);
+}
+
+.slo-definition-field-label {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground2);
+  font-family: var(--fontFamilyBase);
+}
+
+.slo-definition-field-description {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+  font-family: var(--fontFamilyBase);
+  margin: 0;
+}
+
+.slo-definition-field-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  flex-wrap: wrap;
+}
+
+// ============================================================================
+// Target Preview
+// ============================================================================
+
+.slo-definition-target-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalL);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalL);
+  background: var(--colorNeutralBackground2);
+  border-radius: var(--borderRadiusMedium);
+  flex-wrap: wrap;
+}
+
+.slo-definition-target-preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.slo-definition-target-preview-label {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+}
+
+.slo-definition-target-preview-value {
+  font-size: var(--fontSizeBase400);
+  font-weight: var(--fontWeightSemibold);
+  color: #0078D4;
+}
+
+// ============================================================================
+// Empty State
+// ============================================================================
+
+.slo-definition-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingVerticalXL);
+  padding: 80px var(--spacingHorizontalXXL);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.slo-definition-empty-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0078D4 0%, #005a9e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 48px;
+}
+
+.slo-definition-empty-title {
+  font-size: 24px;
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+}
+
+.slo-definition-empty-description {
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground2);
+  max-width: 480px;
+  line-height: var(--lineHeightBase400);
+  margin: 0;
+}
+
+// ============================================================================
+// Responsive
+// ============================================================================
+
+@media (max-width: 700px) {
+  .slo-definition-status-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .slo-definition-status-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .slo-definition-target-preview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

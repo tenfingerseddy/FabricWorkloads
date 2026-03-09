@@ -1,0 +1,123 @@
+{
+    "name": "Product",
+    "version": "1.100",
+    "displayName": "ObservabilityWorkbench_Display_Name",
+    "fullDisplayName": "ObservabilityWorkbench_Full_Display_Name",
+    "description": "ObservabilityWorkbench_Description",
+    "favicon": "assets/images/Workload_Icon.png",
+    "icon": {
+      "name": "assets/images/Workload_Icon.png"
+    },
+    "homePage": {
+      "learningMaterials": [
+        {
+          "title": "ObservabilityWorkbench_Hub_GetStarted_1_Title",
+          "introduction": "ObservabilityWorkbench_Hub_GetStarted_1_Sub_Title",
+          "description": "ObservabilityWorkbench_Hub_GetStarted_1_Description",
+          "image": "assets/images/Workload_Hub_GetStarted_1.png",
+          "link": "https://aka.ms/observability-workbench-docs"
+        }
+      ],
+      "newSection": {
+        "customActions": [
+        ]
+      },
+      "recommendedItemTypes": [
+        "WorkbenchDashboard",
+        "SLODefinition",
+        "AlertRule"
+      ]
+    },
+    "createExperience": {
+      "description": "ObservabilityWorkbench_Description",
+      "cards": [
+        {
+          "title": "WorkbenchDashboard_DisplayName",
+          "description": "WorkbenchDashboard_Description",
+          "icon": {
+            "name": "assets/images/WorkbenchDashboard_Icon.png"
+          },
+          "icon_small": {
+            "name": "assets/images/WorkbenchDashboard_Icon.png"
+          },
+          "availableIn": [
+            "home",
+            "create-hub",
+            "workspace-plus-new",
+            "workspace-plus-new-teams"
+          ],
+          "itemType": "WorkbenchDashboard",
+          "createItemDialogConfig": {
+            "onCreationFailure": { "action": "item.onCreationFailure" },
+            "onCreationSuccess": { "action": "item.onCreationSuccess" }
+          }
+        },
+        {
+          "title": "SLODefinition_DisplayName",
+          "description": "SLODefinition_Description",
+          "icon": {
+            "name": "assets/images/SLODefinition_Icon.png"
+          },
+          "icon_small": {
+            "name": "assets/images/SLODefinition_Icon.png"
+          },
+          "availableIn": [
+            "home",
+            "create-hub",
+            "workspace-plus-new",
+            "workspace-plus-new-teams"
+          ],
+          "itemType": "SLODefinition",
+          "createItemDialogConfig": {
+            "onCreationFailure": { "action": "item.onCreationFailure" },
+            "onCreationSuccess": { "action": "item.onCreationSuccess" }
+          }
+        },
+        {
+          "title": "AlertRule_DisplayName",
+          "description": "AlertRule_Description",
+          "icon": {
+            "name": "assets/images/AlertRule_Icon.png"
+          },
+          "icon_small": {
+            "name": "assets/images/AlertRule_Icon.png"
+          },
+          "availableIn": [
+            "home",
+            "create-hub",
+            "workspace-plus-new",
+            "workspace-plus-new-teams"
+          ],
+          "itemType": "AlertRule",
+          "createItemDialogConfig": {
+            "onCreationFailure": { "action": "item.onCreationFailure" },
+            "onCreationSuccess": { "action": "item.onCreationSuccess" }
+          }
+        }
+      ]
+    },
+    "productDetail": {
+      "publisher": "AI Agency",
+      "slogan": "ObservabilityWorkbench_Hub_Slogan",
+      "description": "ObservabilityWorkbench_Hub_Description",
+      "image": {
+        "mediaType": 0,
+        "source": "assets/images/Workload_Hub_Banner.png"
+      },
+      "slideMedia": [
+        {
+          "mediaType": 0,
+          "source": "assets/images/Workload_Hub_SlideMedia_1.png"
+        }
+      ],
+      "supportLink": {
+        "documentation": { "url": "https://aka.ms/observability-workbench-docs" },
+        "help": { "url": "https://aka.ms/observability-workbench-help" },
+        "privacy": { "url": "https://aka.ms/observability-workbench-privacy" },
+        "terms": { "url": "https://aka.ms/observability-workbench-terms" },
+        "license": { "url": "https://aka.ms/observability-workbench-license" }
+      }
+    },
+    "itemJobTypes": ["evaluateSLOs", "runAlertChecks"],
+    "compatibleItemTypes": ["Lakehouse", "Pipeline", "Notebook"]
+}

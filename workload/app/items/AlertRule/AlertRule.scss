@@ -1,0 +1,241 @@
+/**
+ * ============================================================================
+ * AlertRule Item - Specific Styles
+ * ============================================================================
+ *
+ * Observability Workbench color scheme:
+ *   Primary: #0078D4 (Microsoft Fabric blue)
+ *   Accent:  #e8712a (Orange)
+ */
+
+// ============================================================================
+// Alert Rule Layout
+// ============================================================================
+
+.alert-rule-view {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: var(--spacingVerticalXL);
+  border-radius: 0;
+  flex-shrink: 0;
+  padding: var(--spacingHorizontalXXL);
+  box-sizing: border-box;
+}
+
+.alert-rule-title {
+  font-size: 28px;
+  font-weight: var(--fontWeightSemibold);
+  line-height: 36px;
+  color: var(--colorNeutralForegroundStatic);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+}
+
+// ============================================================================
+// Form Sections
+// ============================================================================
+
+.alert-rule-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXXL);
+  width: 100%;
+  max-width: 720px;
+}
+
+.alert-rule-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalM);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+}
+
+.alert-rule-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  padding-bottom: var(--spacingVerticalS);
+  border-bottom: 2px solid #0078D4;
+}
+
+.alert-rule-section-icon {
+  color: #0078D4;
+  font-size: 20px;
+}
+
+.alert-rule-section-title {
+  font-size: var(--fontSizeBase500);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+  font-family: var(--fontFamilyBase);
+}
+
+// ============================================================================
+// Form Fields
+// ============================================================================
+
+.alert-rule-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXS);
+}
+
+.alert-rule-field-label {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground2);
+  font-family: var(--fontFamilyBase);
+}
+
+.alert-rule-field-description {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+  font-family: var(--fontFamilyBase);
+  margin: 0;
+}
+
+.alert-rule-field-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  flex-wrap: wrap;
+}
+
+.alert-rule-condition-builder {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  padding: var(--spacingVerticalM);
+  background: var(--colorNeutralBackground2);
+  border-radius: var(--borderRadiusMedium);
+  flex-wrap: wrap;
+}
+
+.alert-rule-condition-text {
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground1);
+  font-weight: var(--fontWeightSemibold);
+}
+
+// ============================================================================
+// Toggle Row
+// ============================================================================
+
+.alert-rule-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacingVerticalM) var(--spacingHorizontalL);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+}
+
+.alert-rule-toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-rule-toggle-title {
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+}
+
+.alert-rule-toggle-subtitle {
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
+}
+
+// ============================================================================
+// Test Alert Banner
+// ============================================================================
+
+.alert-rule-test-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalL);
+  border-radius: var(--borderRadiusMedium);
+  background: #fff4ce;
+  border: 1px solid #e8712a;
+
+  &--success {
+    background: #dff6dd;
+    border-color: #107c10;
+  }
+
+  &--error {
+    background: #fde7e9;
+    border-color: #d13438;
+  }
+}
+
+// ============================================================================
+// Empty State
+// ============================================================================
+
+.alert-rule-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingVerticalXL);
+  padding: 80px var(--spacingHorizontalXXL);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.alert-rule-empty-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8712a 0%, #d13438 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 48px;
+}
+
+.alert-rule-empty-title {
+  font-size: 24px;
+  font-weight: var(--fontWeightSemibold);
+  color: var(--colorNeutralForeground1);
+  margin: 0;
+}
+
+.alert-rule-empty-description {
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground2);
+  max-width: 480px;
+  line-height: var(--lineHeightBase400);
+  margin: 0;
+}
+
+// ============================================================================
+// Responsive
+// ============================================================================
+
+@media (max-width: 700px) {
+  .alert-rule-condition-builder {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .alert-rule-field-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
